@@ -12,7 +12,6 @@ from urllib.request import urlopen
 @dataclass(frozen=True)
 class Source:
     url: str
-    algorithme: str
     empreinte: str
     attribution: str
 
@@ -21,25 +20,25 @@ SOURCES = {
     "reduit": Source(
         "https://media.githubusercontent.com/media/Amodio/cemantbot/refs/heads/main/"
         "models/frWac_no_postag_phrase_500_cbow_cut10_stripped.bin",
-        "sha256", "a6c1be2d04c7072bfbf9b053b937648f95fc57a2a85183a6364a7f6f3ee92587",
+        "a6c1be2d04c7072bfbf9b053b937648f95fc57a2a85183a6364a7f6f3ee92587",
         "Jean-Philippe Fauconnier, French Word Embeddings (CC BY 3.0), sélection Amodio/Cemantbot",
     ),
     "original": Source(
         "https://embeddings.net/embeddings/frWac_no_postag_phrase_500_cbow_cut10.bin",
-        "md5", "14da334ef867fec69a086cd6b4805609",
+        "8ec240bf8270138f5bb29232cf93e3f44060a42cacec57b702dbe2dbf67d7976",
         "Jean-Philippe Fauconnier, French Word Embeddings (CC BY 3.0)",
     ),
 }
 
 
-def empreinte(fichier: Path, algorithme: str = "sha256") -> str:
+def empreinte(fichier: Path) -> str:
     with fichier.open("rb") as flux:
-        return hashlib.file_digest(flux, algorithme).hexdigest()
+        return hashlib.file_digest(flux, "sha256").hexdigest()
 
 
 def verifier(fichier: Path, source: Source) -> None:
-    if empreinte(fichier, source.algorithme) != source.empreinte:
-        raise ValueError(f"Empreinte {source.algorithme} incorrecte pour {fichier}.")
+    if empreinte(fichier) != source.empreinte:
+        raise ValueError(f"Empreinte SHA-256 incorrecte pour {fichier}.")
 
 
 def acquerir(nom: str, cache: Path) -> Path:
