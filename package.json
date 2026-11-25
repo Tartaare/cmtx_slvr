@@ -1,0 +1,21 @@
+{
+  "name": "cemantix-console",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22.16"
+  },
+  "scripts": {
+    "build": "tsc",
+    "start": "node --disable-warning=ExperimentalWarning --experimental-strip-types cli.ts",
+    "test": "node --disable-warning=ExperimentalWarning --experimental-strip-types --test test/*.test.ts"
+  },
+  "dependencies": {
+    "playwright-core": "1.65.0"
+  },
+  "devDependencies": {
+    "@types/node": "22.20.7",
+    "typescript": "5.9.3"
+  }
+}
