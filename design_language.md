@@ -10,6 +10,7 @@ Dans l’atelier de résolution, la carte, la proposition du solveur et le journ
 | Action principale | Ambre `#f5b86d` pour jouer un essai, signaler le suivi et repérer le focus clavier. |
 | Typographie | Sans empattement pour la navigation et le mot proposé. Chasse fixe pour les libellés de carte, relevés et mesures. Piles de polices locales définies dans `interface/style.css`. |
 | Dictionnaire | Une particule ronde et ombrée par mot. La taille apparente augmente au premier plan avec un plafond progressif. La couleur identifie le groupe de vecteurs. Les arcs fins suivent la scène 3D jusque sur les bords de la vue. Le zoom révèle davantage de liens locaux. |
+| Repères | En vue globale, les champs lexicaux s’affichent au voisinage du centre de leur groupe, avec une pastille de sa couleur. Les mots apparaissent en vue rapprochée. Les libellés se répartissent sans recouvrir les commandes ou les repères prioritaires. |
 | Résultats | Sur une grille réelle, dès qu’un essai est localisable, les mots non testés et leurs arcs passent au second plan. Les arcs pointillés suivent l’ordre des essais. Un contour signale un essai, une étoile repère le meilleur et une coche indique la victoire. |
 | Mouvement | Une caméra continue entre trois échelles. Une manipulation suspend le suivi. La préférence système de réduction du mouvement applique la pose directement. |
 | Petit écran | À l’accueil, la scène suit la hauteur visible et les commandes respectent les zones sûres. Dans l’atelier, la commande de jeu et le journal se lisent sous la carte, dans une colonne. |

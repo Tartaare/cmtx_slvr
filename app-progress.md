@@ -1,5 +1,11 @@
 # Avancement
 
+## Sprint 25 — Champs lexicaux en vue globale
+
+US-037 donne un nom aux seize groupes de l’atlas à partir de leurs mots représentatifs. Les libellés se placent près de leur centre projeté et reprennent la couleur du groupe. Le placement évite les collisions avec les commandes et les repères prioritaires. En vue rapprochée, la carte affiche les mots. Sur une grille réelle, le contraste des essais conserve la priorité.
+
+Le build TypeScript, les quatre tests Node, les 26 tests Python et les deux parcours Edge passent. Le contrôle visuel affiche seize champs à 1 440 pixels et cinq à 320 pixels. Le parcours confirme que les champs cèdent la place aux mots en vue immersive.
+
 ## Sprint 24 — Fluidité et profondeur de la carte
 
 US-035 dessine les arcs sémantiques par lots en WebGL. La géométrie préparée au chargement conserve les portions d’arcs qui traversent le cadre. Le zoom révèle des liens supplémentaires dans les zones visibles. Le budget de dessin et la résolution s’adaptent pendant les déplacements, y compris lorsque la réduction du mouvement est active.
