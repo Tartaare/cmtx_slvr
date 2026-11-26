@@ -1,5 +1,9 @@
 # Avancement
 
+## Sprint 14 — Connexion au moteur local
+
+US-022 détecte au démarrage les installations de NumPy dépourvues de `vecdot`. Une exception interne du moteur renvoie désormais un diagnostic HTTP. Lors d’une coupure réseau, l’atelier retente une lecture une fois et invite à recharger la partie si la coupure persiste. Chaque action de jeu reste soumise une seule fois. Le parcours navigateur simule les coupures persistantes et transitoires. Le build, les 26 tests Python avec NumPy 2.3.5, les trois tests Node et le parcours navigateur passent.
+
 ## Sprint 13 — Accès aux modèles sous Windows
 
 US-021 rétablit l’accès en lecture aux fichiers préparés des modèles réduit et original pour le compte Windows de l’atelier. Les fichiers avaient été préparés sous un autre compte. La création avec le modèle réduit et son secours original, le premier essai et la création avec le modèle original ont été vérifiés sous le compte de l’atelier sur une base temporaire. Le build, les 26 tests Python, les trois tests Node et le parcours Edge passent.
