@@ -118,47 +118,39 @@ test("l’accueil affiche la carte sur toute la fenêtre sans ouvrir de partie",
       const option = await afficherChamps.locator("..").boundingBox();
       const zoom = await page.locator("#outils-carte").boundingBox();
       assert.ok(option && zoom && option.y + option.height < zoom.y);
-      const navigation = page.getByRole("group", {name: "Aperçu de la navigation"});
+      const navigation = page.getByRole("navigation", {name: "Vues de Cémantix"});
       const dock = await navigation.boundingBox();
       assert.ok(dock && Math.abs(dock.x * 2 + dock.width - dimensions.width) < 1);
       assert.ok(zoom.y + zoom.height < dock.y || dock.x + dock.width < zoom.x);
       const lentille = navigation.locator(".dock-lentille");
-      const carte = navigation.getByRole("radio", {name: "Carte des mots"});
-      const grille = navigation.getByRole("radio", {name: "Grille du jour"});
-      const parties = navigation.getByRole("radio", {name: "Parties locales"});
-      assert.ok(await carte.isChecked());
+      const carte = navigation.getByRole("link", {name: "Carte des mots"});
+      const grille = navigation.getByRole("link", {name: "Grille du jour"});
+      const parties = navigation.getByRole("link", {name: "Parties locales"});
+      assert.equal(await carte.getAttribute("aria-current"), "page");
       if (dimensions.width === 1440) {
         await page.emulateMedia({reducedMotion: "no-preference"});
-        await grille.click();
+        const depart = (await grille.boundingBox())!;
+        const arrivee = (await carte.boundingBox())!;
+        await page.mouse.move(depart.x + depart.width / 2, depart.y + depart.height / 2);
+        await page.mouse.down();
         const soulevee = page.locator(".dock[data-soulevee]");
         await page.waitForFunction(() => {
           const drop = document.querySelector<HTMLElement>(".dock[data-soulevee] .dock-lentille");
           return drop && drop.getBoundingClientRect().height > drop.offsetHeight * 1.1;
         }, undefined, {timeout: 3000});
-        await soulevee.waitFor({state: "detached", timeout: 5000});
-        const depart = (await grille.boundingBox())!;
-        const arrivee = (await carte.boundingBox())!;
-        await page.mouse.move(depart.x + depart.width / 2, depart.y + depart.height / 2);
-        await page.mouse.down();
         await page.mouse.move(arrivee.x + arrivee.width / 2, arrivee.y + arrivee.height / 2, {steps: 10});
         await page.locator('.dock[data-soulevee][data-survol="2"]').waitFor({timeout: 3000});
-        const pictogramme = await navigation.locator(".dock-reflet label:last-child svg").boundingBox();
+        const pictogramme = await navigation.locator(".dock-reflet a:last-child svg").boundingBox();
         assert.ok(pictogramme && pictogramme.width > 21);
-        assert.ok(await grille.isChecked());
+        assert.equal(page.url(), url);
         await page.mouse.up();
-        assert.ok(await carte.isChecked());
         await soulevee.waitFor({state: "detached", timeout: 5000});
         await page.emulateMedia({reducedMotion: "reduce"});
       }
-      await grille.click();
-      assert.deepEqual(await Promise.all([grille.isChecked(), parties.isChecked(), carte.isChecked()]), [true, false, false]);
       await grille.press("ArrowRight");
-      assert.ok(await parties.isChecked());
       assert.ok(await parties.evaluate(element => element.matches(":focus-visible")));
       assert.equal(await navigation.getAttribute("data-soulevee"), null);
-      assert.ok(Math.abs((await lentille.boundingBox())!.x - (await parties.boundingBox())!.x) < 1);
-      await parties.press("ArrowRight");
-      assert.ok(await carte.isChecked());
+      assert.ok(Math.abs((await lentille.boundingBox())!.x - (await carte.boundingBox())!.x) < 1);
       assert.equal(page.url(), url);
       const libelles = await lireLibelles(page, "Home");
       const noms = libelles.map(({texte}) => texte);
@@ -249,6 +241,64 @@ test("l’accueil affiche la carte sur toute la fenêtre sans ouvrir de partie",
     assert.deepEqual(autre, [autre[0], autre[0], autre[0], normal.couleurs[1][3]]);
     assert.ok(normal.couleurs[1][0] > normal.couleurs[1][2]);
     assert.deepEqual(erreurs, []);
+  } finally {
+    if (serveur) await fermer(serveur);
+    await navigateur.close();
+    await rm(dossier, {recursive: true, force: true});
+  }
+});
+
+test("la barre ouvre les vues et affiche le contexte du jeu sous Cémantix", {timeout: 90000}, async () => {
+  const dossier = await mkdtemp(join(tmpdir(), "cemantix-vues-"));
+  const navigateur = await ouvrirNavigateur();
+  let serveur: ChildProcessWithoutNullStreams | undefined;
+  try {
+    let url: string;
+    [serveur, url] = await demarrer(join(dossier, "sessions.sqlite3"));
+    const page = await navigateur.newPage({viewport: {width: 375, height: 780}, hasTouch: true, reducedMotion: "reduce"});
+    const jour = new URL("/jour", url).href, atelier = new URL("/atelier", url).href;
+    const api = new URL("/api/parties", url).href;
+    const dock = page.getByRole("navigation", {name: "Vues de Cémantix"});
+    const grille = dock.getByRole("link", {name: "Grille du jour"});
+    const local = dock.getByRole("link", {name: "Parties locales"});
+    const carte = dock.getByRole("link", {name: "Carte des mots"});
+    await page.route("**/api/grille-du-jour", route => route.abort("connectionreset"), {times: 2});
+    await page.goto(url);
+    await grille.tap();
+    await page.waitForURL(jour);
+    await page.getByText("Numéro indisponible", {exact: true}).waitFor();
+    await page.getByRole("button", {name: "Réessayer"}).click();
+    await page.getByText("n°1234", {exact: true}).waitFor();
+    assert.equal(await grille.getAttribute("aria-current"), "page");
+    const logo = (await page.getByRole("link", {name: "Cémantix, accueil"}).boundingBox())!;
+    const numero = (await page.getByText("n°1234", {exact: true}).boundingBox())!;
+    assert.ok(numero.y >= logo.y + logo.height && numero.x >= logo.x);
+    assert.deepEqual(await (await page.request.get(api)).json(), []);
+
+    await page.getByRole("button", {name: "Nouvelle partie"}).click();
+    await page.getByRole("button", {name: "Résoudre la grille du jour"}).click();
+    await page.getByText("Solution confirmée", {exact: true}).first().waitFor();
+    await grille.press("ArrowRight");
+    await page.keyboard.press("Enter");
+    await page.waitForURL(atelier);
+    await page.getByText("Partie Locale", {exact: true}).waitFor();
+    await page.locator("#atelier-vide").waitFor();
+    assert.equal(await local.getAttribute("aria-current"), "page");
+    assert.ok(await page.getByText("n°1234", {exact: true}).isHidden());
+    assert.ok(await page.evaluate(() => document.body.scrollWidth <= innerWidth));
+    await page.goBack();
+    await page.waitForURL(jour);
+    await page.getByText("Solution confirmée", {exact: true}).first().waitFor();
+    await page.emulateMedia({reducedMotion: "no-preference"});
+    const depart = (await grille.boundingBox())!, arrivee = (await carte.boundingBox())!;
+    await page.mouse.move(depart.x + depart.width / 2, depart.y + depart.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(arrivee.x + arrivee.width / 2, arrivee.y + arrivee.height / 2, {steps: 8});
+    await page.locator('.dock[data-soulevee][data-survol="2"]').waitFor({timeout: 3000});
+    assert.equal(page.url(), jour);
+    await page.mouse.up();
+    await page.waitForURL(url);
+    assert.equal(await carte.getAttribute("aria-current"), "page");
   } finally {
     if (serveur) await fermer(serveur);
     await navigateur.close();

@@ -2,9 +2,13 @@ import {afficher, el, nom, statuts, texte} from "./rendu.js";
 import type {Archive, Config, Observation, Partie} from "./rendu.js";
 
 import {actualiserGalaxie, annulerFoyer, effacerPartie, essaiEnCours, ouvrirGalaxie} from "./galaxie.js";
+import {animerLentille} from "./lentille.js";
 
 void ouvrirGalaxie();
-const api = "/api/parties", cleSession = "cemantix-session";
+animerLentille(document.querySelector<HTMLElement>(".dock")!);
+const quotidien = location.pathname === "/jour";
+const api = "/api/parties", cleSession = quotidien ? "cemantix-session-jour" : "cemantix-session";
+let numeroJour = "";
 let session: Partie | null = null, occupe = false, automatique = false;
 let prochainTour: number | undefined;
 const creation = el<HTMLFormElement>("creation"), score = el<HTMLFormElement>("score");
@@ -71,6 +75,7 @@ function onglet(archives: boolean): void {
   texte("titre",archives?"Mes parties":"Galaxie sémantique");
 }
 function choisir(s: Partie, vueInitiale=false): void {
+  if (quotidien) afficherNumero(s.config.grille);
   session=s;localStorage.setItem(cleSession,s.id);onglet(false);afficher(s);actualiserGalaxie(s,vueInitiale);
   texte("message",nom(s)+" · "+statuts[s.statut]+" · "+s.essais.length+" essais");
   if(s.statut!=="active")automatique=false;
@@ -105,6 +110,7 @@ function sourceChange(): void {
 function nouvelle(config?: Config): void {
   window.clearTimeout(prochainTour);automatique=false;creation.reset();
   if(config)for(const [k,v] of Object.entries(config))champ(creation,k).value=String(v);
+  if(quotidien)champ(creation,"source").value="jour";
   sourceChange();parametres.showModal();
 }
 el("nouvelle").onclick=()=>nouvelle();
@@ -181,10 +187,13 @@ function listeVide(): void {
   const vide=document.createElement("p");vide.className="empty";vide.textContent="Aucune partie enregistrée.";
   el("liste").append(vide);
 }
+const grilleCourante = (a: Archive): boolean => a.config.source === "jour" && a.config.grille === numeroJour;
 el("archives").onclick=()=>{
   window.clearTimeout(prochainTour);automatique=false;
   void traiter(async()=>{
-    const archives=await requete<Archive[]>(api);onglet(true);
+    const parties=await requete<Archive[]>(api);
+    const archives=quotidien?parties.filter(grilleCourante):parties;
+    onglet(true);
     const liste=el("liste");liste.replaceChildren();
     for(const a of archives){
       const ligne=document.createElement("div");ligne.className="archive";
@@ -229,10 +238,39 @@ formulaireSuppression.onsubmit=async e=>{
   if(!suppression.open){focus.focus();texte("message",`${nom(archive)} : partie supprimée.`)}
   else formulaireSuppression.querySelector<HTMLButtonElement>("button[type=submit]")!.focus();
 };
-void traiter(async()=>{
-  const archives=await requete<Archive[]>(api);
-  const id=localStorage.getItem(cleSession), archive=archives.find(a=>a.id===id)??archives[0];
-  if(archive)choisir(await requete<Partie>(api+"/"+archive.id),true);
-  else if(id===null)choisir(await requete<Partie>(api,{initial:true}));
-  else {listeVide();onglet(true)}
-});
+function afficherNumero(grille: string): void {
+  numeroJour=grille;
+  texte("sous-titre","n°"+grille);
+}
+
+function initialiser(): void {
+  void traiter(async()=>{
+    if(quotidien){
+      el("retenter-jour").hidden=true;
+      texte("sous-titre","Grille du jour…");
+      try {
+        const {grille}=await requete<{grille:string}>("/api/grille-du-jour");
+        if(typeof grille!=="string" || !/^[0-9]+$/.test(grille))throw new Error("Numéro de grille illisible.");
+        afficherNumero(grille);
+      } catch(erreur) {
+        texte("sous-titre","Numéro indisponible");
+        el("retenter-jour").hidden=false;
+        onglet(false);
+        throw erreur;
+      }
+    }
+    const parties=await requete<Archive[]>(api);
+    const disponibles=parties.filter(a=>quotidien?grilleCourante(a):a.config.source!=="jour");
+    const id=localStorage.getItem(cleSession), archive=disponibles.find(a=>a.id===id)??disponibles[0];
+    if(archive)choisir(await requete<Partie>(api+"/"+archive.id),true);
+    else if(!quotidien && id===null && !parties.length)choisir(await requete<Partie>(api,{initial:true}));
+    else if(quotidien || parties.length)onglet(false);
+    else {listeVide();onglet(true)}
+  });
+}
+if(quotidien){
+  champ(creation,"source").closest("label")!.hidden=true;
+  texte("atelier-vide","Démarrez une nouvelle partie pour résoudre la grille du jour.");
+  el("retenter-jour").onclick=initialiser;
+}
+initialiser();

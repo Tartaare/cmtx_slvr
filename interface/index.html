@@ -1,15 +1,16 @@
 <!doctype html>
 <html lang="fr">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#090b0d"><title>Galaxie sémantique · Cémantix</title>
 <link rel="icon" href="/logo-cemantix-transparent.png"><link rel="stylesheet" href="/style.css">
 <script type="module" src="/app.js"></script>
 </head>
-<body>
+<body class="atelier-page">
 <a class="skip" href="#titre">Aller à l’atelier</a>
-<header class="bar"><a class="brand" href="/" aria-label="Cémantix, accueil"><img src="/logo-cemantix-transparent.png" alt="">Cémantix</a>
-<nav aria-label="Navigation principale"><button id="atelier" aria-current="page">Atelier</button><button id="archives">Mes parties</button></nav>
+<header class="bar"><div class="marque-atelier"><a class="brand" href="/" aria-label="Cémantix, accueil"><img src="/logo-cemantix-transparent.png" alt="">Cémantix</a>
+<p id="sous-titre" role="status"><!-- sous-titre --></p><button type="button" id="retenter-jour" hidden>Réessayer</button></div>
+<nav aria-label="Navigation de l’atelier"><button id="atelier" aria-current="page">Atelier</button><button id="archives">Mes parties</button></nav>
 <button id="nouvelle"><span aria-hidden="true">＋</span> Nouvelle partie</button></header>
 <main>
 <div class="heading"><div><p class="kicker" id="rubrique">Atelier de résolution</p><h1 id="titre" tabindex="-1">Galaxie sémantique</h1></div>
@@ -60,4 +61,5 @@
 <p id="suppression-cible"></p><p id="suppression-details">La partie et son journal seront définitivement supprimés.</p>
 <p class="feedback" role="alert"></p><div class="actions"><button type="button" data-close autofocus>Annuler</button><button type="submit" class="danger">Supprimer la partie</button></div>
 </form></dialog>
+<!-- navigation -->
 </body></html>
