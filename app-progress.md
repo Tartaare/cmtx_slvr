@@ -1,5 +1,11 @@
 # Avancement
 
+## Sprint 28 — Halo néon et affichage des champs lexicaux
+
+US-040 remplace les reflets blancs du champ survolé par un cœur lumineux et un halo radial de la couleur du groupe. US-041 ajoute la case « Champs lexicaux » près du zoom sur l’accueil et dans l’atelier. Masquer les titres annule le survol et rétablit les couleurs de la carte.
+
+Le build TypeScript, les quatre tests Node, les 26 tests Python et les deux parcours Edge passent. Les contrôles vérifient la teinte du cœur et l’étendue du halo, ainsi que le masquage et le réaffichage au clavier. La case reste distincte du zoom à 320 pixels.
+
 ## Sprint 27 — Contraste du survol
 
 US-039 convertit les points hors du champ survolé en niveaux de gris en conservant leur opacité et leur relief. Les points du champ survolé conservent leur teinte avec des reflets plus lumineux.
