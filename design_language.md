@@ -2,7 +2,7 @@
 
 L’accueil s’ouvre sur le dictionnaire. La scène 3D couvre la fenêtre bord à bord. Le logo et le titre Cémantix occupent le coin supérieur gauche. La recherche, le zoom, le retour à la vue globale et l’aide de navigation se superposent à la scène.
 
-Les deux vues de jeu reprennent la carte plein écran et ses commandes aux mêmes emplacements. Un panneau graphite superposé présente le mot proposé et l’action principale. Le bouton « Partie » dévoile le journal, le mode automatique et la gestion des sessions. Les diagnostics s’ouvrent dans « Détails ».
+Les deux vues de jeu se superposent à la même carte et laissent ses commandes en place. La barre flottante change le contenu à une adresse unique, en conservant la scène montée. Un panneau graphite présente le mot proposé et l’action principale. Le bouton « Partie » dévoile le journal, le mode automatique et la gestion des sessions. Les diagnostics s’ouvrent dans « Détails ». Sur « Carte des mots », le panneau et les marqueurs d’essais disparaissent.
 
 | Élément | Règle |
 | --- | --- |

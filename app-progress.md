@@ -1,5 +1,11 @@
 # Avancement
 
+## Sprint 35 — Application monopage
+
+US-048 réunit la carte des mots, la grille du jour et les parties locales à la racine. La barre flottante change de vue dans le document courant, conserve le canevas et préserve la recherche et le cadrage lors de la navigation. Le panneau de jeu et les marqueurs d’essais disparaissent en mode dictionnaire. Retour et Suivant parcourent les vues à la même adresse. Les anciennes adresses redirigent vers l’accueil.
+
+Le build TypeScript, les quatre tests Node, les 27 tests Python et les trois parcours Edge passent. Le contrôle navigateur vérifie l’identité du canevas, l’absence de nouvelle requête pour le document ou l’atlas entre les vues et la reprise du jeu. Le diagnostic et le bouton de nouvelle tentative restent limités à la grille du jour. La vérification du cache couvre son injection à la racine, son expiration et les redirections.
+
 ## Sprint 34 — Carte plein écran dans les vues de jeu
 
 US-047 aligne la grille quotidienne et les parties locales sur la carte du dictionnaire. Le panneau « Partie » garde la proposition et l’action de jeu accessibles en mode compact. Le journal, le mode automatique et les commandes de session se déplient à la demande.
