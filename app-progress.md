@@ -1,5 +1,9 @@
 # Avancement
 
+## Sprint 16 — Analyse de la référence UI/UX
+
+US-024 documente la composition en trois colonnes, la typographie, le réseau de mots et les indicateurs de la référence. Le suivi contient 19 critères à cocher lors de l’intégration. Trois choix restent ouverts pour la conception de l’atelier : la signification des liens et des pistes, la mesure de progression et les destinations de navigation. Le build, les trois tests Node, les 26 tests Python et le parcours navigateur passent. [Suivi de la refonte](documents_design/suivi-refonte.md)
+
 ## Sprint 15 — Logo de l’atelier
 
 US-023 affiche le logo fourni dans le lien d’accueil, sur un fond vert profond. Le serveur local livre le PNG avec le type `image/png`. Le parcours Edge vérifie le chargement du logo et l’affichage à 375 pixels. Le build, les 26 tests Python et les trois tests Node passent.
