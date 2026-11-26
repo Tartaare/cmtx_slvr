@@ -6,7 +6,7 @@ export interface Atlas {
   voisins?: number[][];
 }
 
-export const palette = ["ffb458","f39452","fc7966","f16a91","ea6dad","d884ed","bb8bfa","938cfa",
+const palette = ["ffb458","f39452","fc7966","f16a91","ea6dad","d884ed","bb8bfa","938cfa",
   "78a9ff","64c2ef","53d8da","65dbc1","95dc9b","b1db81","d6ce6c","e7c078"];
 
 export function indexer(atlas: Atlas) {

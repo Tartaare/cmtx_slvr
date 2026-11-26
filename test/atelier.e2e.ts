@@ -37,6 +37,27 @@ async function attendreContraste(page: Page, actif: boolean): Promise<void> {
   }, Number(actif));
 }
 
+function mesurerPixels(page: Page, zooms: number): Promise<number[]> {
+  return page.locator("#galaxie").evaluate((canevas: HTMLCanvasElement, nombre) => new Promise<number[]>(fin => {
+    const gl = canevas.getContext("webgl")!;
+    const dessiner = gl.drawArrays;
+    gl.drawArrays = function (mode, debut, compte) {
+      dessiner.call(this, mode, debut, compte);
+      if (mode !== gl.POINTS) return;
+      gl.drawArrays = dessiner;
+      const {width, height} = canevas;
+      const pixels = new Uint8Array(width * height * 4);
+      gl.readPixels(0, 0, width, height, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
+      const moities = [0, 0];
+      for (let i = 0; i < width * height; i++) {
+        if (pixels[4 * i + 3] > 20) moities[Number(i % width >= width / 2)]++;
+      }
+      fin([gl.getError(), ...moities]);
+    };
+    for (let i = 0; i < nombre; i++) canevas.dispatchEvent(new KeyboardEvent("keydown", {key: "+"}));
+  }), zooms);
+}
+
 test("l’accueil affiche la carte sur toute la fenêtre sans ouvrir de partie", {timeout: 90000}, async () => {
   const dossier = await mkdtemp(join(tmpdir(), "cemantix-carte-"));
   const navigateur = await ouvrirNavigateur();
@@ -89,6 +110,28 @@ test("l’accueil affiche la carte sur toute la fenêtre sans ouvrir de partie",
     await page.getByRole("button", {name: "Revenir à la vue globale"}).click();
     await page.waitForFunction(() => document.querySelector("#niveau")?.textContent === "Vue globale");
     assert.deepEqual(appels, []);
+
+    // À ce zoom, les deux mots sont hors champ et seul le milieu de leur arc est visible.
+    await page.setViewportSize({width: 800, height: 600});
+    const entete = {format: 1, modele: "contrôle", dimensions: 3, methode: "contrôle", reperes: [0, 1]};
+    await page.route(atlas, route => route.fulfill({json: {...entete,
+      mots: [["ouest", -9000, 0, 0, 0], ["est", 9000, 0, 0, 0]], voisins: [[1], [0]]
+    }}), {times: 1});
+    await page.reload();
+    await recherche.waitFor();
+    const [erreurArc, gauche, droite] = await mesurerPixels(page, 7);
+    assert.equal(erreurArc, 0);
+    assert.ok(gauche > 200 && droite > 200, `Arc au zoom : ${gauche}/${droite} pixels`);
+
+    // Deux mots de même couleur occupent des surfaces distinctes selon leur profondeur.
+    await page.route(atlas, route => route.fulfill({json: {...entete,
+      mots: [["proche", 45, 0, 1700, 0], ["lointain", 800, 0, -1350, 0]]
+    }}), {times: 1});
+    await page.reload();
+    await recherche.waitFor();
+    const [erreurPoints, proche, lointain] = await mesurerPixels(page, 8);
+    assert.equal(erreurPoints, 0);
+    assert.ok(lointain > 0 && proche > 3 * lointain, `Points proche/lointain : ${proche}/${lointain} pixels`);
     assert.deepEqual(erreurs, []);
   } finally {
     if (serveur) await fermer(serveur);

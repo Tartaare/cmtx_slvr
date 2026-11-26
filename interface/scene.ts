@@ -1,25 +1,40 @@
-import {axes, cadre, cameraInitiale, cleMot, palette, projeter} from "./projection.js";
+import {Arcs} from "./arcs.js";
+import {axes, cadre, cameraInitiale, cleMot, projeter} from "./projection.js";
 import type {Camera, Carte, Point} from "./projection.js";
 import type {Observation} from "./rendu.js";
 
 const sommet = `
-attribute vec3 position, couleur;
+attribute vec3 position;
+attribute vec4 couleur;
 attribute float joue;
 uniform mat4 camera;
-uniform float resolution, modeEssais;
+uniform float resolution, modeEssais, diametre, visibiliteArcs;
+uniform bool modeArcs;
 varying vec4 teinte;
 void main() {
+  if (modeArcs) {
+    gl_Position = camera * vec4(position * .0001, 1.);
+    teinte = vec4(couleur.rgb, couleur.a * visibiliteArcs);
+    return;
+  }
   gl_Position = camera * vec4(position, 1.);
-  float d = max(.02, gl_Position.w);
+  float d = max(.002, gl_Position.w);
   float intensite = mix(1., mix(.11, 1., joue), modeEssais);
-  gl_PointSize = (clamp(3.4 / pow(d, .63), 1.8, 8.) + 3. * joue * modeEssais) * resolution;
-  teinte = vec4(mix(vec3(.43, .49, .55), couleur, intensite), clamp(.9 / sqrt(d), .32, .96) * intensite);
+  // Perspective en 1/d, avec un plafond progressif pour contenir le coût au premier plan.
+  gl_PointSize = (1. + diametre / (d + diametre / 20.) + 2. * joue * modeEssais) * resolution;
+  teinte = vec4(mix(vec3(.43, .49, .55), couleur.rgb, intensite), clamp(.9 * inversesqrt(d), .24, .96) * intensite);
 }`;
 const fragment = `
 precision mediump float;
+uniform bool modeArcs;
 varying vec4 teinte;
 void main() {
+  if (modeArcs) {
+    gl_FragColor = teinte;
+    return;
+  }
   vec2 p = 2. * gl_PointCoord - 1.;
+  if (dot(p, p) >= 1.) discard;
   float bord = 1. - smoothstep(.68, 1., length(p));
   float relief = sqrt(max(0., 1. - dot(p, p)));
   float lumiere = max(0., dot(vec3(p, relief), vec3(-.36, -.42, .83)));
@@ -38,10 +53,14 @@ export class Scene {
   readonly cible: Camera;
   private camera: Camera;
   private readonly gl: WebGLRenderingContext;
-  private readonly programme: WebGLProgram;
   private readonly matrice: WebGLUniformLocation | null;
   private readonly resolution: WebGLUniformLocation | null;
   private readonly modeEssais: WebGLUniformLocation | null;
+  private readonly diametre: WebGLUniformLocation | null;
+  private readonly modeArcs: WebGLUniformLocation | null;
+  private readonly points: {attribut: number; tampon: WebGLBuffer; type: number; normalise: boolean}[];
+  private readonly joue: number;
+  private readonly arcs: Arcs;
   private readonly masque: WebGLBuffer;
   private readonly dessin: CanvasRenderingContext2D;
   private frame = 0;
@@ -73,24 +92,28 @@ export class Scene {
     }
     gl.linkProgram(programme);
     if (!gl.getProgramParameter(programme,gl.LINK_STATUS)) throw new Error("Programme graphique indisponible");
-    gl.useProgram(programme); this.programme=programme;
-    for(const [nom,donnees,type,normalise] of [
+    gl.useProgram(programme);
+    this.points=([
       ["position",carte.positions,gl.FLOAT,false], ["couleur",carte.couleurs,gl.UNSIGNED_BYTE,true]
-    ] as const) {
-      const tampon=gl.createBuffer();
+    ] as const).map(([nom,donnees,type,normalise])=>{
+      const tampon=gl.createBuffer()!;
       gl.bindBuffer(gl.ARRAY_BUFFER,tampon); gl.bufferData(gl.ARRAY_BUFFER,donnees,gl.STATIC_DRAW);
-      const a=gl.getAttribLocation(programme,nom);
-      gl.enableVertexAttribArray(a); gl.vertexAttribPointer(a,3,type,normalise,0,0);
-    }
+      const attribut=gl.getAttribLocation(programme,nom);
+      gl.enableVertexAttribArray(attribut);
+      return {attribut,tampon,type,normalise};
+    });
     this.masque=gl.createBuffer()!;
     gl.bindBuffer(gl.ARRAY_BUFFER,this.masque);
     gl.bufferData(gl.ARRAY_BUFFER,new Uint8Array(carte.index.size),gl.DYNAMIC_DRAW);
-    const joue=gl.getAttribLocation(programme,"joue");
-    gl.enableVertexAttribArray(joue);gl.vertexAttribPointer(joue,1,gl.UNSIGNED_BYTE,true,0,0);
+    this.joue=gl.getAttribLocation(programme,"joue");
+    gl.vertexAttribPointer(this.joue,1,gl.UNSIGNED_BYTE,true,0,0);
     gl.enable(gl.BLEND); gl.blendFuncSeparate(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA,gl.ONE,gl.ONE_MINUS_SRC_ALPHA);
-    this.matrice=gl.getUniformLocation(this.programme,"camera");
-    this.resolution=gl.getUniformLocation(this.programme,"resolution");
-    this.modeEssais=gl.getUniformLocation(this.programme,"modeEssais");
+    this.matrice=gl.getUniformLocation(programme,"camera");
+    this.resolution=gl.getUniformLocation(programme,"resolution");
+    this.modeEssais=gl.getUniformLocation(programme,"modeEssais");
+    this.diametre=gl.getUniformLocation(programme,"diametre");
+    this.modeArcs=gl.getUniformLocation(programme,"modeArcs");
+    this.arcs=new Arcs(gl,carte,programme);
     this.taille=new ResizeObserver(()=>{
       if(this.choix<0 && this.cible.centre.every(x=>x===0)) this.globale();
       this.actualiser();
@@ -99,7 +122,11 @@ export class Scene {
     this.actualiser();
   }
   arreter(): void { this.taille.disconnect(); cancelAnimationFrame(this.frame); }
-  deselectionner(): void { this.choix=-1;this.proches=[];this.actualiser(); }
+  deselectionner(): void {
+    this.choix=-1;this.proches=[];
+    this.arcs.mettreEnValeur(this.choix,this.joues,this.attenuer);
+    this.actualiser();
+  }
   nouvellePartie(): void {
     this.deselectionner();this.journal([]);this.globale();
   }
@@ -133,6 +160,7 @@ export class Scene {
         if(j!==i && distance<.08**2)region.push({id:j,distance});
       }
       this.proches=region.sort((a,b)=>a.distance-b.distance).slice(0,96).map(p=>p.id);
+      this.arcs.mettreEnValeur(this.choix,this.joues,this.attenuer);
     }
     this.cible.centre=Array.from(this.carte.positions.subarray(i*3,i*3+3)) as Point;
     this.cible.distance=distance; this.actualiser();
@@ -161,6 +189,7 @@ export class Scene {
     for(const i of this.joues)masque[i]=255;
     this.gl.bindBuffer(this.gl.ARRAY_BUFFER,this.masque);
     this.gl.bufferSubData(this.gl.ARRAY_BUFFER,0,masque);
+    this.arcs.mettreEnValeur(this.choix,this.joues,this.attenuer);
     this.actualiser();
   }
   actualiser(): void {
@@ -170,8 +199,8 @@ export class Scene {
     this.frame=0;
     const w=this.canvas.clientWidth,h=this.canvas.clientHeight;
     if(!w || !h || this.gl.isContextLost()) return;
-    const dt=this.dernier?t-this.dernier:16;
-    this.lents=dt>33 && dt<150?this.lents+1:0;
+    const intervalle=t-this.dernier, dt=intervalle<150?intervalle:16;
+    this.lents=intervalle>25 && intervalle<150?this.lents+1:0;
     if(this.lents>=6){this.qualite=Math.max(.75,this.qualite-.25);this.lents=0;}
     const k=this.mouvement.matches?1:1-Math.exp(-Math.min(dt,64)/100);
     let suite=false;
@@ -189,60 +218,43 @@ export class Scene {
       if(c.width!==largeur || c.height!==hauteur){c.width=largeur;c.height=hauteur;}
     }
     gl.viewport(0,0,this.canvas.width,this.canvas.height); gl.clear(gl.COLOR_BUFFER_BIT);
-    gl.uniformMatrix4fv(this.matrice,false,m); gl.uniform1f(this.resolution,ratio);
+    gl.uniformMatrix4fv(this.matrice,false,m);
+    gl.uniform1i(this.modeArcs,1);
+    gl.disableVertexAttribArray(this.joue);
+    const budget=Math.round((w<600?950:2200)*Math.min(1,ratio/devicePixelRatio));
+    this.arcs.dessiner(m,this.camera.centre,this.camera.distance,budget,this.attenuer);
+    gl.uniform1i(this.modeArcs,0);
+    for(const {attribut,tampon,type,normalise} of this.points){
+      gl.bindBuffer(gl.ARRAY_BUFFER,tampon);
+      gl.vertexAttribPointer(attribut,3,type,normalise,0,0);
+    }
+    gl.enableVertexAttribArray(this.joue);
+    gl.uniform1f(this.resolution,ratio);
+    gl.uniform1f(this.diametre,limite(h*.0045,2,4.8));
     gl.uniform1f(this.modeEssais,Number(this.attenuer));
     gl.drawArrays(gl.POINTS,0,this.carte.index.size);
     this.annotations(m,w,h,ratio);
     this.niveau(this.camera.distance<.36?"Vue immersive":this.camera.distance<1.35?"Vue régionale":"Vue globale");
-    this.dernier=suite?t:0;
+    this.dernier=t;
     if(suite) this.actualiser();
   }
-  private liens(ecran: (id: number)=>Point, w: number, h: number): void {
-    const {voisins,mots}=this.carte.atlas;
-    if(!voisins)return;
-    const ctx=this.dessin, deja=new Set<number>();
-    const proche=([x,y,d]:Point)=>d>.005 && x>-60 && x<w+60 && y>-60 && y<h+60;
-    const tracer=(i:number,nombre:number,local=false)=>{
-      const a=ecran(i);
-      if(!proche(a))return;
-      const destinations=voisins[i];
-      for(let k=0;k<Math.min(nombre,destinations.length);k++){
-        const j=destinations[k], cle=Math.min(i,j)*mots.length+Math.max(i,j);
-        if(deja.has(cle))continue;
-        const b=ecran(j);
-        if(!proche(b) || Math.hypot(b[0]-a[0],b[1]-a[1])<4)continue;
-        const essais=this.attenuer && this.joues.has(i) && this.joues.has(j);
-        const opacite=essais?"da":this.attenuer?"12":local?"6b":"43";
-        ctx.strokeStyle="#"+palette[mots[i][4]]+opacite;
-        ctx.lineWidth=essais?1.4:.85;
-        courbe(ctx,a,b,i<j?1:-1);
-        deja.add(cle);
-      }
-    };
-    // Échantillonner la vue générale pour borner le travail de dessin à chaque image.
-    if(this.choix>=0)tracer(this.choix,4,true);
-    for(const i of this.proches.slice(0,64))tracer(i,4,true);
-    for(const i of this.joues)tracer(i,4,true);
-    const pas=Math.max(1,Math.ceil(mots.length/(w<600?480:1000)));
-    for(let i=0;i<mots.length;i+=pas)tracer(i,2);
-  }
-
   private annotations(m: Float32Array,w: number,h: number,ratio: number): void {
     const ctx=this.dessin; ctx.setTransform(ratio,0,0,ratio,0,0);ctx.clearRect(0,0,w,h);
     const ecran=(i:number)=>projeter(m,this.carte.positions,i,w,h);
     const visible=([x,y,d]:Point)=>d>.005 && x>0 && x<w && y>0 && y<h;
-    this.liens(ecran,w,h);
     let precedent: Point|undefined;
     for(const o of this.essais){
       const i=this.carte.index.get(o.mot), p=i===undefined?undefined:ecran(i);
-      if(p && visible(p)){
-        const [x,y]=p;
-        if(precedent && visible(precedent)){
+      if(p && p[2]>.005){
+        const repereVisible=visible(p);
+        if(precedent && precedent[2]>.005 && (repereVisible || visible(precedent))){
           ctx.strokeStyle=this.attenuer?"rgba(245,184,109,.87)":"rgba(240,235,222,.55)";
           ctx.lineWidth=1.2;ctx.setLineDash([4,4]);courbe(ctx,precedent,p,-1);ctx.setLineDash([]);
         }
-        ctx.strokeStyle=o.statut==="refus"?"#a7a9ad":o.temperature!<0?"#96d2ff":"#ffc079";
-        ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(x,y,o===this.meilleur?8:5,0,2*Math.PI);ctx.stroke();ctx.lineWidth=1;
+        if(repereVisible){
+          ctx.strokeStyle=o.statut==="refus"?"#a7a9ad":o.temperature!<0?"#96d2ff":"#ffc079";
+          ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(p[0],p[1],o===this.meilleur?8:5,0,2*Math.PI);ctx.stroke();ctx.lineWidth=1;
+        }
       }
       precedent=p;
     }
