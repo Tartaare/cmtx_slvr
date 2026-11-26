@@ -1,16 +1,18 @@
 import {afficher, el, nom, statuts, texte} from "./rendu.js";
 import type {Archive, Config, Observation, Partie} from "./rendu.js";
 
-import {actualiserGalaxie, annulerFoyer, effacerPartie, essaiEnCours, ouvrirGalaxie} from "./galaxie.js";
+import {actualiserGalaxie, afficherJeu, annulerFoyer, effacerPartie, essaiEnCours, ouvrirGalaxie} from "./galaxie.js";
 import {animerLentille} from "./lentille.js";
 
-void ouvrirGalaxie();
-animerLentille(document.querySelector<HTMLElement>(".dock")!);
-const quotidien = location.pathname === "/jour";
-const api = "/api/parties", cleSession = quotidien ? "cemantix-session-jour" : "cemantix-session";
+type VueJeu = "jour" | "atelier";
+type Vue = "carte" | VueJeu;
+let vue: Vue = "carte", modeJeu: VueJeu | undefined;
+const api = "/api/parties";
+const cleSession = () => modeJeu === "jour" ? "cemantix-session-jour" : "cemantix-session";
 const sousTitre = el("sous-titre");
-let numeroJour = sousTitre.textContent?.match(/^n°([0-9]+)$/)?.[1] ?? "";
+let numeroJour = sousTitre.dataset.grille ?? "";
 let expirationJour = Number(sousTitre.dataset.expiration);
+let echecNumeroJour = false;
 let session: Partie | null = null, occupe = false, automatique = false;
 let prochainTour: number | undefined;
 const creation = el<HTMLFormElement>("creation"), score = el<HTMLFormElement>("score");
@@ -38,7 +40,7 @@ async function requete<T>(url: string, corps?: object, method: "POST" | "DELETE"
     throw new Error(`Réponse illisible du serveur local (HTTP ${r.status}).`);
   });
   if (!r.ok) {
-    if (r.status === 409 && method === "POST" && session) choisir(await requete<Partie>(api+"/"+session.id));
+    if (corps && r.status === 409 && method === "POST" && session) choisir(await requete<Partie>(api+"/"+session.id));
     throw new Error(typeof d?.erreur==="string" ? d.erreur : "Le serveur local est indisponible.");
   }
   return d as T;
@@ -64,7 +66,10 @@ async function traiter(travail: () => Promise<void>): Promise<void> {
     if(!session){texte("legende","Moteur indisponible");texte("mot","Session indisponible");
       texte("raison","Vérifiez le diagnostic ci-dessus ou démarrez une nouvelle partie avec un modèle préparé.");
       el("essai").hidden=true;el("auto").hidden=true}
-  } finally { verrou(false); }
+  } finally {
+    verrou(false);
+    synchroniserVue();
+  }
 }
 function deplier(ouvert: boolean): void {
   el("volet").setAttribute("aria-expanded", String(ouvert));
@@ -81,8 +86,8 @@ function onglet(archives: boolean): void {
   el(archives?"archives":"atelier").setAttribute("aria-current","page");
 }
 function choisir(s: Partie, vueInitiale=false): void {
-  if (quotidien) afficherNumero(s.config.grille);
-  session=s;localStorage.setItem(cleSession,s.id);onglet(false);afficher(s);actualiserGalaxie(s,vueInitiale);
+  if (modeJeu==="jour") afficherNumero(s.config.grille);
+  session=s;localStorage.setItem(cleSession(),s.id);onglet(false);afficher(s);actualiserGalaxie(s,vueInitiale);
   texte("message",nom(s)+" · "+statuts[s.statut]+" · "+s.essais.length+" essais");
   if(s.statut!=="active")automatique=false;
 }
@@ -116,7 +121,7 @@ function sourceChange(): void {
 function nouvelle(config?: Config): void {
   window.clearTimeout(prochainTour);automatique=false;creation.reset();
   if(config)for(const [k,v] of Object.entries(config))champ(creation,k).value=String(v);
-  if(quotidien)champ(creation,"source").value="jour";
+  if(modeJeu==="jour")champ(creation,"source").value="jour";
   sourceChange();parametres.showModal();
 }
 el("nouvelle").onclick=()=>nouvelle();
@@ -141,7 +146,7 @@ creation.onsubmit=e=>{
     }
     if(config.source==="jour")creation.querySelector(".feedback")!.textContent="Ouverture de la grille du jour…";
     choisir(await requete<Partie>(api,{config,observations}));parametres.close();
-    if(config.source==="jour"){
+    if(config.source==="jour" && vue===modeJeu){
       automatique=true;
       prochainTour=window.setTimeout(()=>void boucle(),0);
     }
@@ -198,7 +203,7 @@ el("archives").onclick=()=>{
   window.clearTimeout(prochainTour);automatique=false;
   void traiter(async()=>{
     const parties=await requete<Archive[]>(api);
-    const archives=quotidien?parties.filter(grilleCourante):parties;
+    const archives=modeJeu==="jour"?parties.filter(grilleCourante):parties;
     onglet(true);
     const liste=el("liste");liste.replaceChildren();
     for(const a of archives){
@@ -234,7 +239,7 @@ formulaireSuppression.onsubmit=async e=>{
     if(session?.id===archive.id){
       session=null;
       effacerPartie();
-      localStorage.setItem(cleSession,"");
+      localStorage.setItem(cleSession(),"");
     }
     ligne.remove();
     if(!el("liste").childElementCount)listeVide();
@@ -246,14 +251,15 @@ formulaireSuppression.onsubmit=async e=>{
 };
 function afficherNumero(grille: string): void {
   numeroJour=grille;
-  texte("sous-titre","n°"+grille);
+  if(vue==="jour")texte("sous-titre","n°"+grille);
 }
 
 function initialiser(): void {
   void traiter(async()=>{
+    const quotidien=modeJeu==="jour";
     if(quotidien && (!numeroJour || expirationJour <= Date.now() / 1000)){
-      el("retenter-jour").hidden=true;
-      texte("sous-titre","Grille du jour…");
+      echecNumeroJour=false;
+      synchroniserVue();
       try {
         const {grille,expiration}=await requete<{grille:string; expiration:number}>("/api/grille-du-jour");
         if(typeof grille!=="string" || !/^[0-9]+$/.test(grille) || !Number.isSafeInteger(expiration))
@@ -262,27 +268,76 @@ function initialiser(): void {
         afficherNumero(grille);
       } catch(erreur) {
         numeroJour="";
-        texte("sous-titre","Numéro indisponible");
-        el("retenter-jour").hidden=false;
+        echecNumeroJour=true;
         onglet(false);
         throw erreur;
       }
     }
     const parties=await requete<Archive[]>(api);
     const disponibles=parties.filter(a=>quotidien?grilleCourante(a):a.config.source!=="jour");
-    const id=localStorage.getItem(cleSession), archive=disponibles.find(a=>a.id===id)??disponibles[0];
+    const id=localStorage.getItem(cleSession()), archive=disponibles.find(a=>a.id===id)??disponibles[0];
     if(archive)choisir(await requete<Partie>(api+"/"+archive.id),true);
-    else if(!quotidien && id===null && !parties.length)choisir(await requete<Partie>(api,{initial:true}));
+    else if(!quotidien && id===null && !parties.length)choisir(await requete<Partie>(api,{initial:true}),true);
     else if(quotidien || parties.length)onglet(false);
     else {listeVide();onglet(true)}
   });
 }
-if(quotidien){
-  champ(creation,"source").closest("label")!.hidden=true;
-  texte("atelier-vide","Démarrez une nouvelle partie pour résoudre la grille du jour.");
-  el("retenter-jour").onclick=initialiser;
-  window.addEventListener("pageshow", evenement=>{
-    if(evenement.persisted && expirationJour <= Date.now() / 1000)location.reload();
-  });
+
+function synchroniserVue(): void {
+  const bascule=vue!=="carte" && vue!==modeJeu && !occupe ? vue : undefined;
+  if(bascule){
+    modeJeu=bascule;
+    session=null;effacerPartie(false);onglet(false);deplier(false);
+    el("atelier-vide").hidden=true;el("espace").hidden=false;
+    el("essai").hidden=true;
+    texte("legende","Initialisation du moteur");texte("mot","Chargement…");
+    champ(creation,"source").closest("label")!.hidden=vue==="jour";
+    texte("atelier-vide",vue==="jour"?"Démarrez une nouvelle partie pour résoudre la grille du jour.":"Ouvrez une partie dans « Mes parties » ou démarrez une nouvelle partie.");
+  }
+  const jeu=vue!=="carte" && vue===modeJeu;
+  document.body.classList.toggle("atelier-page",jeu);
+  el("panneau-jeu").hidden=el("aller-au-jeu").hidden=!jeu;
+  afficherJeu(jeu);
+  const numeroValide=numeroJour && expirationJour>Date.now()/1000;
+  const afficherErreur=jeu && vue==="jour" && echecNumeroJour;
+  el("retenter-jour").hidden=!afficherErreur;
+  const contexte=vue==="carte"?"":vue==="atelier"?"Partie Locale":
+    numeroValide?"n°"+numeroJour:afficherErreur?"Numéro indisponible":"Grille du jour…";
+  if(sousTitre.textContent!==contexte)sousTitre.textContent=contexte;
+  if(bascule)initialiser();
 }
-initialiser();
+
+const dock=document.querySelector<HTMLElement>(".dock")!;
+const selectionner=animerLentille(dock, option=>ouvrirVue(lireVue(option.dataset.vue),true));
+function lireVue(valeur: unknown): Vue {
+  return valeur==="jour" || valeur==="atelier" ? valeur : "carte";
+}
+function ouvrirVue(destination: Vue, historique=false): void {
+  if(historique && destination===vue)return;
+  if(historique)history.pushState(destination,"");
+  const panneau=el("panneau-jeu");
+  const dialogue=document.querySelector<HTMLDialogElement>("dialog[open]");
+  const focusJeu=panneau.contains(document.activeElement) || !!dialogue;
+  dialogue?.close();
+  window.clearTimeout(prochainTour);
+  automatique=false;
+  texte("auto","Mode automatique");
+  if(destination==="jour" && modeJeu==="jour" && !occupe && expirationJour<=Date.now()/1000)modeJeu=undefined;
+  vue=destination;
+  const option=dock.querySelector<HTMLButtonElement>(`.dock-options button[data-vue="${vue}"]`)!;
+  selectionner(option);
+  synchroniserVue();
+  if(focusJeu)option.focus({preventScroll:true});
+}
+el("retenter-jour").onclick=initialiser;
+el("aller-au-jeu").onclick=()=>el("volet").focus();
+el("accueil").onclick=evenement=>{
+  if(evenement.ctrlKey || evenement.metaKey || evenement.shiftKey || evenement.altKey)return;
+  evenement.preventDefault();ouvrirVue("carte",true);
+};
+window.addEventListener("popstate", evenement=>ouvrirVue(lireVue(evenement.state)));
+window.addEventListener("pageshow", evenement=>{
+  if(evenement.persisted && vue==="jour" && expirationJour<=Date.now()/1000)ouvrirVue(vue);
+});
+ouvrirVue(lireVue(history.state));
+void ouvrirGalaxie();

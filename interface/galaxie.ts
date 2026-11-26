@@ -5,7 +5,7 @@ import type {Atlas, Carte} from "./projection.js";
 import {Scene} from "./scene.js";
 
 let carte: Carte | undefined, scene: Scene | undefined, partie: Partie | undefined;
-let suivi=true, selection="", enCours="", focal="";
+let suivi=true, selection="", enCours="", focal="", jeuVisible=false;
 const canvas=el<HTMLCanvasElement>("galaxie"), recherche=el<HTMLInputElement>("recherche");
 const boutonSuivi=document.querySelector<HTMLButtonElement>("#suivi");
 const aideCarte=document.querySelector<HTMLDetailsElement>("#aide-carte");
@@ -24,7 +24,7 @@ function centrer(mot:string,distance:number): void {
   statut(mot);
 }
 function synchroniser(force=false): void {
-  if(!partie || !scene || !carte)return;
+  if(!jeuVisible || !partie || !scene || !carte)return;
   const mot=enCours || partie.essais.at(-1)?.observation.mot || (force?partie.prochain:"") || "";
   if(suivi && mot && (force || focal!==mot)){
     if(carte.index.has(cle(mot)))centrer(mot,.32);
@@ -33,8 +33,9 @@ function synchroniser(force=false): void {
   focal=mot;
 }
 function journal():void {
-  scene?.journal(partie?.essais.map(e=>e.observation)??[],partie && partie.config.source!=="simulation");
-  if(!carte || !partie)return;
+  const visible=jeuVisible ? partie : undefined;
+  scene?.journal(visible?.essais.map(e=>e.observation)??[],visible && visible.config.source!=="simulation");
+  if(!carte || !visible)return;
   for(const ligne of el("recents").querySelectorAll<HTMLTableRowElement>("tr")){
     const cellule=ligne.cells[1], mot=cellule.firstChild?.textContent;
     if(mot && !carte.index.has(cle(mot)) && !cellule.querySelector("small")){
@@ -42,20 +43,26 @@ function journal():void {
     }
   }
 }
-export function effacerPartie():void {
-  partie=undefined;mode(true);selection="";focal="";enCours="";
-  recherche.value="";el("resultats").replaceChildren();scene?.nouvellePartie();
-  if(scene)statut("Dictionnaire complet");
+export function afficherJeu(visible:boolean):void {
+  if(jeuVisible===visible)return;
+  jeuVisible=visible;journal();synchroniser();
+}
+export function effacerPartie(recentrer=true):void {
+  partie=undefined;mode(true);focal="";enCours="";
+  if(recentrer && jeuVisible){
+    selection="";recherche.value="";el("resultats").replaceChildren();scene?.nouvellePartie();
+    if(scene)statut("Dictionnaire complet");
+  }else journal();
 }
 export function actualiserGalaxie(s:Partie,vueInitiale=false):void {
-  if(partie?.id!==s.id)effacerPartie();
+  if(partie?.id!==s.id)effacerPartie(!vueInitiale);
   if(vueInitiale && s.essais.length)mode(false);
   partie=s;enCours="";journal();synchroniser();
 }
 export function essaiEnCours(mot:string):void { enCours=mot;synchroniser(); }
 export function annulerFoyer():void {
   enCours="";
-  if(!partie?.essais.length && suivi){scene?.nouvellePartie();selection="";statut("Dictionnaire complet");}
+  if(jeuVisible && !partie?.essais.length && suivi){scene?.nouvellePartie();selection="";statut("Dictionnaire complet");}
   synchroniser();
 }
 function explorer(mot:string):void {

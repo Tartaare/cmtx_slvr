@@ -218,22 +218,27 @@ dialog input,dialog select{border:1px solid var(--line);border-radius:5px;backgr
             inset 0 0 0 1px rgb(255 255 255/.23),0 7px 22px rgb(0 0 0/.34);
  -webkit-backdrop-filter:contrast(1.06) saturate(1.18);backdrop-filter:contrast(1.06) saturate(1.18);
 }
-.dock:has(>.dock-options>a:nth-child(1)[aria-current]){--selection:0}
-.dock:has(>.dock-options>a:nth-child(2)[aria-current]){--selection:1}
-.dock-options>a{
+.dock:has(>.dock-options>button:nth-child(1)[aria-current]){--selection:0}
+.dock:has(>.dock-options>button:nth-child(2)[aria-current]){--selection:1}
+.dock-options>button{
  position:relative;cursor:pointer;color:var(--muted);touch-action:pan-y;user-select:none;
- display:grid;min-height:52px;border-radius:28px;
+ display:grid;min-height:52px;padding:0;border:0;border-radius:28px;background:transparent;
  font:550 .75rem/1.2 var(--sans);text-align:center;text-decoration:none;transition:color 150ms ease;
 }
+.dock-options>button[aria-current]::after{content:none}
+.dock-options>button:hover:enabled{background:transparent}
+.dock-options>button:active:enabled{transform:none}
+body:not(.atelier-page) #suivi{display:none}
+.carte-plein-ecran .brand a{pointer-events:auto}
 .dock-face{
  display:grid;place-content:center;justify-items:center;gap:4px;padding:4px;pointer-events:none;
 }
-.dock-options>a:focus-visible{outline:2px solid var(--accent);outline-offset:2px;z-index:3}
-.dock:not([data-survol]) .dock-options>a[aria-current],
-.dock[data-survol="0"] .dock-options>a:nth-child(1),
-.dock[data-survol="1"] .dock-options>a:nth-child(2),
-.dock[data-survol="2"] .dock-options>a:nth-child(3){color:var(--accent)}
-@media(hover:hover){.dock:not([data-survol])>.dock-options>a:hover:not([aria-current]){color:var(--ink)}}
+.dock-options>button:focus-visible{outline:2px solid var(--accent);outline-offset:2px;z-index:3}
+.dock:not([data-survol]) .dock-options>button[aria-current],
+.dock[data-survol="0"] .dock-options>button:nth-child(1),
+.dock[data-survol="1"] .dock-options>button:nth-child(2),
+.dock[data-survol="2"] .dock-options>button:nth-child(3){color:var(--accent)}
+@media(hover:hover){.dock:not([data-survol])>.dock-options>button:hover:not([aria-current]){color:var(--ink)}}
 .dock svg{
  width:21px;height:21px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linejoin:round;stroke-linecap:round;pointer-events:none;
 }
@@ -251,7 +256,7 @@ dialog input,dialog select{border:1px solid var(--line);border-radius:5px;backgr
  .atelier-page .aide p{left:auto;right:0}
 }
 @media(prefers-reduced-motion:reduce){
- .dock:not([data-lentille]) .dock-lentille,.dock-options>a{transition:none}
+ .dock:not([data-lentille]) .dock-lentille,.dock-options>button{transition:none}
 }
 @media(prefers-reduced-transparency:reduce){
  .panneau-jeu{background:var(--surface)}
@@ -265,7 +270,7 @@ dialog input,dialog select{border:1px solid var(--line);border-radius:5px;backgr
  .dock[data-soulevee] .dock-lentille{
   z-index:auto;-webkit-backdrop-filter:none;backdrop-filter:none
  }
- .dock-options>a:focus-visible{outline-color:CanvasText}
+ .dock-options>button:focus-visible{outline-color:CanvasText}
  .dock[data-soulevee]>.dock-reflet{display:none}
  .dock[data-soulevee]>.dock-options .dock-face{clip-path:none}
 }

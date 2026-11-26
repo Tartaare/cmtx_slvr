@@ -12,21 +12,19 @@ function contour(centre: number, hauteur: number, demiLargeur: number, rx: numbe
   return `M${a} ${haut}H${b}A${rx} ${ry} 0 0 1 ${b} ${bas}H${a}A${rx} ${ry} 0 0 1 ${a} ${haut}Z`;
 }
 
-export function animerLentille(dock: HTMLElement): void {
+export function animerLentille(dock: HTMLElement, ouvrir: (option: HTMLButtonElement) => void) {
   const rangee = dock.querySelector<HTMLElement>(".dock-options")!;
-  const options = [...rangee.querySelectorAll<HTMLAnchorElement>("a[href]")];
+  const options = [...rangee.querySelectorAll("button")];
   const faces = [...rangee.querySelectorAll<HTMLElement>(".dock-face")];
   const reflet = document.createElement("div");
   reflet.className = "dock-reflet";
   reflet.setAttribute("aria-hidden", "true");
   const copie = rangee.cloneNode(true) as HTMLElement;
-  copie.querySelectorAll("a").forEach(option => {
-    option.removeAttribute("aria-current");
-    option.removeAttribute("href");
-  });
+  copie.querySelectorAll("button").forEach(option => option.removeAttribute("aria-current"));
+  copie.inert = true;
   reflet.append(copie);
   dock.append(reflet);
-  const courante = options.findIndex(option => option.hasAttribute("aria-current"));
+  let courante = options.findIndex(option => option.hasAttribute("aria-current"));
   const mouvementReduit = matchMedia("(prefers-reduced-motion: reduce)");
   const position: Ressort = {position: courante, vitesse: 0};
   const hauteur: Ressort = {position: 0, vitesse: 0};
@@ -34,7 +32,6 @@ export function animerLentille(dock: HTMLElement): void {
   let animation = 0;
   let precedent = 0;
   let destination = courante;
-  let navigation: number | undefined;
 
   const limiter = (rang: number) => Math.max(0, Math.min(options.length - 1, rang));
   function rangDepuis(x: number, projection = 0): number {
@@ -116,26 +113,22 @@ export function animerLentille(dock: HTMLElement): void {
     if (!animation) animation = requestAnimationFrame(actualiser);
   }
 
-  function ouvrir(rang: number): void {
-    window.clearTimeout(navigation);
-    destination = rang;
-    animer();
-    if (rang === courante) return;
-    const aller = () => location.assign(options[rang].href);
-    if (mouvementReduit.matches) aller();
-    else navigation = window.setTimeout(aller, 280);
+  function selectionner(option: HTMLButtonElement): void {
+    options[courante].removeAttribute("aria-current");
+    courante = destination = options.indexOf(option);
+    option.setAttribute("aria-current", "true");
+    if (mouvementReduit.matches) poser();
+    else animer();
   }
 
   dock.dataset.lentille = "";
   dock.addEventListener("dragstart", evenement => evenement.preventDefault());
   dock.addEventListener("click", evenement => {
-    const lien = (evenement.target as Element).closest<HTMLAnchorElement>("a[href]");
-    if (!lien || evenement.ctrlKey || evenement.metaKey || evenement.shiftKey || evenement.altKey) return;
-    evenement.preventDefault();
-    ouvrir(options.indexOf(lien));
+    const option = (evenement.target as Element).closest("button");
+    if (option && options.includes(option)) ouvrir(option);
   });
   dock.addEventListener("keydown", evenement => {
-    const rang = options.indexOf(document.activeElement as HTMLAnchorElement);
+    const rang = options.indexOf(document.activeElement as HTMLButtonElement);
     if (rang < 0 || (evenement.key !== "ArrowLeft" && evenement.key !== "ArrowRight")) return;
     evenement.preventDefault();
     const pas = evenement.key === "ArrowLeft" ? -1 : 1;
@@ -145,8 +138,7 @@ export function animerLentille(dock: HTMLElement): void {
   dock.addEventListener("pointerdown", evenement => {
     if (geste || !evenement.isPrimary || evenement.button !== 0
         || evenement.ctrlKey || evenement.metaKey || evenement.shiftKey || evenement.altKey
-        || !(evenement.target as Element).closest("a[href]")) return;
-    window.clearTimeout(navigation);
+        || !(evenement.target as Element).closest("button")) return;
     destination = courante;
     geste = {id: evenement.pointerId, origine: evenement.clientX, x: evenement.clientX,
       vitesse: 0, instant: evenement.timeStamp, glisse: false};
@@ -176,7 +168,7 @@ export function animerLentille(dock: HTMLElement): void {
       const projection = recent ? Math.max(-90, Math.min(90, dernier.vitesse * 120)) : 0;
       const rang = limiter(Math.round(rangDepuis(evenement.clientX, projection)));
       options[rang].focus({preventScroll: true});
-      ouvrir(rang);
+      ouvrir(options[rang]);
     }
     animer();
   }
@@ -185,11 +177,5 @@ export function animerLentille(dock: HTMLElement): void {
   dock.addEventListener("lostpointercapture", evenement => {
     if (evenement.target === dock) terminer(evenement);
   });
-  window.addEventListener("pageshow", evenement => {
-    if (!evenement.persisted) return;
-    window.clearTimeout(navigation);
-    geste = undefined;
-    destination = courante;
-    poser();
-  });
+  return selectionner;
 }
