@@ -1,5 +1,13 @@
 # Avancement
 
+## Sprint 24 — Fluidité et profondeur de la carte
+
+US-035 dessine les arcs sémantiques par lots en WebGL. La géométrie préparée au chargement conserve les portions d’arcs qui traversent le cadre. Le zoom révèle des liens supplémentaires dans les zones visibles. Le budget de dessin et la résolution s’adaptent pendant les déplacements, y compris lorsque la réduction du mouvement est active.
+
+US-036 calcule le diamètre apparent des sphères à partir de la profondeur en vue caméra. Un plafond progressif limite la taille au premier plan. Le test Edge lit le rendu pour vérifier la présence d’un arc dont les deux extrémités sont hors cadre et la différence de taille des sphères à deux profondeurs.
+
+Le build TypeScript, les quatre tests Node, les 26 tests Python et les deux parcours Edge passent. Sur la machine de test, cinq secondes de rotation par vue en plein écran (1 600 × 1 000, DPR 2, CPU ralenti ×4) ramènent le temps CPU du rendu au 95ᵉ percentile de 5,7 à 0,3 ms en vue globale et de 1,5 à 0,9 ms en vue rapprochée. Les deux versions atteignent environ 144 images par seconde sur ce poste.
+
 ## Sprint 23 — Réseau sémantique et contraste des essais
 
 US-033 ajoute des particules rondes à l’éclairage sphérique et des arcs colorés. L’atlas associe chaque mot à ses quatre meilleurs voisins par similarité cosinus dans le modèle à 500 dimensions. La scène échantillonne les liens en vue globale et en affiche davantage autour du mot sélectionné.

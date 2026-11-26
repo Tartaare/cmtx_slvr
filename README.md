@@ -1,6 +1,6 @@
 # Atelier Cémantix
 
-L’accueil affiche la galaxie 3D des 55 402 mots du dictionnaire réduit en plein écran. Des arcs relient les particules rondes de mots proches dans le modèle. Recherchez un mot ou sélectionnez une particule pour explorer son voisinage. **Navigation** détaille les gestes et raccourcis clavier. Le rendu 3D nécessite WebGL. [Plan, captures et recette de l’atelier](documents_design/cemantix_galaxy/plan-implementation.md)
+L’accueil affiche la galaxie 3D des 55 402 mots du dictionnaire réduit en plein écran. Les sphères grossissent à mesure qu’elles se rapprochent de la caméra. Les arcs sémantiques restent visibles jusqu’au bord du cadre et le zoom révèle davantage de liens locaux. Recherchez un mot ou sélectionnez une particule pour explorer son voisinage. **Navigation** détaille les gestes et raccourcis clavier. Le rendu 3D nécessite WebGL. [Plan, captures et recette de l’atelier](documents_design/cemantix_galaxy/plan-implementation.md)
 
 L’application locale recommande un mot, interprète sa température et change de modèle lorsque les observations l’exigent. Le navigateur et la CLI Python utilisent le même moteur de résolution.
 
