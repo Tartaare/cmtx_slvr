@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#123d38"><title>Atelier · Cémantix</title>
+<link rel="icon" href="data:,"><link rel="stylesheet" href="/style.css"><script type="module" src="/app.js"></script>
+</head>
+<body>
+<header><div class="bar"><a class="brand" href="/" aria-label="Cémantix, accueil"><i class="mark" aria-hidden="true">≋</i>Cémantix</a>
+<nav aria-label="Navigation principale"><button id="atelier" aria-current="page">Atelier</button><button id="archives">Mes parties</button></nav>
+<button class="new" id="nouvelle"><b aria-hidden="true">＋</b> Nouvelle partie</button></div></header>
+<main>
+<div class="heading"><div><p class="over">Solveur sémantique</p><h1 id="titre">Atelier de résolution</h1></div>
+<span class="local"><i aria-hidden="true"></i>Moteur local</span></div>
+<div role="alert" id="erreur" hidden></div><p id="message" role="status" class="sr"></p>
+<section id="bibliotheque" hidden aria-label="Parties enregistrées"><div id="liste"></div></section>
+<div id="espace" aria-busy="true">
+<section class="hero" aria-labelledby="mot">
+<div class="hero-text"><div class="hero-label"><span class="lightdot"></span><span id="legende">Initialisation du moteur</span></div>
+<h2 id="mot">Chargement…</h2><p id="raison">Ouverture de la session locale.</p>
+<div class="actions"><button class="primary" id="essai" disabled>Jouer un essai</button><button class="ghost" id="auto" hidden>Mode automatique</button></div></div>
+<div class="dial"><canvas id="jauge" width="210" height="210" aria-hidden="true"></canvas>
+<div><strong id="restants">—</strong><span>essais restants</span></div></div></section>
+<div class="metrics">
+<div><span>Partie courante</span><strong id="grille">—</strong></div><div><span>Modèle actif</span><strong id="modele">—</strong></div>
+<div><span>Stratégie active</span><strong id="strategie">—</strong></div><div><span>Temps de calcul</span><strong id="temps">—</strong></div></div>
+<div class="columns"><section class="panel">
+<div class="sectitle"><h2>Trajectoire de recherche</h2><select id="mesure" aria-label="Mesure du graphique">
+<option value="nombre">Candidats</option><option value="entropie">Entropie</option><option value="ecart">Écart de score</option><option value="ms">Temps de calcul</option></select></div>
+<div class="plot-summary"><strong id="valeur">—</strong><span id="unite"></span></div><canvas id="courbe" height="112" role="img" aria-label="Évolution par essai"></canvas>
+<div class="caption"><span id="depart">Départ</span><span id="tour">Essai 0</span></div></section>
+<section class="panel"><div class="sectitle"><h2>Candidats en tête</h2><span class="meta" id="total"></span></div>
+<div class="cand-label"><span>Mot / rang</span><span>Probabilité estimée</span></div><ol id="candidats"></ol><p class="note" id="egalite"></p></section></div>
+<section class="panel history"><div class="sectitle"><h2>Journal des essais</h2><button id="export" class="sub">Exporter en JSON</button></div>
+<div id="journal"></div></section>
+<details class="details"><summary>Diagnostic et commandes de la partie</summary><p id="calibration"></p><p id="couverture"></p>
+<div class="actions"><button id="pause">Suspendre</button><button id="interrompre">Interrompre</button><button id="reset">Repartir avec ces réglages</button></div></details>
+</div></main>
+<dialog id="parametres" aria-labelledby="nouveau-titre"><form id="creation"><div class="sectitle"><h2 id="nouveau-titre">Nouvelle partie</h2><button type="button" data-close aria-label="Fermer">×</button></div>
+<label>Source des scores<select name="source"><option value="simulation">Simulation locale</option><option value="assiste">Grille réelle · saisie ou import</option></select></label>
+<div data-assiste hidden><label>Identifiant de la grille<input name="grille" maxlength="80" placeholder="Ex. 1729"></label><label>Importer un historique JSONL (facultatif)<input type="file" name="fichier" accept=".jsonl,.txt"></label></div>
+<div class="formgrid"><label>Modèle de départ<select name="modele"><option value="reduit">Cemantbot réduit</option><option value="original">Fauconnier original</option></select></label>
+<label>Stratégie<select name="strategie"><option value="secours">Adaptative avec secours</option><option value="plan">Plan exact</option><option value="robuste">Robuste sur un modèle</option></select></label>
+<label>Budget d’essais<input name="budget" type="number" value="20" min="1" max="200" required></label>
+<label data-simulation>Graine de simulation<input name="graine" type="number" value="42" min="-2147483647" max="2147483647" required></label>
+<label data-simulation>Modèle du simulateur<select name="modele_source"><option value="reduit">Cemantbot réduit</option><option value="original">Fauconnier original</option></select></label>
+<label data-simulation>Températures<select name="scenario"><option value="exact">Exactes</option><option value="bruit">Bruitées</option><option value="aberrant">Avec valeurs aberrantes</option></select></label></div>
+<p class="feedback" role="alert"></p><button class="solid" type="submit">Démarrer la partie</button></form></dialog>
+<dialog id="saisie" aria-labelledby="saisie-titre"><form id="score"><div class="sectitle"><h2 id="saisie-titre">Saisir un résultat</h2><button type="button" data-close aria-label="Fermer">×</button></div>
+<label>Mot joué<input name="mot" required maxlength="128"></label><label>Réponse du jeu<select name="statut"><option value="score">Température affichée</option><option value="refus">Mot refusé</option><option value="victoire">Victoire confirmée</option></select></label>
+<label id="champ-temp">Température (°C)<input name="temperature" type="number" step="0.01" min="-100" max="100" required></label><p class="feedback" role="alert"></p><button class="solid">Enregistrer l’essai</button></form></dialog>
+</body></html>

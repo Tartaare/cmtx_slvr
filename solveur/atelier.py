@@ -107,9 +107,10 @@ class Atelier:
         mot = politique.prochain(config.budget, ouverture if ouverture >= 0 else None)
         return {"config": asdict(config), "etendu": etendu, "empreintes": empreintes, "statut": "active",
                 "essais": [], "prochain": mot, "vue": vue(politique, config, []),
-                "initial_ms": round(1000 * (perf_counter() - debut), 2)}
+                "nombre_initial": len(principal.lignes_jouables), "initial_ms": round(1000 * (perf_counter() - debut), 2)}
 
-    def avancer(self, etat: Objet, entrees: list[Objet] | None = None) -> None:
+    def avancer(self, etat: Objet, entrees: list[Objet] | None = None,
+                politique: Recherche | Secours | None = None) -> Recherche | Secours:
         if etat["statut"] != "active":
             raise ValueError("Cette partie n’est pas active.")
         config = Configuration(**etat["config"])
@@ -117,10 +118,11 @@ class Atelier:
         for nom, signature in etat["empreintes"].items():
             if charger(self.cache, nom).empreinte_preparation != signature:
                 raise ValueError("La version du modèle a changé depuis le début de la partie.")
-        politique = self.politique(config, etat["etendu"])
         historique = [e["observation"] for e in etat["essais"]]
-        for o in historique:
-            politique.enregistrer(Observation(**o))
+        if politique is None:
+            politique = self.politique(config, etat["etendu"])
+            for o in historique:
+                politique.enregistrer(Observation(**o))
         joues = {cle(o["mot"]) for o in historique}
         if config.source == "simulation":
             if entrees is not None:
@@ -168,3 +170,4 @@ class Atelier:
                                    "ms": round(1000 * (perf_counter() - debut), 2)})
             joues.add(mot)
             debut = perf_counter()
+        return politique
