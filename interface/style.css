@@ -52,6 +52,7 @@ h1{font-size:clamp(2rem,4vw,4.2rem);line-height:1.06;font-weight:500;letter-spac
 #resultats{position:relative;z-index:1;margin-top:4px}
 #resultats button{display:block;width:100%;text-align:left;border:0;background:none}
 #resultats button:hover{background:var(--soft)}
+#resultats p{padding:10px;color:var(--muted);font-size:.78rem}
 .bas-carte{position:absolute;bottom:20px;left:22px;right:22px;display:flex;align-items:end;justify-content:space-between;pointer-events:none}
 .bas-carte>*{pointer-events:auto}
 #suivi{color:#f7cf9e;min-height:40px;font-size:11px}
@@ -103,3 +104,32 @@ dialog input,dialog select{border:1px solid var(--line);border-radius:5px;backgr
  .formgrid{grid-template-columns:1fr}.archive .actions{width:100%}
 }
 @media(forced-colors:active){button{border:1px solid ButtonText}.signal{background:CanvasText}}
+
+.carte-plein-ecran{
+ --bord:clamp(12px,2.2vw,32px);
+ --haut:max(var(--bord),env(safe-area-inset-top));
+ --droite:max(var(--bord),env(safe-area-inset-right));
+ --bas:max(var(--bord),env(safe-area-inset-bottom));
+ --gauche:max(var(--bord),env(safe-area-inset-left));
+}
+.carte-plein-ecran #scene{width:100%;height:100dvh;max-width:none;max-height:none;padding:0}
+.carte-plein-ecran .identite{
+ position:absolute;z-index:1;top:var(--haut);left:var(--gauche);pointer-events:none;
+ display:flex;align-items:center;min-height:44px;
+}
+.carte-plein-ecran .brand{margin:0;font-size:clamp(1.1rem,4.8vw,1.45rem);text-shadow:0 1px 8px #030405}
+.carte-plein-ecran .brand img{width:clamp(26px,7vw,36px);height:30px}
+.carte-plein-ecran #chercher{z-index:1;top:var(--haut);right:var(--droite);width:min(230px,49%)}
+.carte-plein-ecran #recherche{min-height:42px;font-size:1rem}
+.carte-plein-ecran #resultats{max-height:calc(100dvh - var(--haut) - var(--bas) - 104px);overflow:auto}
+.carte-plein-ecran #outils-carte{position:absolute;right:var(--droite);bottom:var(--bas);overflow:visible}
+.carte-plein-ecran #outils-carte button{min-width:44px;height:44px}
+.carte-plein-ecran .aide{
+ position:absolute;left:var(--gauche);bottom:var(--bas);
+ padding:0 10px;background:rgb(14 17 20/.93);border:1px solid var(--line);border-radius:6px;
+ font:12px/1.5 var(--mono);
+}
+.carte-plein-ecran .aide summary{min-height:44px}
+.carte-plein-ecran .aide summary::-webkit-details-marker{display:none}
+.carte-plein-ecran .aide p{left:0;right:auto;bottom:calc(100% + 8px);width:min(340px,calc(100vw - var(--gauche) - var(--droite)));max-height:calc(100dvh - var(--bas) - 60px);overflow:auto}
+.carte-plein-ecran #repli button{margin-top:12px}

@@ -7,10 +7,13 @@ import {Scene} from "./scene.js";
 let carte: Carte | undefined, scene: Scene | undefined, partie: Partie | undefined;
 let suivi=true, selection="", enCours="", focal="";
 const canvas=el<HTMLCanvasElement>("galaxie"), recherche=el<HTMLInputElement>("recherche");
+const boutonSuivi=document.querySelector<HTMLButtonElement>("#suivi");
+const aideCarte=document.querySelector<HTMLDetailsElement>("#aide-carte");
 const statut=(valeur:string)=>texte("etat-carte",valeur);
 function mode(actif:boolean): void {
   suivi=actif;
-  el("suivi").setAttribute("aria-pressed",String(actif));
+  if(!boutonSuivi)return;
+  boutonSuivi.setAttribute("aria-pressed",String(actif));
   texte("libelle-suivi",actif?"Suivi du solveur":"Reprendre le suivi");
 }
 function centrer(mot:string,distance:number): void {
@@ -30,7 +33,7 @@ function synchroniser(force=false): void {
 }
 function journal():void {
   scene?.journal(partie?.essais.map(e=>e.observation)??[]);
-  if(!carte)return;
+  if(!carte || !partie)return;
   for(const ligne of el("recents").querySelectorAll<HTMLTableRowElement>("tr")){
     const cellule=ligne.cells[1], mot=cellule.firstChild?.textContent;
     if(mot && !carte.index.has(cle(mot)) && !cellule.querySelector("small")){
@@ -78,11 +81,14 @@ recherche.oninput=()=>{
 form.onsubmit=e=>{
   e.preventDefault();
   const essai=cle(recherche.value), mot=carte?.index.has(essai)?essai:propositions()[0];
-  if(mot)explorer(mot);else statut("Mot absent du dictionnaire réduit");
+  if(mot){explorer(mot);return;}
+  const message="Mot absent du dictionnaire réduit";
+  const note=document.createElement("p");note.textContent=message;
+  el("resultats").replaceChildren(note);statut(message);
 };
 form.onkeydown=e=>{if(e.key==="Escape"){el("resultats").replaceChildren();recherche.focus();}};
 form.addEventListener("focusout",e=>{if(!form.contains(e.relatedTarget as Node|null)) el("resultats").replaceChildren();});
-el("suivi").onclick=()=>{mode(!suivi);if(suivi)synchroniser(true);};
+if(boutonSuivi)boutonSuivi.onclick=()=>{mode(!suivi);if(suivi)synchroniser(true);};
 function globale():void {mode(false);scene?.globale();statut(selection?"Sélection · "+selection:"Dictionnaire complet");}
 function zoom(f:number):void {mode(false);scene?.zoom(f);}
 el("globale").onclick=globale;el("plus").onclick=()=>zoom(.7);el("moins").onclick=()=>zoom(1/.7);
@@ -125,9 +131,11 @@ canvas.onlostpointercapture=e=>contacts.delete(e.pointerId);
 
 function indisponible(message:string):void {
   scene?.arreter();scene=undefined;
-  texte("niveau","Vue textuelle");
+  texte("niveau",boutonSuivi?"Vue textuelle":"Carte indisponible");
   el("scene").classList.add("indisponible");texte("diagnostic-carte",message);el("repli").hidden=false;
-  el("outils-carte").hidden=true;el("chercher").hidden=true;el("suivi").hidden=true;canvas.tabIndex=-1;
+  el("outils-carte").hidden=true;el("chercher").hidden=true;canvas.tabIndex=-1;
+  if(aideCarte)aideCarte.hidden=true;
+  if(boutonSuivi){boutonSuivi.hidden=true;statut("Affichage textuel");}
 }
 function monter():void {
   if(!carte)return;
@@ -135,11 +143,15 @@ function monter():void {
     if(el("niveau").textContent!==nom)texte("niveau",nom);
   });
   el("scene").classList.remove("indisponible");el("repli").hidden=true;
-  el("outils-carte").hidden=false;el("chercher").hidden=false;el("suivi").hidden=false;canvas.tabIndex=0;
+  el("outils-carte").hidden=false;el("chercher").hidden=false;canvas.tabIndex=0;
+  if(aideCarte)aideCarte.hidden=false;
+  if(boutonSuivi)boutonSuivi.hidden=false;
   statut("Dictionnaire complet");journal();synchroniser(!!partie?.essais.length);
 }
-canvas.addEventListener("webglcontextlost",e=>{e.preventDefault();indisponible("Rendu 3D interrompu. Le journal reste disponible.");});
-canvas.addEventListener("webglcontextrestored",()=>{try{monter();}catch{indisponible("Rendu 3D indisponible. Le journal reste disponible.");}});
+const sansRendu="Rendu 3D indisponible.";
+const avecJournal=(message:string)=>boutonSuivi?message+" Le journal reste disponible.":message;
+canvas.addEventListener("webglcontextlost",e=>{e.preventDefault();indisponible(avecJournal("Rendu 3D interrompu."));});
+canvas.addEventListener("webglcontextrestored",()=>{try{monter();}catch{indisponible(avecJournal(sansRendu));}});
 export async function ouvrirGalaxie():Promise<void>{
   const lire=async():Promise<Atlas>=>{
     const r=await fetch("/atlas.json",{signal:AbortSignal.timeout(6000)});
@@ -149,13 +161,15 @@ export async function ouvrirGalaxie():Promise<void>{
   el("retenter-carte").hidden=true;
   try{
     carte=indexer(await lire().catch(lire));
-    texte("compte-mots",carte.index.size.toLocaleString("fr-FR"));
-    texte("dimensions",carte.atlas.dimensions.toString());
+    if(boutonSuivi){
+      texte("compte-mots",carte.index.size.toLocaleString("fr-FR"));
+      texte("dimensions",carte.atlas.dimensions.toString());
+    }
     journal();
   }catch{
-    indisponible("Le dictionnaire n’a pas pu être chargé. Le journal reste disponible.");
-    statut("Affichage textuel");el("retenter-carte").hidden=false;return;
+    indisponible(avecJournal("Le dictionnaire n’a pas pu être chargé."));
+    el("retenter-carte").hidden=false;return;
   }
-  try{monter();}catch{indisponible("Rendu 3D indisponible. Vous pouvez jouer et consulter tous les essais ci-dessous.");statut("Affichage textuel");}
+  try{monter();}catch{indisponible(avecJournal(sansRendu));}
 }
-el("retenter-carte").onclick=()=>{statut("Chargement du dictionnaire…");void ouvrirGalaxie();};
+el("retenter-carte").onclick=()=>{texte("diagnostic-carte","Chargement du dictionnaire…");void ouvrirGalaxie();};

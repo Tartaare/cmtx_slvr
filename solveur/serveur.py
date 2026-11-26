@@ -19,12 +19,13 @@ from .sessions import Conflit, Sessions
 
 RACINE = Path(__file__).resolve().parents[1]
 FICHIERS = {
-    "/": (RACINE / "interface/index.html", "text/html"),
+    "/": (RACINE / "interface/carte.html", "text/html"),
+    "/atelier": (RACINE / "interface/index.html", "text/html"),
     "/style.css": (RACINE / "interface/style.css", "text/css"),
     "/logo-cemantix-transparent.png": (RACINE / "logo-cemantix-transparent.png", "image/png"),
     "/atlas.json": (RACINE / "interface/atlas.json", "application/json"),
     **{f"/{nom}.js": (RACINE / f"dist/interface/{nom}.js", "text/javascript")
-       for nom in ("galaxie", "projection", "scene")},
+       for nom in ("carte", "galaxie", "projection", "scene")},
     "/app.js": (RACINE / "dist/interface/app.js", "text/javascript"),
     "/rendu.js": (RACINE / "dist/interface/rendu.js", "text/javascript"),
 }
