@@ -20,16 +20,13 @@ from .atelier import Atelier, Objet
 from .sessions import Conflit, Sessions
 
 RACINE = Path(__file__).resolve().parents[1]
-NAVIGATION = RACINE / "interface/navigation.html"
 FICHIERS = {
-    "/": (RACINE / "interface/carte.html", "text/html"),
-    "/atelier": (RACINE / "interface/index.html", "text/html"),
-    "/jour": (RACINE / "interface/index.html", "text/html"),
+    "/": (RACINE / "interface/index.html", "text/html"),
     "/style.css": (RACINE / "interface/style.css", "text/css"),
     "/logo-cemantix-transparent.png": (RACINE / "logo-cemantix-transparent.png", "image/png"),
     "/atlas.json": (RACINE / "interface/atlas.json", "application/json"),
     **{f"/{nom}.js": (RACINE / f"dist/interface/{nom}.js", "text/javascript")
-       for nom in ("arcs", "carte", "galaxie", "lentille", "projection", "scene")},
+       for nom in ("arcs", "galaxie", "lentille", "projection", "scene")},
     "/app.js": (RACINE / "dist/interface/app.js", "text/javascript"),
     "/rendu.js": (RACINE / "dist/interface/rendu.js", "text/javascript"),
 }
@@ -108,6 +105,12 @@ def creer_serveur(cache: Path, base: Path, port: int) -> ThreadingHTTPServer:
                 return
             chemin = urlsplit(self.path).path
             try:
+                if not ecriture and chemin in ("/atelier", "/jour"):
+                    self.send_response(308)
+                    self.send_header("Location", "/")
+                    self.send_header("Content-Length", "0")
+                    self.end_headers()
+                    return
                 if not ecriture and chemin in FICHIERS:
                     fichier, mime = FICHIERS[chemin]
                     if chemin == "/atlas.json":
@@ -122,18 +125,10 @@ def creer_serveur(cache: Path, base: Path, port: int) -> ThreadingHTTPServer:
                             self.repondre(200, contenu, mime, etag=etag, compresse=avec_gzip)
                         return
                     contenu = fichier.read_bytes()
-                    if mime == "text/html":
-                        href = f'href="{chemin}"'.encode()
-                        navigation = NAVIGATION.read_bytes().replace(href, href + b' aria-current="page"', 1)
-                        sous_titre = "Partie Locale"
-                        if chemin == "/jour":
-                            conservee = sessions.grille_du_jour(time())
-                            sous_titre = f"n°{conservee[0]}" if conservee else "Grille du jour…"
-                            if conservee:
-                                attribut = f'data-expiration="{int(conservee[1])}"'.encode()
-                                contenu = contenu.replace(b'data-expiration=""', attribut, 1)
-                        contenu = contenu.replace(b"<!-- navigation -->", navigation, 1)
-                        contenu = contenu.replace(b"<!-- sous-titre -->", escape(sous_titre).encode(), 1)
+                    if chemin == "/" and (conservee := sessions.grille_du_jour(time())):
+                        grille, expiration = conservee
+                        attributs = f'data-grille="{escape(grille)}" data-expiration="{int(expiration)}"'
+                        contenu = contenu.replace(b'data-grille="" data-expiration=""', attributs.encode(), 1)
                     self.repondre(200, contenu, mime)
                     return
                 if not ecriture and chemin == "/api/grille-du-jour":
@@ -210,7 +205,7 @@ def servir(cache: Path, base: Path, port: int) -> None:
     if not hasattr(np, "vecdot"):
         raise ValueError(f"NumPy {np.__version__} ne fournit pas vecdot. Installez les dépendances "
                          "avec « python -m pip install -r requirements.txt » dans l’environnement de l’atelier.")
-    if not NAVIGATION.is_file() or not all(f.is_file() for route, (f, _) in FICHIERS.items() if route != "/atlas.json"):
+    if not all(f.is_file() for route, (f, _) in FICHIERS.items() if route != "/atlas.json"):
         raise ValueError("Compilez l’interface avec « npm run build » avant de lancer l’application.")
     if not 0 <= port <= 65535:
         raise ValueError("Port hors limites.")

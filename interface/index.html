@@ -2,14 +2,14 @@
 <html lang="fr">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#090b0d"><title>Galaxie sémantique · Cémantix</title>
+<meta name="theme-color" content="#090b0d"><title>Cémantix</title>
 <link rel="icon" href="/logo-cemantix-transparent.png"><link rel="stylesheet" href="/style.css">
 <script type="module" src="/app.js"></script>
 </head>
-<body class="carte-plein-ecran atelier-page">
-<a class="skip" href="#volet">Aller aux commandes de jeu</a>
-<header class="identite"><div class="marque-atelier"><h1 class="brand"><a href="/" aria-label="Cémantix, accueil"><img src="/logo-cemantix-transparent.png" alt="">Cémantix</a></h1>
-<p id="sous-titre" role="status" data-expiration=""><!-- sous-titre --></p><button type="button" id="retenter-jour" hidden>Réessayer</button></div>
+<body class="carte-plein-ecran">
+<button type="button" class="skip" id="aller-au-jeu" hidden>Aller aux commandes de jeu</button>
+<header class="identite"><div class="marque-atelier"><h1 class="brand"><a href="/" id="accueil"><img src="/logo-cemantix-transparent.png" alt="">Cémantix</a></h1>
+<p id="sous-titre" role="status" data-grille="" data-expiration=""></p><button type="button" id="retenter-jour" hidden>Réessayer</button></div>
 <button id="suivi" aria-pressed="true" hidden><span class="signal"></span> <span id="libelle-suivi">Suivi du solveur</span></button>
 </header>
   <main id="scene" aria-label="Carte du dictionnaire">
@@ -40,7 +40,7 @@
     <span id="etat-carte" class="sr" role="status"></span>
   </main>
 
-<section class="panneau-jeu" aria-label="Commandes de jeu">
+<section class="panneau-jeu" id="panneau-jeu" aria-label="Commandes de jeu" hidden>
 <button id="volet" aria-controls="contenu-jeu" aria-expanded="false">Partie <span aria-hidden="true">⌃</span></button>
 <div role="alert" id="erreur" hidden></div><p id="message" role="status" class="sr"></p>
 <p id="atelier-vide" class="empty" hidden>Ouvrez une partie dans « Mes parties » ou démarrez une nouvelle partie.</p>
@@ -79,5 +79,27 @@
 <p id="suppression-cible"></p><p id="suppression-details">La partie et son journal seront définitivement supprimés.</p>
 <p class="feedback" role="alert"></p><div class="actions"><button type="button" data-close autofocus>Annuler</button><button type="submit" class="danger">Supprimer la partie</button></div>
 </form></dialog>
-<!-- navigation -->
+<nav class="dock" aria-label="Vues de Cémantix">
+  <span class="dock-lentille" aria-hidden="true"></span>
+  <div class="dock-options">
+    <button type="button" data-vue="jour">
+      <span class="dock-face">
+        <svg aria-hidden="true" viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="16" rx="4"/><path d="M7.5 3v4m9-4v4m-13 3h17m-12 5h3"/></svg>
+        Grille du jour
+      </span>
+    </button>
+    <button type="button" data-vue="atelier">
+      <span class="dock-face">
+        <svg aria-hidden="true" viewBox="0 0 24 24"><path d="m4 10 8-5 8 5-8 5zM4 14l8 5 8-5"/></svg>
+        Parties locales
+      </span>
+    </button>
+    <button type="button" data-vue="carte" aria-current="true">
+      <span class="dock-face">
+        <svg aria-hidden="true" viewBox="0 0 24 24"><path d="m6.5 15 4-8m3 0 4.5 5.5m-10 4 8-2"/><circle cx="5.5" cy="17" r="2.5"/><circle cx="12" cy="5" r="2.5"/><circle cx="18.5" cy="14" r="2.5"/></svg>
+        Carte des mots
+      </span>
+    </button>
+  </div>
+</nav>
 </body></html>
