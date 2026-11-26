@@ -1,10 +1,13 @@
 """Serveur HTTP de l'atelier sur l'interface de boucle locale."""
+import gzip
+import hashlib
 import json
 import re
 import sqlite3
 import subprocess
 import traceback
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from functools import lru_cache
 from pathlib import Path
 from threading import Lock
 from urllib.parse import urlsplit
@@ -27,6 +30,15 @@ FICHIERS = {
 }
 
 
+@lru_cache(maxsize=2)
+def lire_atlas(fichier: Path, revision: int, compresse: bool) -> tuple[bytes, str]:
+    """La date de modification invalide les deux représentations du cache local."""
+    contenu = fichier.read_bytes()
+    if compresse:
+        contenu = gzip.compress(contenu, compresslevel=5, mtime=0)
+    return contenu, '"' + hashlib.sha256(contenu).hexdigest() + '"'
+
+
 def consulter_jeu(*arguments: str) -> str | Objet:
     try:
         resultat = subprocess.run(["node", "--disable-warning=ExperimentalWarning", "--experimental-strip-types",
@@ -44,13 +56,18 @@ def creer_serveur(cache: Path, base: Path, port: int) -> ThreadingHTTPServer:
     mutations = Lock()
 
     class Requete(BaseHTTPRequestHandler):
-        def repondre(self, statut: int, contenu: bytes, type_mime: str) -> None:
+        def repondre(self, statut: int, contenu: bytes, type_mime: str, *, etag: str = "", compresse: bool = False) -> None:
             self.send_response(statut)
             if not type_mime.startswith("image/"):
                 type_mime += "; charset=utf-8"
             self.send_header("Content-Type", type_mime)
             self.send_header("Content-Length", str(len(contenu)))
-            self.send_header("Cache-Control", "no-store")
+            self.send_header("Cache-Control", "no-cache" if etag else "no-store")
+            if etag:
+                self.send_header("ETag", etag)
+                self.send_header("Vary", "Accept-Encoding")
+            if compresse:
+                self.send_header("Content-Encoding", "gzip")
             self.send_header("X-Content-Type-Options", "nosniff")
             self.send_header("Content-Security-Policy", "default-src 'self'; img-src 'self' data:; object-src 'none'; "
                              "base-uri 'none'; frame-ancestors 'none'; form-action 'self'")
@@ -71,6 +88,17 @@ def creer_serveur(cache: Path, base: Path, port: int) -> ThreadingHTTPServer:
             try:
                 if not ecriture and chemin in FICHIERS:
                     fichier, mime = FICHIERS[chemin]
+                    if chemin == "/atlas.json":
+                        avec_gzip = "gzip" in {s.strip() for s in self.headers.get("Accept-Encoding", "").lower().split(",")}
+                        contenu, etag = lire_atlas(fichier, fichier.stat().st_mtime_ns, avec_gzip)
+                        if self.headers.get("If-None-Match") == etag:
+                            self.send_response(304)
+                            self.send_header("ETag", etag)
+                            self.send_header("Vary", "Accept-Encoding")
+                            self.end_headers()
+                        else:
+                            self.repondre(200, contenu, mime, etag=etag, compresse=avec_gzip)
+                        return
                     self.repondre(200, fichier.read_bytes(), mime)
                     return
                 identifiant = re.fullmatch(r"/api/parties/([a-f0-9]{32})", chemin)

@@ -126,7 +126,7 @@ canvas.onlostpointercapture=e=>contacts.delete(e.pointerId);
 function indisponible(message:string):void {
   scene?.arreter();scene=undefined;
   texte("niveau","Vue textuelle");
-  el("scene").classList.add("indisponible");texte("repli",message);el("repli").hidden=false;
+  el("scene").classList.add("indisponible");texte("diagnostic-carte",message);el("repli").hidden=false;
   el("outils-carte").hidden=true;el("chercher").hidden=true;el("suivi").hidden=true;canvas.tabIndex=-1;
 }
 function monter():void {
@@ -141,14 +141,21 @@ function monter():void {
 canvas.addEventListener("webglcontextlost",e=>{e.preventDefault();indisponible("Rendu 3D interrompu. Le journal reste disponible.");});
 canvas.addEventListener("webglcontextrestored",()=>{try{monter();}catch{indisponible("Rendu 3D indisponible. Le journal reste disponible.");}});
 export async function ouvrirGalaxie():Promise<void>{
+  const lire=async():Promise<Atlas>=>{
+    const r=await fetch("/atlas.json",{signal:AbortSignal.timeout(6000)});
+    if(!r.ok)throw new Error("Carte locale indisponible.");
+    return r.json() as Promise<Atlas>;
+  };
+  el("retenter-carte").hidden=true;
   try{
-    const r=await fetch("/atlas.json");if(!r.ok)throw new Error("Carte locale indisponible.");
-    carte=indexer(await r.json() as Atlas);
+    carte=indexer(await lire().catch(lire));
     texte("compte-mots",carte.index.size.toLocaleString("fr-FR"));
     texte("dimensions",carte.atlas.dimensions.toString());
-    journal();monter();
+    journal();
   }catch{
-    indisponible("Carte 3D indisponible. Vous pouvez jouer et consulter tous les essais ci-dessous.");
-    statut("Affichage textuel");
+    indisponible("Le dictionnaire n’a pas pu être chargé. Le journal reste disponible.");
+    statut("Affichage textuel");el("retenter-carte").hidden=false;return;
   }
+  try{monter();}catch{indisponible("Rendu 3D indisponible. Vous pouvez jouer et consulter tous les essais ci-dessous.");statut("Affichage textuel");}
 }
+el("retenter-carte").onclick=()=>{statut("Chargement du dictionnaire…");void ouvrirGalaxie();};

@@ -45,6 +45,8 @@ test("la partie reprend après redémarrage du serveur et aboutit dans le naviga
       return route.abort("connectionreset");
     });
     const logoRecu = page.waitForResponse(new URL("logo-cemantix-transparent.png", url).href);
+    const atlas = new URL("atlas.json", url).href;
+    await page.route(atlas, route=>route.abort("connectionreset"));
     await page.goto(url);
     const logo = await logoRecu;
     assert.equal(logo.status(), 200);
@@ -52,6 +54,10 @@ test("la partie reprend après redémarrage du serveur et aboutit dans le naviga
     const marque = page.getByRole("link", {name:"Cémantix, accueil"}).locator("img");
     assert.ok(await marque.evaluate((image: HTMLImageElement) => image.naturalWidth > 0));
     await page.getByRole("alert").filter({hasText:"Connexion au moteur local interrompue"}).waitFor();
+    await page.getByRole("button",{name:"Recharger la carte"}).waitFor();
+    await page.unroute(atlas);
+    await page.getByRole("button",{name:"Recharger la carte"}).click();
+    await page.locator("#suivi:visible").waitFor();
     assert.equal(lectures, 2);
     await page.unroute(apiLocale);
     await page.route(apiLocale, route => route.abort("connectionreset"), {times:1});

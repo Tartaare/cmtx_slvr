@@ -2,7 +2,6 @@
 import assert from "node:assert/strict";
 import {spawn} from "node:child_process";
 import {once} from "node:events";
-import {createHash} from "node:crypto";
 import {createInterface} from "node:readline";
 import {mkdtemp, readFile, writeFile, rm} from "node:fs/promises";
 import {cpus, tmpdir} from "node:os";
@@ -79,13 +78,17 @@ try{
   assert.ok(url,diagnostic || "Adresse du moteur local indisponible");
   const page=await navigateur.newPage({viewport:{width:1920,height:1080}});
   const erreurs:string[]=[];page.on("pageerror",e=>erreurs.push(e.message));
-  const atlasURL=new URL("atlas.json",url).href;
-  const empreinte=async()=>createHash("sha256").update(await (await page.request.get(atlasURL)).body()).digest("hex");
-  const signature=await empreinte();
+  const empreinte=()=>page.evaluate(async()=>{
+    const r=await fetch("/atlas.json");
+    if(!r.ok)throw new Error("Lecture de l’atlas impossible");
+    const digest=await crypto.subtle.digest("SHA-256",await r.arrayBuffer());
+    return Array.from(new Uint8Array(digest),n=>n.toString(16).padStart(2,"0")).join("");
+  });
   await page.goto(url);
   await page.locator("#suivi:visible").waitFor();
   await page.waitForFunction(()=>document.querySelector("#mot")?.textContent==="hirsute");
   const ouverture=await page.evaluate(()=>Math.round(performance.now()));
+  const signature=await empreinte();
   await page.screenshot({path:join(sortie,"vue-globale.png")});
   await page.locator("#plus").click();await page.locator("#plus").click();
   await page.waitForFunction(()=>document.querySelector("#niveau")?.textContent==="Vue régionale");
