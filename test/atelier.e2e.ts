@@ -118,12 +118,45 @@ test("l’accueil affiche la carte sur toute la fenêtre sans ouvrir de partie",
       const option = await afficherChamps.locator("..").boundingBox();
       const zoom = await page.locator("#outils-carte").boundingBox();
       assert.ok(option && zoom && option.y + option.height < zoom.y);
-      const navigation = page.getByRole("navigation", {name: "Navigation principale"});
+      const navigation = page.getByRole("group", {name: "Aperçu de la navigation"});
       const dock = await navigation.boundingBox();
       assert.ok(dock && Math.abs(dock.x * 2 + dock.width - dimensions.width) < 1);
       assert.ok(zoom.y + zoom.height < dock.y || dock.x + dock.width < zoom.x);
-      assert.equal(await navigation.locator('[aria-current="page"]').innerText(), "Carte des mots");
-      assert.equal(await navigation.locator("button:disabled").count(), 2);
+      const carte = navigation.getByRole("radio", {name: "Carte des mots"});
+      const grille = navigation.getByRole("radio", {name: "Grille du jour"});
+      const parties = navigation.getByRole("radio", {name: "Parties locales"});
+      assert.ok(await carte.isChecked());
+      if (dimensions.width === 1440) {
+        await page.emulateMedia({reducedMotion: "no-preference"});
+        await navigation.evaluate(element => {
+          (element as HTMLElement).addEventListener("transitionend", event => {
+            if (event.pseudoElement === "::before" && event.propertyName === "transform") {
+              element.dataset.lentilleDeplacee = "true";
+            }
+          });
+        });
+        await grille.click();
+        await page.locator('.dock[data-lentille-deplacee="true"]').waitFor({timeout: 5000});
+        await page.emulateMedia({reducedMotion: "reduce"});
+      } else {
+        await grille.click();
+      }
+      assert.deepEqual(await Promise.all([grille.isChecked(), parties.isChecked(), carte.isChecked()]), [true, false, false]);
+      await grille.press("ArrowRight");
+      assert.ok(await parties.isChecked());
+      assert.ok(await parties.evaluate(element => element.matches(":focus-visible")));
+      await navigation.evaluate(element => {
+        const lentille = getComputedStyle(element, "::before");
+        const selection = element.querySelector("input:checked")!.getBoundingClientRect();
+        const gauche = element.getBoundingClientRect().left + element.clientLeft
+          + Number.parseFloat(lentille.left) + new DOMMatrixReadOnly(lentille.transform).m41;
+        if (lentille.transitionDuration !== "0s" || Math.abs(gauche - selection.left) >= 1) {
+          throw new Error("La lentille doit rejoindre immédiatement la sélection en mouvement réduit.");
+        }
+      });
+      await parties.press("ArrowRight");
+      assert.ok(await carte.isChecked());
+      assert.equal(page.url(), url);
       const libelles = await lireLibelles(page, "Home");
       const noms = libelles.map(({texte}) => texte);
       assert.ok(noms.length >= (dimensions.width === 320 ? 3 : 8), noms.join(", "));
