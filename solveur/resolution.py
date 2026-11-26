@@ -10,6 +10,7 @@ from typing import Literal
 import numpy as np
 from numpy.typing import NDArray
 
+from .inference import Estimation, Inference, MARGE_CALIBRATION, Methode
 from .modele import Modele, cle
 from .selection import discriminant, fin_de_partie
 from .simulation import Observation
@@ -25,9 +26,20 @@ class Strategie(StrEnum):
     COLLISIONS = "collisions"
     PLAN = "plan"
     DECORRELATION = "decorrelation"
+    ROBUSTE = "robuste"
+    ABSOLUE = "absolue"
+    QUADRATIQUE = "quadratique"
+    HUBER = "huber"
+    GAUSSE = "gaussienne"
+    LAPLACE = "laplace"
+    STUDENT = "student"
+    MELANGE = "melange"
 
 
 REFERENCES = (Strategie.EXACTE, Strategie.HASARD, Strategie.VOISIN, Strategie.COMPTAGE, Strategie.CEMANTBOT)
+SELECTION = (*REFERENCES, Strategie.ENTROPIE, Strategie.COLLISIONS, Strategie.PLAN, Strategie.DECORRELATION)
+ROBUSTESSE = (Strategie.EXACTE, Strategie.CEMANTBOT, Strategie.COMPTAGE,
+              *(Strategie(m.value) for m in Methode), Strategie.ROBUSTE)
 INVERSION = {Strategie.EXACTE, Strategie.ENTROPIE, Strategie.COLLISIONS, Strategie.PLAN, Strategie.DECORRELATION}
 
 
@@ -35,6 +47,8 @@ INVERSION = {Strategie.EXACTE, Strategie.ENTROPIE, Strategie.COLLISIONS, Strateg
 class Essai:
     observation: Observation
     candidats_exacts: int | None
+    estimation: Estimation | None = None
+    motif_bascule: Literal["aucun_candidat_exact"] | None = None
 
 
 @dataclass(frozen=True)
@@ -45,7 +59,7 @@ class Resultat:
 
 class Recherche:
     def __init__(self, modele: Modele, indices: NDArray[np.intp], strategie: Strategie,
-                 decimales: int, generateur: random.Random) -> None:
+                 decimales: int, generateur: random.Random, marge: float = MARGE_CALIBRATION) -> None:
         self.modele = modele
         self.strategie = strategie
         self.decimales = decimales
@@ -57,11 +71,22 @@ class Recherche:
         self.comptes: dict[int, int] = {}
         self.voisins: NDArray[np.float32] | None = None
         self.temperature_max = -math.inf
+        self.marge = marge
+        self.avant_bascule: list[tuple[str, float]] = []
+        self.inference = (Inference(modele, indices, Methode(strategie.value), decimales, marge)
+                          if strategie.value in Methode else None)
+
+    @property
+    def filtre_exact(self) -> bool:
+        return self.strategie in INVERSION or (self.strategie == Strategie.ROBUSTE and self.inference is None)
 
     def choisir(self, budget: int) -> int:
         disponibles = np.flatnonzero(self.disponibles)
         if self.hist:
-            if self.strategie == Strategie.EXACTE:
+            if self.inference is not None and self.inference.observations:
+                indices, valeurs = self.inference.classement(self.disponibles)
+                return int(indices[np.argmax(valeurs)])
+            if self.strategie in (Strategie.EXACTE, Strategie.ROBUSTE):
                 return int(disponibles[0])
             if self.strategie in INVERSION:
                 if disponibles.size == 1 or budget == 1:
@@ -92,9 +117,24 @@ class Recherche:
     def observer(self, indice: int, obs: Observation) -> None:
         self.hist.append(indice)
         self.disponibles[indice] = False
+        if self.strategie == Strategie.ROBUSTE and self.inference is None:
+            if obs.statut == "score" and obs.temperature is not None:
+                self.avant_bascule.append((obs.mot, obs.temperature))
+                self.filtrer(obs.mot, obs.temperature)
+            if obs.statut != "victoire" and not self.disponibles.any():
+                self.disponibles = self.admis.copy()
+                self.disponibles[self.hist] = False
+                self.inference = Inference(self.modele, np.flatnonzero(self.admis), Methode.MELANGE,
+                                           self.decimales, self.marge)
+                for mot, temp in self.avant_bascule:
+                    self.inference.ajouter(mot, temp)
+                self.avant_bascule.clear()
+            return
         if obs.statut != "score" or obs.temperature is None or self.strategie == Strategie.HASARD:
             return
-        if self.strategie in INVERSION:
+        if self.inference is not None:
+            self.inference.ajouter(obs.mot, obs.temperature)
+        elif self.strategie in INVERSION:
             self.filtrer(obs.mot, obs.temperature)
         elif self.strategie == Strategie.VOISIN:
             if obs.temperature > self.temperature_max:
@@ -124,16 +164,20 @@ class Recherche:
 
 def resoudre(modele: Modele, source: Callable[[str], Observation], indices: NDArray[np.intp],
              strategie: Strategie, budget: int, decimales: int, graine_choix: int,
-             historique: Iterable[Observation] = (), *, ouverture: int | None = None) -> Resultat:
+             historique: Iterable[Observation] = (), *, ouverture: int | None = None,
+             marge: float = MARGE_CALIBRATION) -> Resultat:
     if budget < 1 or not 0 <= decimales <= 6:
         raise ValueError("Budget positif et précision de 0 à 6 décimales requis.")
-    recherche = Recherche(modele, indices, strategie, decimales, random.Random(f"choix:{graine_choix}"))
+    if not math.isfinite(marge) or not 0 <= marge <= 100:
+        raise ValueError("La marge de calibration doit être comprise entre 0 et 100 °C.")
+    recherche = Recherche(modele, indices, strategie, decimales, random.Random(f"choix:{graine_choix}"), marge)
     essais: list[Essai] = []
 
     deja_joues: set[str] = set()
 
     def enregistrer(proposition: str, obs: Observation) -> None:
         mot = cle(proposition)
+        etait_exact = recherche.filtre_exact
         if cle(obs.mot) != mot or obs.statut not in ("score", "refus", "victoire"):
             raise ValueError("La réponse ne correspond pas au mot proposé ou au statut attendu.")
         if mot in deja_joues:
@@ -148,8 +192,11 @@ def resoudre(modele: Modele, source: Callable[[str], Observation], indices: NDAr
         if obs.statut != "refus" or modele.indices.get(mot, -1) >= 0:
             recherche.observer(modele.indice(mot), obs)
         deja_joues.add(mot)
-        restants = int(recherche.disponibles.sum()) if strategie in INVERSION else None
-        essais.append(Essai(obs, restants if obs.statut != "victoire" else None))
+        restants = int(recherche.disponibles.sum()) if recherche.filtre_exact and obs.statut != "victoire" else None
+        estimation = (recherche.inference.estimation(recherche.disponibles)
+                      if recherche.inference is not None and obs.statut != "victoire" else None)
+        motif = "aucun_candidat_exact" if etait_exact and not recherche.filtre_exact else None
+        essais.append(Essai(obs, restants, estimation, motif))
 
     for obs in historique:
         if len(essais) >= budget or (essais and essais[-1].observation.statut == "victoire"):
