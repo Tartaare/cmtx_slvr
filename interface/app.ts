@@ -13,10 +13,15 @@ let cibleSuppression: {archive: Archive; ligne: HTMLElement} | null = null;
 async function requete<T>(url: string, corps?: object, method: "POST" | "DELETE" = "POST"): Promise<T> {
   const options = corps ? {method, headers:{"Content-Type":"application/json"}, body:JSON.stringify(corps)} : {};
   const r = await fetch(url, options);
-  const d = await r.json();
+  if(method==="DELETE" && r.status===501){
+    throw new Error("Le serveur de l’atelier ne prend pas encore en charge la suppression. Redémarrez-le, puis réessayez.");
+  }
+  const d = await r.json().catch(()=>{
+    throw new Error(`Réponse illisible du serveur local (HTTP ${r.status}).`);
+  });
   if (!r.ok) {
     if (r.status === 409 && method === "POST" && session) choisir(await requete<Partie>(api+"/"+session.id));
-    throw new Error(d.erreur || "Le serveur local est indisponible.");
+    throw new Error(typeof d?.erreur==="string" ? d.erreur : "Le serveur local est indisponible.");
   }
   return d as T;
 }
