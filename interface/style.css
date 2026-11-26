@@ -14,7 +14,7 @@ header { background:#fcfdf9; border-bottom:1px solid var(--line)}
 .bar,main { max-width:1320px; margin:auto; padding-inline:var(--space)}
 .bar { display:flex; align-items:center; gap:3rem; min-height:66px}
 .brand { display:flex; align-items:center; gap:.63rem; color:var(--ink); text-decoration:none; font:700 1.45rem/1 Georgia,serif; letter-spacing:-.055em}
-.mark { display:grid; place-items:center; width:33px; height:33px; background:var(--dark); color:#ffe0af; border-radius:50% 50% 14% 50%; font:bold 1.8rem/1 Georgia; transform:rotate(-12deg)}
+.mark { display:block; flex:none; padding:5px; background:var(--dark); border-radius:8px; object-fit:contain}
 nav { display:flex; align-self:stretch; gap:1.3rem}
 nav button { position:relative; border:0; border-radius:0; padding:0 .15rem; background:none; font-size:.94rem; color:var(--mute)}
 nav button[aria-current] { color:var(--ink)}

@@ -44,7 +44,13 @@ test("la partie reprend après redémarrage du serveur et aboutit dans le naviga
       lectures++;
       return route.abort("connectionreset");
     });
+    const logoRecu = page.waitForResponse(new URL("logo-cemantix-transparent.png", url).href);
     await page.goto(url);
+    const logo = await logoRecu;
+    assert.equal(logo.status(), 200);
+    assert.equal(logo.headers()["content-type"], "image/png");
+    const marque = page.getByRole("link", {name:"Cémantix, accueil"}).locator("img");
+    assert.ok(await marque.evaluate((image: HTMLImageElement) => image.naturalWidth > 0));
     await page.getByRole("alert").filter({hasText:"Connexion au moteur local interrompue"}).waitFor();
     assert.equal(lectures, 2);
     await page.unroute(apiLocale);

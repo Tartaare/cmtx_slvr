@@ -18,6 +18,7 @@ RACINE = Path(__file__).resolve().parents[1]
 FICHIERS = {
     "/": (RACINE / "interface/index.html", "text/html"),
     "/style.css": (RACINE / "interface/style.css", "text/css"),
+    "/logo-cemantix-transparent.png": (RACINE / "logo-cemantix-transparent.png", "image/png"),
     "/app.js": (RACINE / "dist/interface/app.js", "text/javascript"),
     "/rendu.js": (RACINE / "dist/interface/rendu.js", "text/javascript"),
 }
@@ -42,7 +43,9 @@ def creer_serveur(cache: Path, base: Path, port: int) -> ThreadingHTTPServer:
     class Requete(BaseHTTPRequestHandler):
         def repondre(self, statut: int, contenu: bytes, type_mime: str) -> None:
             self.send_response(statut)
-            self.send_header("Content-Type", type_mime + "; charset=utf-8")
+            if not type_mime.startswith("image/"):
+                type_mime += "; charset=utf-8"
+            self.send_header("Content-Type", type_mime)
             self.send_header("Content-Length", str(len(contenu)))
             self.send_header("Cache-Control", "no-store")
             self.send_header("X-Content-Type-Options", "nosniff")
