@@ -10,7 +10,8 @@
     "build": "tsc && tsc -p interface",
     "start": "node --disable-warning=ExperimentalWarning --experimental-strip-types cli.ts",
     "test": "node --disable-warning=ExperimentalWarning --experimental-strip-types --test test/*.test.ts",
-    "test:atelier": "node --disable-warning=ExperimentalWarning --experimental-strip-types --test test/atelier.e2e.ts"
+    "test:atelier": "node --disable-warning=ExperimentalWarning --experimental-strip-types --test test/atelier.e2e.ts",
+    "test:galaxie": "node --disable-warning=ExperimentalWarning --experimental-strip-types test/recette-galaxie.ts"
   },
   "dependencies": {
     "playwright-core": "1.65.0"
