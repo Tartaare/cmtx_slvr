@@ -22,8 +22,17 @@ void main() {
   float intensite = mix(1., mix(.11, 1., joue), modeEssais);
   // Perspective en 1/d, avec un plafond progressif pour contenir le coût au premier plan.
   gl_PointSize = (1. + diametre / (d + diametre / 20.) + 2. * joue * modeEssais) * resolution;
-  float contraste = champSurvole < 0. ? 1. : (groupe == champSurvole ? 1.25 : .62);
-  teinte = vec4(mix(vec3(.43, .49, .55), couleur.rgb, intensite), min(1., clamp(.9 * inversesqrt(d), .24, .96) * intensite * contraste));
+  vec3 rgb = mix(vec3(.43, .49, .55), couleur.rgb, intensite);
+  float opacite = clamp(.9 * inversesqrt(d), .24, .96) * intensite;
+  if (champSurvole >= 0.) {
+    if (groupe == champSurvole) {
+      rgb = mix(rgb, vec3(1.), .24);
+      opacite = min(1., opacite * 1.65);
+    } else {
+      rgb = vec3(dot(rgb, vec3(.2126, .7152, .0722)));
+    }
+  }
+  teinte = vec4(rgb, opacite);
 }`;
 const fragment = `
 precision mediump float;

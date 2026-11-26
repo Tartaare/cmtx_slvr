@@ -37,8 +37,9 @@ async function attendreUniforme(page: Page, nom: string, valeur: number): Promis
   }, {nom,valeur});
 }
 
-function mesurerPixels(page: Page, zooms: number): Promise<number[]> {
-  return page.locator("#galaxie").evaluate((canevas: HTMLCanvasElement, nombre) => new Promise<number[]>(fin => {
+type MesurePixels = {erreur: number; moities: number[]; couleurs: number[][]};
+function mesurerPixels(page: Page, zooms: number): Promise<MesurePixels> {
+  return page.locator("#galaxie").evaluate((canevas: HTMLCanvasElement, nombre) => new Promise<MesurePixels>(fin => {
     const gl = canevas.getContext("webgl")!;
     const dessiner = gl.drawArrays;
     gl.drawArrays = function (mode, debut, compte) {
@@ -49,11 +50,17 @@ function mesurerPixels(page: Page, zooms: number): Promise<number[]> {
       const pixels = new Uint8Array(width * height * 4);
       gl.readPixels(0, 0, width, height, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
       const moities = [0, 0];
+      const couleurs = [[0,0,0,0],[0,0,0,0]];
       for (let i = 0; i < width * height; i++) {
-        if (pixels[4 * i + 3] > 20) moities[Number(i % width >= width / 2)]++;
+        const debutPixel = 4 * i, alpha = pixels[debutPixel + 3];
+        if (alpha <= 20) continue;
+        const moitie = Number(i % width >= width / 2);
+        moities[moitie]++;
+        if (alpha > couleurs[moitie][3]) couleurs[moitie] = Array.from(pixels.subarray(debutPixel,debutPixel+4));
       }
-      fin([gl.getError(), ...moities]);
+      fin({erreur: gl.getError(), moities, couleurs});
     };
+    if (nombre === 0) canevas.dispatchEvent(new KeyboardEvent("keydown", {key: "Home"}));
     for (let i = 0; i < nombre; i++) canevas.dispatchEvent(new KeyboardEvent("keydown", {key: "+"}));
   }), zooms);
 }
@@ -154,7 +161,7 @@ test("l’accueil affiche la carte sur toute la fenêtre sans ouvrir de partie",
     }}), {times: 1});
     await page.reload();
     await recherche.waitFor();
-    const [erreurArc, gauche, droite] = await mesurerPixels(page, 7);
+    const {erreur: erreurArc, moities: [gauche, droite]} = await mesurerPixels(page, 7);
     assert.equal(erreurArc, 0);
     assert.ok(gauche > 200 && droite > 200, `Arc au zoom : ${gauche}/${droite} pixels`);
 
@@ -164,9 +171,27 @@ test("l’accueil affiche la carte sur toute la fenêtre sans ouvrir de partie",
     }}), {times: 1});
     await page.reload();
     await recherche.waitFor();
-    const [erreurPoints, proche, lointain] = await mesurerPixels(page, 8);
+    const {erreur: erreurPoints, moities: [proche, lointain]} = await mesurerPixels(page, 8);
     assert.equal(erreurPoints, 0);
     assert.ok(lointain > 0 && proche > 3 * lointain, `Points proche/lointain : ${proche}/${lointain} pixels`);
+
+    await page.route(atlas, route => route.fulfill({json: {...entete,
+      mots: [["sulfone",-6000,0,0,0],["rainurer",6000,0,0,1]]
+    }}), {times: 1});
+    await page.reload();
+    await recherche.waitFor();
+    await page.mouse.move(20, 150);
+    const normal = await mesurerPixels(page, 0);
+    const titre = (await lireLibelles(page, "Home")).find(({texte}) => texte === "Chimie et biochimie");
+    assert.ok(titre);
+    await page.mouse.move(titre.x + 8, titre.y - 5);
+    await attendreUniforme(page, "champSurvole", 0);
+    const survol = await mesurerPixels(page, 0);
+    assert.equal(survol.erreur, 0);
+    const [champ, autre] = survol.couleurs;
+    assert.ok(champ[3] > normal.couleurs[0][3] && champ[1] > normal.couleurs[0][1]);
+    assert.deepEqual(autre, [autre[0], autre[0], autre[0], normal.couleurs[1][3]]);
+    assert.ok(normal.couleurs[1][0] > normal.couleurs[1][2]);
     assert.deepEqual(erreurs, []);
   } finally {
     if (serveur) await fermer(serveur);
