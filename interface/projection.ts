@@ -1,4 +1,5 @@
 export type Point = [number, number, number];
+export const cleMot=(mot:string)=>mot.trim().normalize("NFC").toLocaleLowerCase("fr").replaceAll("’","'");
 type Ligne = [string, number, number, number, number];
 export interface Atlas {
   mots: Ligne[]; reperes: number[]; dimensions: number; methode: string; format: number; modele: string;

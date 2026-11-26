@@ -1,6 +1,6 @@
 import {el, texte} from "./rendu.js";
 import type {Partie} from "./rendu.js";
-import {indexer} from "./projection.js";
+import {cleMot as cle, indexer} from "./projection.js";
 import type {Atlas, Carte} from "./projection.js";
 import {Scene} from "./scene.js";
 
@@ -8,7 +8,6 @@ let carte: Carte | undefined, scene: Scene | undefined, partie: Partie | undefin
 let suivi=true, selection="", enCours="", focal="";
 const canvas=el<HTMLCanvasElement>("galaxie"), recherche=el<HTMLInputElement>("recherche");
 const statut=(valeur:string)=>texte("etat-carte",valeur);
-const cle=(mot:string)=>mot.trim().normalize("NFC").toLocaleLowerCase("fr").replaceAll("’","'");
 function mode(actif:boolean): void {
   suivi=actif;
   el("suivi").setAttribute("aria-pressed",String(actif));
@@ -22,18 +21,31 @@ function centrer(mot:string,distance:number): void {
 }
 function synchroniser(force=false): void {
   if(!partie || !scene || !carte)return;
-  const essais=partie.essais.map(e=>e.observation);
-  scene.journal(essais);
-  const mot=enCours || essais.at(-1)?.mot || (force?partie.prochain:"") || "";
+  const mot=enCours || partie.essais.at(-1)?.observation.mot || (force?partie.prochain:"") || "";
   if(suivi && mot && (force || focal!==mot)){
     if(carte.index.has(cle(mot)))centrer(mot,.32);
-    else statut(mot+" · hors de la carte réduite");
+    else {selection="";scene.deselectionner();statut(mot+" · hors de la carte réduite");}
   }
   focal=mot;
 }
+function journal():void {
+  scene?.journal(partie?.essais.map(e=>e.observation)??[]);
+  if(!carte)return;
+  for(const ligne of el("recents").querySelectorAll<HTMLTableRowElement>("tr")){
+    const cellule=ligne.cells[1], mot=cellule.firstChild?.textContent;
+    if(mot && !carte.index.has(cle(mot)) && !cellule.querySelector("small")){
+      const note=document.createElement("small");note.textContent=" · hors carte";cellule.append(note);
+    }
+  }
+}
+export function effacerPartie():void {
+  partie=undefined;mode(true);selection="";focal="";enCours="";
+  recherche.value="";el("resultats").replaceChildren();scene?.nouvellePartie();
+  if(scene)statut("Dictionnaire complet");
+}
 export function actualiserGalaxie(s:Partie):void {
-  if(partie?.id!==s.id){mode(true);selection="";focal="";scene?.globale();statut("Dictionnaire complet");}
-  partie=s;enCours="";synchroniser();
+  if(partie?.id!==s.id)effacerPartie();
+  partie=s;enCours="";journal();synchroniser();
 }
 export function essaiEnCours(mot:string):void { enCours=mot;synchroniser(); }
 export function annulerFoyer():void {enCours="";synchroniser();}
@@ -118,7 +130,7 @@ function monter():void {
   });
   el("scene").classList.remove("indisponible");el("repli").hidden=true;
   el("outils-carte").hidden=false;el("chercher").hidden=false;el("suivi").hidden=false;canvas.tabIndex=0;
-  statut("Dictionnaire complet");synchroniser(!!partie?.essais.length);
+  statut("Dictionnaire complet");journal();synchroniser(!!partie?.essais.length);
 }
 canvas.addEventListener("webglcontextlost",e=>{e.preventDefault();indisponible("Rendu 3D interrompu. Le journal reste disponible.");});
 canvas.addEventListener("webglcontextrestored",()=>{try{monter();}catch{indisponible("Rendu 3D indisponible. Le journal reste disponible.");}});
@@ -128,7 +140,7 @@ export async function ouvrirGalaxie():Promise<void>{
     carte=indexer(await r.json() as Atlas);
     texte("compte-mots",carte.index.size.toLocaleString("fr-FR"));
     texte("dimensions",carte.atlas.dimensions.toString());
-    monter();
+    journal();monter();
   }catch{
     indisponible("Carte 3D indisponible. Vous pouvez jouer et consulter tous les essais ci-dessous.");
     statut("Affichage textuel");

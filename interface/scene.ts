@@ -1,4 +1,4 @@
-import {axes, cadre, cameraInitiale, projeter} from "./projection.js";
+import {axes, cadre, cameraInitiale, cleMot, projeter} from "./projection.js";
 import type {Camera, Carte, Point} from "./projection.js";
 import type {Observation} from "./rendu.js";
 
@@ -30,6 +30,7 @@ export class Scene {
   private choix = -1;
   private proches: number[] = [];
   private essais: Observation[] = [];
+  private resultats = new Map<string,Observation>();
   private meilleur: Observation | undefined;
   private readonly taille: ResizeObserver;
   private readonly mouvement = matchMedia("(prefers-reduced-motion: reduce)");
@@ -58,7 +59,7 @@ export class Scene {
       const a=gl.getAttribLocation(programme,nom);
       gl.enableVertexAttribArray(a); gl.vertexAttribPointer(a,3,type,normalise,0,0);
     }
-    gl.enable(gl.BLEND); gl.blendFuncSeparate(gl.SRC_ALPHA,gl.ONE,gl.ONE,gl.ONE_MINUS_SRC_ALPHA);
+    gl.enable(gl.BLEND); gl.blendFuncSeparate(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA,gl.ONE,gl.ONE_MINUS_SRC_ALPHA);
     this.matrice=gl.getUniformLocation(this.programme,"camera");
     this.resolution=gl.getUniformLocation(this.programme,"resolution");
     this.taille=new ResizeObserver(()=>{
@@ -69,6 +70,10 @@ export class Scene {
     this.actualiser();
   }
   arreter(): void { this.taille.disconnect(); cancelAnimationFrame(this.frame); }
+  deselectionner(): void { this.choix=-1;this.proches=[];this.actualiser(); }
+  nouvellePartie(): void {
+    this.deselectionner();this.journal([]);this.globale();
+  }
   globale(): void {
     Object.assign(this.cible,cameraInitiale(this.canvas.clientWidth/Math.max(1,this.canvas.clientHeight)));
     this.actualiser();
@@ -93,10 +98,12 @@ export class Scene {
       const points=this.carte.positions;
       const centre=points.subarray(i*3,i*3+3);
       // Une recherche linéaire uniquement à la sélection. Au-delà du lexique réduit, indexer les voisins hors ligne.
-      const distances=new Float32Array(this.carte.atlas.mots.length);
-      for(let j=0;j<distances.length;j++) distances[j]=
-        (points[j*3]-centre[0])**2+(points[j*3+1]-centre[1])**2+(points[j*3+2]-centre[2])**2;
-      this.proches=Array.from(distances.keys()).sort((a,b)=>distances[a]-distances[b]).slice(1,96);
+      const region: {id:number; distance:number}[]=[];
+      for(let j=0;j<this.carte.index.size;j++){
+        const distance=(points[j*3]-centre[0])**2+(points[j*3+1]-centre[1])**2+(points[j*3+2]-centre[2])**2;
+        if(j!==i && distance<.08**2)region.push({id:j,distance});
+      }
+      this.proches=region.sort((a,b)=>a.distance-b.distance).slice(0,96).map(p=>p.id);
     }
     this.cible.centre=Array.from(this.carte.positions.subarray(i*3,i*3+3)) as Point;
     this.cible.distance=distance; this.actualiser();
@@ -111,8 +118,9 @@ export class Scene {
     return meilleur;
   }
   journal(essais: Observation[]): void {
-    this.essais=essais;
-    this.meilleur=essais.reduce<Observation|undefined>((a,b)=>b.temperature!==null &&
+    this.essais=essais.map(o=>({...o,mot:cleMot(o.mot)}));
+    this.resultats=new Map(this.essais.map(o=>[o.mot,o]));
+    this.meilleur=this.essais.reduce<Observation|undefined>((a,b)=>b.temperature!==null &&
       (b.statut==="victoire" || b.temperature>(a?.temperature??-Infinity))?b:a,undefined);
     this.actualiser();
   }
@@ -167,22 +175,30 @@ export class Scene {
       precedent=p;
     }
     const meilleur=this.meilleur?this.carte.index.get(this.meilleur.mot):undefined;
-    const candidats=[this.choix,meilleur??-1,...this.carte.atlas.reperes,...(this.camera.distance<1.35?this.proches:[])];
+    const proximite=limite((1.65-this.camera.distance)/.6,0,1);
+    const candidats=[this.choix,meilleur??-1,...this.proches.slice(0,Math.ceil(96*proximite)),...this.carte.atlas.reperes];
     const zones:number[][]=[];
     for(const i of new Set(candidats)){
       if(i<0) continue;
       const p=ecran(i); if(!visible(p))continue;
       const prioritaire=i===this.choix || i===meilleur;
       const mot=this.carte.atlas.mots[i][0];
-      const libelle=i===meilleur?(this.meilleur?.statut==="victoire"?"✓ ":"★ ")+mot:mot;
+      const resultat=this.resultats.get(mot);
+      const marque=resultat?.statut==="victoire"?"✓ ":i===meilleur?"★ ":"";
+      const score=resultat?.temperature;
+      const libelle=marque+mot+(prioritaire && resultat?
+        (score==null?" · refus":" · "+score.toLocaleString("fr-FR")+" °C"):"");
       ctx.font=(prioritaire?"600 14px":"12px")+" Consolas, monospace";
       const largeur=ctx.measureText(libelle).width+12, x=limite(p[0]+9,5,w-largeur-5), y=limite(p[1]-20,5,h-24);
+      if((y<62 && (x<120 || x+largeur>w-220)) || (y>h-72 && (x<155 || x+largeur>w-150)))continue;
       if(zones.some(([a,b,c,d])=>x<a+c+12 && x+largeur+12>a && y<b+d+9 && y+28>b))continue;
       zones.push([x,y,largeur,20]);
+      ctx.globalAlpha=prioritaire || this.carte.atlas.reperes.includes(i)?1:proximite;
       ctx.fillStyle=prioritaire?"#181b1f":"rgba(10,12,15,.75)";ctx.fillRect(x,y,largeur,20);
       ctx.fillStyle=prioritaire?"#fff6d8":"#d0d6d8";ctx.fillText(libelle,x+6,y+14);
       if(i===this.choix){ctx.strokeStyle="#fff6d8";ctx.strokeRect(p[0]-5,p[1]-5,10,10);}
       if(zones.length >= (w<560?3:this.camera.distance<1.35?10:5))break;
     }
+    ctx.globalAlpha=1;
   }
 }
