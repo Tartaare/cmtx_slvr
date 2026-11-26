@@ -2,6 +2,7 @@
 import json
 import re
 import sqlite3
+import subprocess
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from threading import Lock
@@ -17,6 +18,18 @@ FICHIERS = {
     "/app.js": (RACINE / "dist/interface/app.js", "text/javascript"),
     "/rendu.js": (RACINE / "dist/interface/rendu.js", "text/javascript"),
 }
+
+
+def consulter_jeu(*arguments: str) -> str | Objet:
+    try:
+        resultat = subprocess.run(["node", "--disable-warning=ExperimentalWarning", "--experimental-strip-types",
+                                   "cli.ts", *arguments], cwd=RACINE, capture_output=True,
+                                  encoding="utf-8", timeout=90)
+    except subprocess.TimeoutExpired as erreur:
+        raise ValueError("Cémantix n’a pas répondu à temps. Réessayez.") from erreur
+    if resultat.returncode:
+        raise ValueError(resultat.stderr.strip() or "Impossible de consulter Cémantix.")
+    return json.loads(resultat.stdout)
 
 
 def creer_serveur(cache: Path, base: Path, port: int) -> ThreadingHTTPServer:
@@ -72,12 +85,28 @@ def creer_serveur(cache: Path, base: Path, port: int) -> ThreadingHTTPServer:
                     raise ValueError("Un objet JSON est attendu.")
                 with mutations:
                     if identifiant:
+                        if donnees.get("action") == "essai":
+                            partie = sessions.lire(identifiant[1])
+                            if partie["config"]["source"] == "jour":
+                                if donnees.get("revision") != partie["revision"]:
+                                    raise Conflit("Cette partie a changé. Rechargez-la avant de continuer.")
+                                if partie["statut"] != "active" or not partie["prochain"]:
+                                    raise ValueError("La partie ne peut plus jouer cet essai.")
+                                donnees["observations"] = [consulter_jeu("--observation", partie["config"]["grille"],
+                                                                         partie["prochain"])]
                         resultat = sessions.modifier(identifiant[1], donnees.get("revision"), donnees.get("action"),
                                                      donnees.get("observations"))
                     elif donnees.get("initial") is True and (existantes := sessions.liste()):
                         resultat = sessions.lire(existantes[0]["id"])
                     else:
-                        resultat = sessions.creer(donnees.get("config", {}), donnees.get("observations"))
+                        config = donnees.get("config", {})
+                        if isinstance(config, dict) and config.get("source") == "jour":
+                            grille = consulter_jeu("--grille")
+                            if not isinstance(grille, str) or not grille.isdecimal():
+                                raise ValueError("Numéro de grille illisible.")
+                            config["grille"] = grille
+                            donnees.pop("observations", None)
+                        resultat = sessions.creer(config, donnees.get("observations"))
                 self.json(200 if identifiant else 201, resultat)
             except Conflit as erreur:
                 self.json(409, {"erreur": str(erreur)})

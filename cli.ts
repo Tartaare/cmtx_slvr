@@ -1,18 +1,25 @@
 import { errors } from "playwright-core";
-import { resoudreJour } from "./jour.ts";
+import { observer, resoudreJour } from "./jour.ts";
 import { essayerMot, lireMot, ouvrirNavigateur } from "./jeu.ts";
 
 async function jouer(): Promise<void> {
   const args = process.argv.slice(2);
   const automatique = args[0] === "--resoudre";
   if (automatique && args.length > 2) throw new Error("Usage : npm start -- --resoudre [budget]");
-  const mot = automatique ? "" : lireMot(args);
+  const releve = args[0] === "--observation";
+  const numero = args[0] === "--grille";
+  const mot = automatique || numero ? "" : lireMot(releve ? args.slice(2) : args);
   const navigateur = await ouvrirNavigateur();
   try {
     const page = await navigateur.newPage({ locale: "fr-FR" });
     page.setDefaultTimeout(20_000);
     const accueil = await page.goto("https://cemantix.certitudes.org/", { waitUntil: "domcontentloaded" });
     if (!accueil?.ok()) throw new Error(`Site indisponible (HTTP ${accueil?.status() ?? "inconnu"}).`);
+    if (numero || releve) {
+      console.log(JSON.stringify(numero ? await page.locator("#script").getAttribute("data-puzzle-number")
+        : await observer(page, args[1], mot)));
+      return;
+    }
     if (automatique) {
       process.exitCode = await resoudreJour(page, Number(args[1] ?? 20));
       return;

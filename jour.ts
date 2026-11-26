@@ -16,6 +16,19 @@ async function publier(chemin: string, donnees: object): Promise<Partie> {
   return partie;
 }
 
+export async function observer(page: Page, grille: string, mot: string): Promise<Observation> {
+  if (await page.locator("#script").getAttribute("data-puzzle-number") !== grille)
+    throw new Error("La grille a changé pendant la résolution.");
+  try {
+    const score = await essayerMot(page, mot);
+    const victoire = score.progression === 1000 && score.temperature === 100;
+    return { mot, temperature: score.temperature, statut: victoire ? "victoire" : "score" };
+  } catch (erreur) {
+    if (!(erreur instanceof MotRefuse)) throw erreur;
+    return { mot, statut: "refus", temperature: null };
+  }
+}
+
 export async function resoudreJour(page: Page, budget: number): Promise<number> {
   if (!Number.isInteger(budget) || budget < 1 || budget > 200) throw new Error("Budget attendu entre 1 et 200.");
   const numero = () => page.locator("#script").getAttribute("data-puzzle-number");
@@ -26,16 +39,7 @@ export async function resoudreJour(page: Page, budget: number): Promise<number> 
     const mot = partie.prochain;
     if (!mot) throw new Error("Le moteur ne propose plus de mot.");
     if (partie.essais.length) await page.reload({ waitUntil: "domcontentloaded" });
-    if (await numero() !== grille) throw new Error("La grille a changé pendant la résolution.");
-    let observation: Observation;
-    try {
-      const score = await essayerMot(page, mot);
-      const victoire = score.progression === 1000 && score.temperature === 100;
-      observation = { mot, temperature: score.temperature, statut: victoire ? "victoire" : "score" };
-    } catch (erreur) {
-      if (!(erreur instanceof MotRefuse)) throw erreur;
-      observation = { mot, statut: "refus", temperature: null };
-    }
+    const observation = await observer(page, grille, mot);
     console.log(`Grille ${grille} · essai ${partie.essais.length + 1}/${budget} · ${mot} · ${observation.temperature === null ? "refus" : observation.temperature + " °C"}`);
     partie = await publier("/" + partie.id, { revision: partie.revision, action: "essai", observations: [observation] });
   }

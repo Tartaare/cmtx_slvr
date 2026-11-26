@@ -30,7 +30,7 @@ class Configuration:
     grille: str = ""
 
     def __post_init__(self) -> None:
-        if (self.source not in ("simulation", "assiste") or self.modele not in SOURCES
+        if (self.source not in ("simulation", "assiste", "jour") or self.modele not in SOURCES
                 or self.modele_source not in SOURCES or self.strategie not in ("secours", "plan", "robuste")
                 or self.scenario not in Scenario):
             raise ValueError("Source, modèle, scénario ou stratégie inconnus.")
@@ -38,7 +38,7 @@ class Configuration:
             raise ValueError("Le budget doit être compris entre 1 et 200 essais.")
         if type(self.graine) is not int or abs(self.graine) > 2**31 - 1:
             raise ValueError("La graine doit être un entier signé sur 32 bits.")
-        if not isinstance(self.grille, str) or len(self.grille) > 80 or (self.source == "assiste" and not self.grille.strip()):
+        if not isinstance(self.grille, str) or len(self.grille) > 80 or (self.source != "simulation" and not self.grille.strip()):
             raise ValueError("Indiquez la grille de la partie assistée (80 caractères maximum).")
 
 
