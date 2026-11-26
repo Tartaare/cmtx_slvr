@@ -9,6 +9,7 @@ let suivi=true, selection="", enCours="", focal="";
 const canvas=el<HTMLCanvasElement>("galaxie"), recherche=el<HTMLInputElement>("recherche");
 const boutonSuivi=document.querySelector<HTMLButtonElement>("#suivi");
 const aideCarte=document.querySelector<HTMLDetailsElement>("#aide-carte");
+const caseChamps=el<HTMLInputElement>("afficher-champs");
 const statut=(valeur:string)=>texte("etat-carte",valeur);
 function mode(actif:boolean): void {
   suivi=actif;
@@ -92,6 +93,7 @@ if(boutonSuivi)boutonSuivi.onclick=()=>{mode(!suivi);if(suivi)synchroniser(true)
 function globale():void {mode(false);scene?.globale();statut(selection?"Sélection · "+selection:"Dictionnaire complet");}
 function zoom(f:number):void {mode(false);scene?.zoom(f);}
 el("globale").onclick=globale;el("plus").onclick=()=>zoom(.7);el("moins").onclick=()=>zoom(1/.7);
+caseChamps.onchange=()=>scene?.afficherChamps(caseChamps.checked);
 canvas.onwheel=e=>{e.preventDefault();zoom(Math.exp(Math.max(-1,Math.min(1,e.deltaY*.0018))));};
 canvas.onkeydown=e=>{
   const d:Record<string,[number,number]>={ArrowLeft:[-18,0],ArrowRight:[18,0],ArrowUp:[0,-18],ArrowDown:[0,18]};
@@ -139,7 +141,7 @@ function indisponible(message:string):void {
   scene?.arreter();scene=undefined;
   texte("niveau",boutonSuivi?"Vue textuelle":"Carte indisponible");
   el("scene").classList.add("indisponible");texte("diagnostic-carte",message);el("repli").hidden=false;
-  el("outils-carte").hidden=true;el("chercher").hidden=true;canvas.tabIndex=-1;
+  el("outils-carte").hidden=true;el("chercher").hidden=true;el("option-champs").hidden=true;canvas.tabIndex=-1;
   if(aideCarte)aideCarte.hidden=true;
   if(boutonSuivi){boutonSuivi.hidden=true;statut("Affichage textuel");}
 }
@@ -151,6 +153,8 @@ function monter():void {
   });
   el("repli").hidden=true;
   el("outils-carte").hidden=false;el("chercher").hidden=false;canvas.tabIndex=0;
+  el("option-champs").hidden=carte.champs.length===0;
+  scene.afficherChamps(caseChamps.checked);
   if(aideCarte)aideCarte.hidden=false;
   if(boutonSuivi)boutonSuivi.hidden=false;
   statut("Dictionnaire complet");journal();synchroniser(!!partie?.essais.length);

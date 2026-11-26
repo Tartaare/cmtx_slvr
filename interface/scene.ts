@@ -11,7 +11,9 @@ uniform mat4 camera;
 uniform float resolution, modeEssais, diametre, visibiliteArcs, champSurvole;
 uniform bool modeArcs;
 varying vec4 teinte;
+varying float neon;
 void main() {
+  neon = 0.;
   if (modeArcs) {
     gl_Position = camera * vec4(position * .0001, 1.);
     teinte = vec4(couleur.rgb, couleur.a * visibiliteArcs);
@@ -21,30 +23,39 @@ void main() {
   float d = max(.002, gl_Position.w);
   float intensite = mix(1., mix(.11, 1., joue), modeEssais);
   // Perspective en 1/d, avec un plafond progressif pour contenir le coût au premier plan.
-  gl_PointSize = (1. + diametre / (d + diametre / 20.) + 2. * joue * modeEssais) * resolution;
+  float taille = 1. + diametre / (d + diametre / 20.) + 2. * joue * modeEssais;
   vec3 rgb = mix(vec3(.43, .49, .55), couleur.rgb, intensite);
   float opacite = clamp(.9 * inversesqrt(d), .24, .96) * intensite;
   if (champSurvole >= 0.) {
     if (groupe == champSurvole) {
-      rgb = mix(rgb, vec3(1.), .24);
+      neon = 1.;
       opacite = min(1., opacite * 1.65);
     } else {
       rgb = vec3(dot(rgb, vec3(.2126, .7152, .0722)));
     }
   }
+  gl_PointSize = taille * mix(1., 2.8, neon) * resolution;
   teinte = vec4(rgb, opacite);
 }`;
 const fragment = `
 precision mediump float;
 uniform bool modeArcs;
 varying vec4 teinte;
+varying float neon;
 void main() {
   if (modeArcs) {
     gl_FragColor = teinte;
     return;
   }
   vec2 p = 2. * gl_PointCoord - 1.;
-  if (dot(p, p) >= 1.) discard;
+  float rayonCarre = dot(p, p);
+  if (rayonCarre >= 1.) discard;
+  if (neon > .5) {
+    float coeur = 1. - smoothstep(.065, .15, rayonCarre);
+    float halo = .37 * (1. - smoothstep(.04, 1., rayonCarre));
+    gl_FragColor = vec4(teinte.rgb, teinte.a * mix(halo, 1., coeur));
+    return;
+  }
   float bord = 1. - smoothstep(.68, 1., length(p));
   float relief = sqrt(max(0., 1. - dot(p, p)));
   float lumiere = max(0., dot(vec3(p, relief), vec3(-.36, -.42, .83)));
@@ -87,6 +98,7 @@ export class Scene {
   private resultats = new Map<string,Observation>();
   private meilleur: Observation | undefined;
   private souris?: Position;
+  private champsVisibles=true;
   private survole=-1;
   private readonly titres: {groupe: number; zone: Zone}[]=[];
   private readonly joues = new Set<number>();
@@ -199,6 +211,10 @@ export class Scene {
     const titre=position && this.titres.find(({zone})=>contient(zone,position));
     if((titre?.groupe??-1)!==this.survole)this.actualiser();
   }
+  afficherChamps(visible: boolean): void {
+    this.champsVisibles=visible;
+    this.actualiser();
+  }
   journal(essais: Observation[], grilleReelle=false): void {
     this.essais=essais.map(o=>({...o,mot:cleMot(o.mot)}));
     this.resultats=new Map(this.essais.map(o=>[o.mot,o]));
@@ -301,7 +317,7 @@ export class Scene {
     const reperes=this.attenuer?[...this.joues].reverse():globale?[]:
       [...this.proches.slice(0,Math.ceil(96*proximite)),...this.carte.atlas.reperes];
     const mots=new Set([this.choix,meilleur??-1,...reperes]);
-    const champs=globale && !this.attenuer?this.carte.champs:[];
+    const champs=globale && !this.attenuer && this.champsVisibles?this.carte.champs:[];
     const zones:Zone[]=[];
     for(const candidat of [...mots,...champs]){
       const i=typeof candidat==="number"?candidat:-1;

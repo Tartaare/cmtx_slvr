@@ -44,7 +44,13 @@ h1{font-size:clamp(2rem,4vw,4.2rem);line-height:1.06;font-weight:500;letter-spac
 .vue,.champ-recherche,#suivi,#outils-carte{display:flex;align-items:center;gap:9px}
 .vue{position:absolute;left:25px;top:24px;pointer-events:none;color:#d8dcd9}.viseur{color:var(--accent);font:24px/1 var(--mono)}
 #chercher{position:absolute;top:18px;right:20px;width:min(196px,44%)}
-.champ-recherche,#resultats:not(:empty),#suivi,#outils-carte{background:rgba(14,17,20,.93);border:1px solid var(--line);border-radius:6px}
+.champ-recherche,#resultats:not(:empty),#suivi,#outils-carte,#option-champs{background:rgba(14,17,20,.93);border:1px solid var(--line);border-radius:6px}
+#option-champs{
+ position:absolute;right:22px;bottom:68px;display:flex;align-items:center;gap:8px;min-height:44px;
+ padding:0 11px;font-size:.78rem;font-weight:550;cursor:pointer;
+}
+#option-champs:hover{border-color:var(--muted)}
+#afficher-champs{width:15px;height:15px;margin:0;accent-color:var(--accent);cursor:pointer}
 .champ-recherche{padding:0 10px}.loupe{width:11px;height:11px;border:1.5px solid var(--muted);border-radius:50%;position:relative;flex:none}
 .loupe::after{content:"";position:absolute;width:6px;height:1.5px;background:var(--muted);right:-5px;bottom:-2px;transform:rotate(45deg)}
 #recherche{width:100%;min-width:0;min-height:38px;background:none;border:0;font-size:.78rem;padding-left:5px}
@@ -99,6 +105,7 @@ dialog input,dialog select{border:1px solid var(--line);border-radius:5px;backgr
  .donnees{font-size:11px;margin:0}#scene{height:clamp(310px,48svh,480px)}
  .vue{top:18px;left:14px;font-size:11px}.angle.haut{top:8px;left:7px}#chercher{right:10px;top:12px}
  .bas-carte{left:10px;right:10px;bottom:12px}.sous-carte{padding-inline:10px}
+ #option-champs{right:10px;bottom:60px}
  .console{align-items:start;flex-direction:column;gap:14px;padding:20px 0}.commandes{width:100%}.commandes .actions,.budget{justify-content:start}
  .lecture{grid-template-columns:1fr;gap:18px}.synthese{border-top:1px solid var(--soft);padding-top:14px}
  .formgrid{grid-template-columns:1fr}.archive .actions{width:100%}
@@ -124,6 +131,7 @@ dialog input,dialog select{border:1px solid var(--line);border-radius:5px;backgr
 .carte-plein-ecran #resultats{max-height:calc(100dvh - var(--haut) - var(--bas) - 104px);overflow:auto}
 .carte-plein-ecran #outils-carte{position:absolute;right:var(--droite);bottom:var(--bas);overflow:visible}
 .carte-plein-ecran #outils-carte button{min-width:44px;height:44px}
+.carte-plein-ecran #option-champs{right:var(--droite);bottom:calc(var(--bas) + 52px)}
 .carte-plein-ecran .aide{
  position:absolute;left:var(--gauche);bottom:var(--bas);
  padding:0 10px;background:rgb(14 17 20/.93);border:1px solid var(--line);border-radius:6px;
