@@ -6,9 +6,9 @@ import type {Observation} from "./rendu.js";
 const sommet = `
 attribute vec3 position;
 attribute vec4 couleur;
-attribute float joue;
+attribute float joue, groupe;
 uniform mat4 camera;
-uniform float resolution, modeEssais, diametre, visibiliteArcs;
+uniform float resolution, modeEssais, diametre, visibiliteArcs, champSurvole;
 uniform bool modeArcs;
 varying vec4 teinte;
 void main() {
@@ -22,7 +22,8 @@ void main() {
   float intensite = mix(1., mix(.11, 1., joue), modeEssais);
   // Perspective en 1/d, avec un plafond progressif pour contenir le coût au premier plan.
   gl_PointSize = (1. + diametre / (d + diametre / 20.) + 2. * joue * modeEssais) * resolution;
-  teinte = vec4(mix(vec3(.43, .49, .55), couleur.rgb, intensite), clamp(.9 * inversesqrt(d), .24, .96) * intensite);
+  float contraste = champSurvole < 0. ? 1. : (groupe == champSurvole ? 1.25 : .62);
+  teinte = vec4(mix(vec3(.43, .49, .55), couleur.rgb, intensite), min(1., clamp(.9 * inversesqrt(d), .24, .96) * intensite * contraste));
 }`;
 const fragment = `
 precision mediump float;
@@ -41,6 +42,8 @@ void main() {
   gl_FragColor = vec4(teinte.rgb * (.62 + .55 * lumiere), teinte.a * bord);
 }`;
 const limite = (n: number, min: number, max: number) => Math.min(max,Math.max(min,n));
+type Position = [x: number, y: number];
+const contient = ([x,y,l,h]: Zone, [u,v]: Position) => u>=x && u<=x+l && v>=y && v<=y+h;
 function courbe(ctx: CanvasRenderingContext2D, [x,y]: Point, [u,v]: Point, sens: number): void {
   const dx=u-x, dy=v-y, inflexion=sens*Math.min(.36,96/Math.hypot(dx,dy));
   ctx.beginPath();
@@ -58,8 +61,10 @@ export class Scene {
   private readonly modeEssais: WebGLUniformLocation | null;
   private readonly diametre: WebGLUniformLocation | null;
   private readonly modeArcs: WebGLUniformLocation | null;
-  private readonly points: {attribut: number; tampon: WebGLBuffer; type: number; normalise: boolean}[];
+  private readonly champSurvole: WebGLUniformLocation | null;
+  private readonly points: {attribut: number; tampon: WebGLBuffer; taille: number; type: number; normalise: boolean}[];
   private readonly joue: number;
+  private readonly groupe: number;
   private readonly arcs: Arcs;
   private readonly masque: WebGLBuffer;
   private readonly dessin: CanvasRenderingContext2D;
@@ -72,6 +77,9 @@ export class Scene {
   private essais: Observation[] = [];
   private resultats = new Map<string,Observation>();
   private meilleur: Observation | undefined;
+  private souris?: Position;
+  private survole=-1;
+  private readonly titres: {groupe: number; zone: Zone}[]=[];
   private readonly joues = new Set<number>();
   private attenuer = false;
   private readonly taille: ResizeObserver;
@@ -94,18 +102,20 @@ export class Scene {
     if (!gl.getProgramParameter(programme,gl.LINK_STATUS)) throw new Error("Programme graphique indisponible");
     gl.useProgram(programme);
     this.points=([
-      ["position",carte.positions,gl.FLOAT,false], ["couleur",carte.couleurs,gl.UNSIGNED_BYTE,true]
-    ] as const).map(([nom,donnees,type,normalise])=>{
+      ["position",carte.positions,3,gl.FLOAT,false], ["couleur",carte.couleurs,3,gl.UNSIGNED_BYTE,true],
+      ["groupe",carte.groupes,1,gl.UNSIGNED_BYTE,false]
+    ] as const).map(([nom,donnees,taille,type,normalise])=>{
       const tampon=gl.createBuffer()!;
       gl.bindBuffer(gl.ARRAY_BUFFER,tampon); gl.bufferData(gl.ARRAY_BUFFER,donnees,gl.STATIC_DRAW);
       const attribut=gl.getAttribLocation(programme,nom);
       gl.enableVertexAttribArray(attribut);
-      return {attribut,tampon,type,normalise};
+      return {attribut,tampon,taille,type,normalise};
     });
     this.masque=gl.createBuffer()!;
     gl.bindBuffer(gl.ARRAY_BUFFER,this.masque);
     gl.bufferData(gl.ARRAY_BUFFER,new Uint8Array(carte.index.size),gl.DYNAMIC_DRAW);
     this.joue=gl.getAttribLocation(programme,"joue");
+    this.groupe=gl.getAttribLocation(programme,"groupe");
     gl.vertexAttribPointer(this.joue,1,gl.UNSIGNED_BYTE,true,0,0);
     gl.enable(gl.BLEND); gl.blendFuncSeparate(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA,gl.ONE,gl.ONE_MINUS_SRC_ALPHA);
     this.matrice=gl.getUniformLocation(programme,"camera");
@@ -113,6 +123,7 @@ export class Scene {
     this.modeEssais=gl.getUniformLocation(programme,"modeEssais");
     this.diametre=gl.getUniformLocation(programme,"diametre");
     this.modeArcs=gl.getUniformLocation(programme,"modeArcs");
+    this.champSurvole=gl.getUniformLocation(programme,"champSurvole");
     this.arcs=new Arcs(gl,carte,programme);
     this.taille=new ResizeObserver(()=>{
       if(this.choix<0 && this.cible.centre.every(x=>x===0)) this.globale();
@@ -174,6 +185,11 @@ export class Scene {
     }
     return meilleur;
   }
+  survoler(position?: Position): void {
+    this.souris=position;
+    const titre=position && this.titres.find(({zone})=>contient(zone,position));
+    if((titre?.groupe??-1)!==this.survole)this.actualiser();
+  }
   journal(essais: Observation[], grilleReelle=false): void {
     this.essais=essais.map(o=>({...o,mot:cleMot(o.mot)}));
     this.resultats=new Map(this.essais.map(o=>[o.mot,o]));
@@ -217,30 +233,35 @@ export class Scene {
       const largeur=Math.round(w*ratio),hauteur=Math.round(h*ratio);
       if(c.width!==largeur || c.height!==hauteur){c.width=largeur;c.height=hauteur;}
     }
+    const globale=this.camera.distance>=1.35;
+    this.annotations(m,w,h,ratio,globale);
     gl.viewport(0,0,this.canvas.width,this.canvas.height); gl.clear(gl.COLOR_BUFFER_BIT);
     gl.uniformMatrix4fv(this.matrice,false,m);
     gl.uniform1i(this.modeArcs,1);
     gl.disableVertexAttribArray(this.joue);
+    gl.disableVertexAttribArray(this.groupe);
     const budget=Math.round((w<600?950:2200)*Math.min(1,ratio/devicePixelRatio));
     this.arcs.dessiner(m,this.camera.centre,this.camera.distance,budget,this.attenuer);
     gl.uniform1i(this.modeArcs,0);
-    for(const {attribut,tampon,type,normalise} of this.points){
+    for(const {attribut,tampon,taille,type,normalise} of this.points){
       gl.bindBuffer(gl.ARRAY_BUFFER,tampon);
-      gl.vertexAttribPointer(attribut,3,type,normalise,0,0);
+      gl.vertexAttribPointer(attribut,taille,type,normalise,0,0);
     }
     gl.enableVertexAttribArray(this.joue);
+    gl.enableVertexAttribArray(this.groupe);
     gl.uniform1f(this.resolution,ratio);
     gl.uniform1f(this.diametre,limite(h*.0045,2,4.8));
     gl.uniform1f(this.modeEssais,Number(this.attenuer));
+    gl.uniform1f(this.champSurvole,this.survole);
     gl.drawArrays(gl.POINTS,0,this.carte.index.size);
-    const globale=this.camera.distance>=1.35;
-    this.annotations(m,w,h,ratio,globale);
     this.niveau(globale?"Vue globale":this.camera.distance<.36?"Vue immersive":"Vue régionale");
     this.dernier=t;
     if(suite) this.actualiser();
   }
   private annotations(m: Float32Array,w: number,h: number,ratio: number,globale: boolean): void {
     const ctx=this.dessin; ctx.setTransform(ratio,0,0,ratio,0,0);ctx.clearRect(0,0,w,h);
+    this.survole=-1;
+    this.titres.length=0;
     const ecran=(i:number)=>projeter(m,this.carte.positions,i,w,h);
     const visible=([x,y,d]:Point)=>d>.005 && x>0 && x<w && y>0 && y<h;
     let precedent: Point|undefined;
@@ -294,7 +315,12 @@ export class Scene {
       ctx.globalAlpha=champ || prioritaire || this.carte.atlas.reperes.includes(i)?1:proximite;
       ctx.fillStyle=champ?"rgba(10,12,15,.94)":prioritaire?"#181b1f":"rgba(10,12,15,.75)";
       if(champ){
+        this.titres.push({groupe:champ.groupe,zone});
         ctx.beginPath();ctx.roundRect(x,y,largeur,hauteur,5);ctx.fill();
+        if(this.souris && contient(zone,this.souris)){
+          this.survole=champ.groupe;
+          ctx.strokeStyle=champ.couleur;ctx.lineWidth=1;ctx.stroke();
+        }
         ctx.fillStyle=champ.couleur;
         ctx.beginPath();ctx.arc(x+9,y+12,2.5,0,Math.PI*2);ctx.fill();
       }else ctx.fillRect(x,y,largeur,hauteur);

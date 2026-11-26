@@ -105,13 +105,18 @@ const contacts=new Map<number,[number,number]>();
 let depart:[number,number]=[0,0], glisse=false;
 canvas.onpointerdown=e=>{
   if(e.button!==0 && e.button!==2)return;
+  scene?.survoler();
   canvas.setPointerCapture(e.pointerId);contacts.set(e.pointerId,[e.clientX,e.clientY]);
   if(contacts.size===1){depart=[e.clientX,e.clientY];glisse=false;}else glisse=true;
   mode(false);
 };
 canvas.oncontextmenu=e=>e.preventDefault();
 canvas.onpointermove=e=>{
-  const p=contacts.get(e.pointerId);if(!p)return;
+  const p=contacts.get(e.pointerId);
+  if(!p){
+    if(e.pointerType!=="touch" && !e.buttons)scene?.survoler([e.offsetX,e.offsetY]);
+    return;
+  }
   const dx=e.clientX-p[0],dy=e.clientY-p[1];
   glisse ||= Math.hypot(e.clientX-depart[0],e.clientY-depart[1])>4;
   if(contacts.size===2){
@@ -122,6 +127,7 @@ canvas.onpointermove=e=>{
   }else if(glisse)scene?.orienter(dx,dy,e.shiftKey || e.buttons===2);
   contacts.set(e.pointerId,[e.clientX,e.clientY]);
 };
+canvas.onpointerleave=()=>scene?.survoler();
 canvas.onpointerup=e=>{
   if(!contacts.delete(e.pointerId) || glisse || !scene || !carte)return;
   const r=canvas.getBoundingClientRect(), i=scene.pointer(e.clientX-r.left,e.clientY-r.top);

@@ -28,13 +28,13 @@ async function fermer(p: ChildProcessWithoutNullStreams): Promise<void> {
   const fin = once(p, "exit"); p.kill(); await fin;
 }
 
-async function attendreContraste(page: Page, actif: boolean): Promise<void> {
-  await page.waitForFunction(valeur => {
+async function attendreUniforme(page: Page, nom: string, valeur: number): Promise<void> {
+  await page.waitForFunction(({nom,valeur}) => {
     const gl = document.querySelector<HTMLCanvasElement>("#galaxie")?.getContext("webgl");
     const programme = gl?.getParameter(gl.CURRENT_PROGRAM) as WebGLProgram | null | undefined;
-    const uniforme = programme && gl?.getUniformLocation(programme, "modeEssais");
+    const uniforme = programme && gl?.getUniformLocation(programme, nom);
     return uniforme && gl?.getUniform(programme, uniforme) === valeur;
-  }, Number(actif));
+  }, {nom,valeur});
 }
 
 function mesurerPixels(page: Page, zooms: number): Promise<number[]> {
@@ -58,13 +58,14 @@ function mesurerPixels(page: Page, zooms: number): Promise<number[]> {
   }), zooms);
 }
 
-function lireLibelles(page: Page, touche: string): Promise<string[]> {
-  return page.evaluate(cle => new Promise<string[]>(fin => {
+type Libelle = {texte: string; x: number; y: number};
+function lireLibelles(page: Page, touche: string): Promise<Libelle[]> {
+  return page.evaluate(cle => new Promise<Libelle[]>(fin => {
     const canvas = document.querySelector<HTMLCanvasElement>("#galaxie")!;
     const ctx = document.querySelector<HTMLCanvasElement>("#annotations")!.getContext("2d")!;
-    const dessiner = ctx.fillText, libelles: string[] = [];
+    const dessiner = ctx.fillText, libelles: Libelle[] = [];
     ctx.fillText = function (texte, x, y) {
-      libelles.push(texte);
+      libelles.push({texte,x,y});
       dessiner.call(this, texte, x, y);
     };
     canvas.dispatchEvent(new KeyboardEvent("keydown", {key: cle}));
@@ -92,7 +93,7 @@ test("l’accueil affiche la carte sur toute la fenêtre sans ouvrir de partie",
     await recharger.click();
     const recherche = page.getByRole("searchbox");
     await recherche.waitFor();
-    await attendreContraste(page, false);
+    await attendreUniforme(page, "modeEssais", 0);
     const marque = page.getByRole("heading", {name: "Cémantix", exact: true});
     assert.equal(await page.getByRole("heading").count(), 1);
     assert.ok(await marque.locator("img").evaluate((image: HTMLImageElement) => image.naturalWidth > 0));
@@ -106,8 +107,23 @@ test("l’accueil affiche la carte sur toute la fenêtre sans ouvrir de partie",
       const champ = await recherche.boundingBox();
       assert.ok(titre && champ && titre.x + titre.width < champ.x);
       const libelles = await lireLibelles(page, "Home");
-      assert.ok(libelles.length >= (dimensions.width === 320 ? 3 : 8), libelles.join(", "));
-      assert.ok(libelles.every(nom => nom.includes(" ") && /^[A-ZÉ]/u.test(nom)), libelles.join(", "));
+      const noms = libelles.map(({texte}) => texte);
+      assert.ok(noms.length >= (dimensions.width === 320 ? 3 : 8), noms.join(", "));
+      assert.ok(noms.every(nom => nom.includes(" ") && /^[A-ZÉ]/u.test(nom)), noms.join(", "));
+      if (dimensions.width === 1440) {
+        const titreChamp = libelles.find(({texte}) => texte === "Langues et musique");
+        assert.ok(titreChamp);
+        const survoler = () => page.mouse.move(titreChamp.x + 8, titreChamp.y - 5);
+        await survoler();
+        await attendreUniforme(page, "champSurvole", 11);
+        await page.mouse.move(20, 180);
+        await attendreUniforme(page, "champSurvole", -1);
+        await survoler();
+        await attendreUniforme(page, "champSurvole", 11);
+        await canevas.press("+");
+        await canevas.press("+");
+        await attendreUniforme(page, "champSurvole", -1);
+      }
     }
     await page.locator(".aide summary").click();
     await page.getByText("Glissez ou utilisez les flèches", {exact: false}).waitFor();
@@ -120,7 +136,7 @@ test("l’accueil affiche la carte sur toute la fenêtre sans ouvrir de partie",
     assert.equal(await recherche.inputValue(), "hirsute");
     assert.deepEqual(erreurs.map(e => e.message), []);
     await page.waitForFunction(() => document.querySelector("#niveau")?.textContent === "Vue immersive", undefined, {timeout: 5000});
-    const mots = await lireLibelles(page, "ArrowRight");
+    const mots = (await lireLibelles(page, "ArrowRight")).map(({texte}) => texte);
     assert.ok(mots.includes("hirsute") && mots.every(mot => !mot.includes(" ")), mots.join(", "));
     await page.getByRole("button", {name: "Dézoomer", exact: true}).click();
     await page.waitForFunction(() => document.querySelector("#niveau")?.textContent === "Vue régionale", undefined, {timeout: 5000});
@@ -208,7 +224,7 @@ test("la partie reprend après redémarrage du serveur et aboutit dans le naviga
     await page.getByRole("button", {name:"Mode automatique"}).click();
     await page.getByText("Solution confirmée", {exact:true}).first().waitFor();
     assert.equal(await page.locator("#mot").innerText(),"balane");
-    await attendreContraste(page, false);
+    await attendreUniforme(page, "modeEssais", 0);
     await page.setViewportSize({width:375,height:812});
     assert.ok(await page.evaluate(()=>document.body.scrollWidth <= window.innerWidth));
     await page.getByRole("button", {name:"Nouvelle partie"}).click();
@@ -221,7 +237,7 @@ test("la partie reprend après redémarrage du serveur et aboutit dans le naviga
     await config.getByRole("button", {name:"Démarrer la partie"}).click();
     await page.getByRole("heading", {name:"chignin-bergeron"}).waitFor();
     assert.equal(await page.locator("#strategie").innerText(),"Inversion étendue");
-    await attendreContraste(page, true);
+    await attendreUniforme(page, "modeEssais", 1);
     await page.getByRole("button", {name:"Saisir le score"}).click();
     await page.locator("#score [name=statut]").selectOption("victoire");
     await page.getByRole("button", {name:"Enregistrer l’essai"}).click();
@@ -235,7 +251,7 @@ test("la partie reprend après redémarrage du serveur et aboutit dans le naviga
     await config.getByRole("button", {name:"Résoudre la grille du jour"}).click();
     await page.getByText("Grille 1234", {exact:true}).waitFor();
     await page.getByText("Solution confirmée", {exact:true}).first().waitFor();
-    await attendreContraste(page, true);
+    await attendreUniforme(page, "modeEssais", 1);
     assert.equal(await page.locator("#mot").innerText(),"hirsute");
     assert.equal(await page.locator("#restants").innerText(),"0");
     await page.getByRole("button", {name:"Mes parties"}).click();

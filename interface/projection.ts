@@ -31,7 +31,7 @@ export function indexer(atlas: Atlas) {
     throw new Error("Liens de projection incohérents.");
   }
   const index = new Map<string, number>(), positions = new Float32Array(atlas.mots.length * 3);
-  const couleurs = new Uint8Array(positions.length);
+  const couleurs = new Uint8Array(positions.length), groupes = new Uint8Array(n);
   const sommes = new Float64Array(palette.length * 3), effectifs = new Uint32Array(palette.length);
   atlas.mots.forEach(([mot,x,y,z,groupe],i) => {
     if (!mot || index.has(mot) || ![x,y,z].every(Number.isFinite) || !palette[groupe])
@@ -40,6 +40,7 @@ export function indexer(atlas: Atlas) {
     positions.set([x/10000,y/10000,z/10000],3*i);
     const rgb = parseInt(palette[groupe],16);
     couleurs.set([rgb >> 16, (rgb >> 8) & 255, rgb & 255],3*i);
+    groupes[i]=groupe;
     sommes[3*groupe]+=x;sommes[3*groupe+1]+=y;sommes[3*groupe+2]+=z;
     effectifs[groupe]++;
   });
@@ -49,7 +50,7 @@ export function indexer(atlas: Atlas) {
     const nom=repere?.[4]===groupe?nomsChamps.get(repere[0]):undefined;
     return nom?[{groupe,nom,couleur:"#"+palette[groupe]}]:[];
   }).sort((a,b)=>effectifs[b.groupe]-effectifs[a.groupe]);
-  return {atlas,index,positions,couleurs,centres,champs};
+  return {atlas,index,positions,couleurs,groupes,centres,champs};
 }
 export type Carte = ReturnType<typeof indexer>;
 
