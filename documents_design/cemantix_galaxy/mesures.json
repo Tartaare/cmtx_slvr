@@ -1,0 +1,90 @@
+{
+  "cpu": "AMD Ryzen 7 7800X3D 8-Core Processor           ",
+  "navigateur": "158.0.4370.33",
+  "mots": 55402,
+  "chargement_atlas_ms": [
+    20
+  ],
+  "debit": {
+    "avec3d_ms": [
+      821,
+      806,
+      814,
+      829,
+      808
+    ],
+    "sans3d_ms": [
+      764,
+      766,
+      759,
+      753,
+      761
+    ],
+    "ecart_median_pct": 6.96
+  },
+  "bureau": {
+    "duree_ms": 900007,
+    "fps": 144,
+    "p95_ms": 7,
+    "premiere_minute": {
+      "fps": 144,
+      "p95_ms": 7
+    },
+    "derniere_minute": {
+      "fps": 144,
+      "p95_ms": 7
+    },
+    "gpu": "ANGLE (NVIDIA, NVIDIA GeForce RTX 4070 Ti SUPER (0x00002705) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+    "viewport": [
+      1920,
+      1080
+    ],
+    "scene": [
+      1670,
+      518
+    ],
+    "memoire_Mio": [
+      21,
+      10,
+      10,
+      10,
+      9,
+      9,
+      9,
+      9,
+      9,
+      9,
+      10,
+      10,
+      9,
+      9,
+      10
+    ]
+  },
+  "mobile": {
+    "duree_ms": 60004,
+    "fps": 144,
+    "p95_ms": 7,
+    "premiere_minute": {
+      "fps": 144,
+      "p95_ms": 7
+    },
+    "derniere_minute": {
+      "fps": 144,
+      "p95_ms": 7
+    },
+    "gpu": "ANGLE (NVIDIA, NVIDIA GeForce RTX 4070 Ti SUPER (0x00002705) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+    "viewport": [
+      375,
+      812
+    ],
+    "scene": [
+      341,
+      390
+    ],
+    "memoire_Mio": [
+      8,
+      9
+    ]
+  }
+}

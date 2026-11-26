@@ -1,5 +1,26 @@
 # Avancement
 
+## Sprint 21 — Galaxie sémantique
+
+US-028 à US-031 livrent la carte interactive du dictionnaire réduit. Les 55 402 mots proviennent du modèle préparé en 500 dimensions. Deux générations reproduisent la même projection UMAP, le même ordre de mots et les mêmes 16 familles. La scène WebGL se charge depuis un atlas local de 1,8 Mo.
+
+L’atelier permet de rechercher un mot, de se déplacer dans la carte et de reprendre le suivi de la résolution en cours. Le journal restitue chaque essai, son résultat et les mots du modèle étendu situés hors carte. La réouverture d’une partie propose la vue globale. Le choix d’une nouvelle session efface la sélection précédente.
+
+Le build TypeScript, les quatre tests Node, les 26 tests Python et le parcours Edge passent. La recette sur modèles complets vérifie la simulation de graine 42, le rejeu des huit scores de la grille 202, le mode sans WebGL et la navigation en disposition mobile. Les captures et mesures de performance sont réunies dans le [suivi d’implémentation](documents_design/cemantix_galaxy/plan-implementation.md).
+
+## Sprint 20 — Base de la refonte
+
+US-027 réduit l’interface à un fond noir et au logo en haut à gauche. Les anciens éléments restent inertes dans un modèle HTML et les scripts métier sont conservés pour les prochaines étapes. Les commandes de l’atelier ne sont donc temporairement plus accessibles depuis le navigateur.
+
+
+## Sprint 19 — Interface compacte
+
+US-026 retire les panneaux redondants et rassemble les commandes dans une fenêtre accessible depuis la navigation. Le tableau de bord affiche les derniers essais et le budget.
+
+## Sprint 18 — Typographie et en-tête
+
+US-025 applique Roboto Mono aux textes et commandes, avec un secours local, et retire le titre et la phrase d’introduction visibles de l’atelier. Le titre reste accessible ; celui des archives reste visible. La police est chargée depuis Google Fonts lorsqu’une connexion est disponible. Le build TypeScript passe ; les tests dépendent de l’accès au répertoire utilisateur et d’un environnement Python disponible.
+
 ## Sprint 16 — Analyse de la référence UI/UX
 
 US-024 documente la composition en trois colonnes, la typographie, le réseau de mots et les indicateurs de la référence. Le suivi contient 19 critères à cocher lors de l’intégration. Trois choix restent ouverts pour la conception de l’atelier : la signification des liens et des pistes, la mesure de progression et les destinations de navigation. Le build, les trois tests Node, les 26 tests Python et le parcours navigateur passent. [Suivi de la refonte](documents_design/suivi-refonte.md)
