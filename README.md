@@ -40,6 +40,18 @@ Sur cette grille et le modèle réduit, « hirsute » donne 24,17 °C et laisse 
 
 `--strategie` choisit les mots suivants. `entropie` maximise l’information attendue du prochain score. `collisions` minimise la probabilité que deux tirages indépendants donnent la même réponse. `decorrelation` choisit le candidat le moins corrélé aux essais précédents. `plan` utilise l’entropie au-delà de huit candidats, puis compare les suites d’essais en tenant compte du budget. Il peut jouer un mot extérieur aux solutions pour les départager. Au dernier essai, il tente une solution. Les calculs supposent des candidats équiprobables et un modèle exact.
 
+### Résoudre malgré des températures divergentes
+
+```sh
+python -m solveur resoudre --strategie robuste --scenario aberrant --graine 42 --budget 10
+```
+
+Le mode `robuste` commence par l’inversion exacte. Sur cette grille, les scores de « drone » puis de « contact » épuisent les candidats compatibles. La trace indique `motif_bascule: aucun_candidat_exact`. Le solveur réintègre les solutions encore inédites, recalcule leur classement avec les deux observations et trouve « balane » au quatrième essai.
+
+Le champ `estimation` donne le candidat en tête, sa probabilité estimée, l’échelle de bruit estimée en degrés et le mot dont la température s’écarte le plus de celle prédite pour ce candidat. Cet écart mesure la distance à l’intervalle d’arrondi. Le budget inclut toujours l’essai de confirmation.
+
+Les scénarios `exact`, `bruit` et `aberrant` modifient la source de simulation. Pour une même graine de grille et un même mot, la température est reproductible, quel que soit l’ordre des essais. `--strategie student` et `--strategie melange` activent le classement probabiliste dès la première observation. Le mode exact reste sélectionné par défaut.
+
 ## Reproduire le benchmark de référence
 
 ```sh
@@ -49,6 +61,16 @@ python -m solveur benchmark --graine 0 --graine-choix 17 --parties 200 --budget 
 Chaque stratégie reçoit la même grille, le même premier mot et le même budget. Le rapport JSON compte les succès à différents seuils d’essais. Les moyennes et percentiles d’essais consommés incluent les échecs. Le CSV conserve une ligne par grille et par stratégie, avec les graines, l’ouverture, l’empreinte du modèle et le temps de résolution. Utilisez un nouveau nom de fichier à chaque export. [Résultats du sprint 3](benchmarks/sprint-3-exact.csv)
 
 Pour inclure les quatre stratégies du sprint 5, ajoutez `--selection`. Rejouez la même commande avec `--ouverture aleatoire`, `--ouverture entropie` et `--ouverture collisions` pour comparer les premiers mots. Le temps du CSV commence après la préparation de l’ouverture commune. Pour reproduire le contrôle complémentaire, utilisez `--graine 200 --parties 1000` et comparez les lignes `exacte` avec ouverture aléatoire aux lignes `plan` avec ouverture par entropie. [Contrôle sur 1 000 grilles](benchmarks/sprint-5-controle.csv)
+
+### Mesurer la robustesse et le rang du vrai mot
+
+```sh
+python -m solveur benchmark --robustesse --scenario aberrant --graine 1200 --parties 50 --budget 10 --export robustesse.csv
+python -m solveur evaluer-inference benchmarks/calibration/parties.json --export rangs-reels.json
+python -m solveur evaluer-inference --simulations 32 --scenario aberrant --graine 1250 --export rangs-simules.json
+```
+
+Le benchmark compare onze stratégies. Son score de Brier binaire évalue la probabilité annoncée pour le candidat en tête lorsque ce mot a effectivement été joué au tour suivant. La commande `evaluer-inference` compare les méthodes sur des observations communes. Elle fournit le rang du secret après chaque score exploitable et, pour les méthodes probabilistes, la perte logarithmique et le score de Brier multiclasse. Sur un corpus de parties terminées, elle utilise uniquement le lot de test. [Comparaisons et protocole](app-progress.md)
 
 ## Préparer et comparer les modèles
 

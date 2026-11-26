@@ -1,5 +1,35 @@
 # Avancement
 
+## Sprint 6 — Robustesse aux écarts de température
+
+US-010 et US-011 sont livrées. Le mode `robuste` passe de l’inversion exacte au mélange probabiliste lorsque l’intersection des observations est vide. Il restaure les candidats admissibles encore inédits et rejoue tous les scores, y compris les négatifs. Les refus consomment un essai et excluent le mot joué. La trace indique le score le moins compatible avec le candidat alors en tête.
+
+**Protocole.** Les graines 1200 à 1249 donnent les mêmes 50 secrets dans chaque scénario. Les onze stratégies partagent l’ouverture de chaque grille, le vocabulaire réduit, la précision de deux décimales et le budget de dix essais. Le solveur reçoit uniquement les réponses de la source. Le scénario « bruit » ajoute un bruit gaussien d’écart-type 1 °C. Le scénario « aberrant » utilise un bruit gaussien d’écart-type 0,15 °C et ajoute, avec une probabilité de 15 % par mot, un écart de signe aléatoire compris entre 8 et 16 °C. Le simulateur écrête et arrondit le résultat avant de le transmettre.
+
+| Stratégie | Exactes résolues / 50 | Bruitées résolues / 50 | Avec valeurs aberrantes résolues / 50 | Essais moyens avec valeurs aberrantes |
+|---|---:|---:|---:|---:|
+| Inversion exacte | 50 | 0 | 0 | 1,98 |
+| Cemantbot reproduit | 50 | 1 | 6 | 9,62 |
+| Comptage simple | 50 | 0 | 4 | 9,74 |
+| Perte absolue | 50 | 50 | 43 | 6,42 |
+| Perte quadratique | 50 | 50 | 29 | 6,82 |
+| Perte de Huber | 50 | 50 | 38 | 6,54 |
+| Gaussienne | 50 | 50 | 33 | 5,98 |
+| Laplace | 50 | 50 | 42 | 5,86 |
+| Student à un degré de liberté | 50 | 50 | 50 | 5,04 |
+| Mélange probabiliste | 50 | 50 | 49 | 4,98 |
+| Exact puis mélange (`robuste`) | 50 | 50 | 49 | 5,28 |
+
+Les moyennes incluent tous les essais consommés, y compris les arrêts sans candidat et les budgets épuisés. En scénario exact, le mode robuste et l’inversion exacte consomment tous deux 2,98 essais en moyenne. [Grilles exactes](benchmarks/sprint-6-exact.csv) · [Bruit gaussien](benchmarks/sprint-6-bruit.csv) · [Valeurs aberrantes](benchmarks/sprint-6-aberrant.csv)
+
+Les pertes cumulent la distance à la case d’arrondi, avec un seuil de 1 °C pour Huber. Les méthodes bayésiennes calculent la masse de probabilité de la case, y compris les queues écrêtées à ±100 °C. Le modèle part d’un a priori uniforme sur les solutions et sur les échelles distinctes obtenues à partir du plancher, de 0,25, de 1 et de 4 °C. Le plancher vaut le maximum du demi-pas d’arrondi et de la marge de calibration (0,0047 °C par défaut, configurable). Chaque observation actualise en logarithmes le poids conjoint du candidat et de l’échelle. Le mélange utilise 95 % de Laplace et 5 % de Cauchy plus large. Ces poids sont des hypothèses de travail.
+
+**Contrôle des probabilités.** Sur 32 autres graines (1250 à 1281), les méthodes reçoivent les mêmes trois sondes par grille en scénario aberrant. Après trois scores, le mélange classe le vrai mot premier sur 20 grilles (62,5 %), avec une confiance moyenne de 28,0 % dans son premier candidat et un score de Brier binaire de 0,316. Il sous-estime donc sa fréquence de réussite sur cet échantillon. Les probabilités affichées restent des estimations. [Rangs et probabilités par sonde](benchmarks/sprint-6-rangs.json)
+
+**Historiques réels.** Sur les deux grilles réservées au test du sprint 4, le mélange classe « creux » deuxième puis premier, et « prestigieux » vingt-et-unième puis premier. Les sept méthodes classent le secret premier au deuxième score exploitable sur les deux grilles. Les deux mots absents du modèle réduit sont signalés. Ces historiques partiels mesurent le classement après des observations connues et ne fournissent pas le nombre d’essais d’une résolution autonome. [Résultats par observation](benchmarks/sprint-6-historiques.json)
+
+Le build TypeScript, les deux tests Node et les dix-sept tests Python passent. Les régressions vérifient la normalisation des lois aux bornes, la réintégration du secret, le rejeu complet des observations, les budgets et les métriques sur des prévisions évaluables. Le sprint 7 portera sur les mots absents du modèle réduit et les stratégies de secours.
+
 ## Sprint 5 — Sélection des propositions
 
 US-008 et US-009 sont livrées. Le moteur classe les propositions selon les températures qu’elles produiraient sur les candidats restants. Une victoire possède sa propre classe, même si un autre mot atteint 100 °C. À partition équivalente, le moteur préfère un candidat qui peut gagner immédiatement. Une sonde déjà jouée est exclue.
