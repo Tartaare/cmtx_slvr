@@ -154,9 +154,10 @@ def main() -> int:
             historique = lire_historique(args.historique) if args.action == "resoudre" and args.historique else []
             ouverture = None
             if args.action != "simuler" and not historique and args.ouverture != "aleatoire":
-                candidats = indices if adaptatif else modele.indices_solutions(solutions)
+                initial = secours.recherche.modele if adaptatif else modele
+                candidats = np.flatnonzero(secours.recherche.admis) if adaptatif else modele.indices_solutions(solutions)
                 if candidats.size:
-                    ouverture = ouverture_optimisee(modele, candidats, args.decimales,
+                    ouverture = ouverture_optimisee(initial, candidats, args.decimales,
                                                     args.ouverture, args.cache / "ouvertures")
             if args.action == "benchmark":
                 mesures = mesurer(modele, solutions, args.parties, args.budget,

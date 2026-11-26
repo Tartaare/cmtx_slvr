@@ -1,0 +1,1700 @@
+{
+  "principal": "205a49fd73d2451faf64fedf395b6acdc9ace696be0ed89310ac64d19756b749",
+  "alternatif": "d25ec24377847dd473e7c3a19c9a285f6908e7cf8fbbedb6dbde872ca4521d39",
+  "vocabulaire_commun": 55402,
+  "vocabulaire_supplementaire": 371303,
+  "budget": 8,
+  "decimales": 2,
+  "grilles": [
+    {
+      "graine": 1700,
+      "lot": "commun",
+      "secret": "nim",
+      "politiques": {
+        "plan": {
+          "statut": "resolu",
+          "mots": [
+            "taxidermiste",
+            "suède",
+            "nim"
+          ],
+          "phases": []
+        },
+        "robuste": {
+          "statut": "resolu",
+          "mots": [
+            "taxidermiste",
+            "suède",
+            "nim"
+          ],
+          "phases": []
+        },
+        "melange": {
+          "statut": "resolu",
+          "mots": [
+            "taxidermiste",
+            "suède",
+            "nim"
+          ],
+          "phases": [
+            "exact_principal",
+            "exact_principal",
+            "exact_principal"
+          ]
+        },
+        "reconstruction": {
+          "statut": "resolu",
+          "mots": [
+            "taxidermiste",
+            "suède",
+            "nim"
+          ],
+          "phases": [
+            "exact_principal",
+            "exact_principal",
+            "exact_principal"
+          ]
+        }
+      },
+      "reconstructions": [
+        {
+          "sondes": 4,
+          "penalite": 0.0,
+          "cosinus_secret": 0.06454333716647147,
+          "rang": 4,
+          "residu_rms_c": 1.4409695421113135e-15,
+          "condition_sous_espace": 1.3023299530110848
+        },
+        {
+          "sondes": 4,
+          "penalite": 0.01,
+          "cosinus_secret": 0.06454330680959938,
+          "rang": 4,
+          "residu_rms_c": 0.03205817126134763,
+          "condition_sous_espace": 1.3023299530110848
+        },
+        {
+          "sondes": 12,
+          "penalite": 0.0,
+          "cosinus_secret": 0.22406839931446887,
+          "rang": 12,
+          "residu_rms_c": 3.604636838910407e-14,
+          "condition_sous_espace": 1.762145568428368
+        },
+        {
+          "sondes": 12,
+          "penalite": 0.01,
+          "cosinus_secret": 0.22406736278477254,
+          "rang": 12,
+          "residu_rms_c": 0.06965168604288552,
+          "condition_sous_espace": 1.762145568428368
+        }
+      ]
+    },
+    {
+      "graine": 1700,
+      "lot": "etendu",
+      "secret": "bartali",
+      "politiques": {
+        "plan": {
+          "statut": "aucun_candidat",
+          "mots": [
+            "taxidermiste",
+            "chiot"
+          ],
+          "phases": []
+        },
+        "robuste": {
+          "statut": "budget_epuise",
+          "mots": [
+            "taxidermiste",
+            "chiot",
+            "détacher",
+            "junco",
+            "étier",
+            "manchego",
+            "dicentra",
+            "majorquin"
+          ],
+          "phases": []
+        },
+        "melange": {
+          "statut": "resolu",
+          "mots": [
+            "taxidermiste",
+            "chiot",
+            "bartali"
+          ],
+          "phases": [
+            "exact_principal",
+            "exact_alternatif",
+            "exact_alternatif"
+          ]
+        },
+        "reconstruction": {
+          "statut": "resolu",
+          "mots": [
+            "taxidermiste",
+            "chiot",
+            "bartali"
+          ],
+          "phases": [
+            "exact_principal",
+            "exact_alternatif",
+            "exact_alternatif"
+          ]
+        }
+      },
+      "reconstructions": [
+        {
+          "sondes": 4,
+          "penalite": 0.0,
+          "cosinus_secret": 0.09001335541673422,
+          "rang": 4,
+          "residu_rms_c": 4.764177297410056e-15,
+          "condition_sous_espace": 1.3023299530110848
+        },
+        {
+          "sondes": 4,
+          "penalite": 0.01,
+          "cosinus_secret": 0.09001335651390711,
+          "rang": 4,
+          "residu_rms_c": 0.04340521252221176,
+          "condition_sous_espace": 1.3023299530110848
+        },
+        {
+          "sondes": 12,
+          "penalite": 0.0,
+          "cosinus_secret": 0.2080340561488464,
+          "rang": 12,
+          "residu_rms_c": 1.3697726318657788e-14,
+          "condition_sous_espace": 1.762145568428368
+        },
+        {
+          "sondes": 12,
+          "penalite": 0.01,
+          "cosinus_secret": 0.20803362602839823,
+          "rang": 12,
+          "residu_rms_c": 0.05145152842324824,
+          "condition_sous_espace": 1.762145568428368
+        }
+      ]
+    },
+    {
+      "graine": 1700,
+      "lot": "etendu_bruite",
+      "secret": "bartali",
+      "politiques": {
+        "plan": {
+          "statut": "aucun_candidat",
+          "mots": [
+            "taxidermiste",
+            "atelier"
+          ],
+          "phases": []
+        },
+        "robuste": {
+          "statut": "budget_epuise",
+          "mots": [
+            "taxidermiste",
+            "atelier",
+            "coincer",
+            "canular",
+            "tranquillisant",
+            "pareillement",
+            "mordant",
+            "colbertiste"
+          ],
+          "phases": []
+        },
+        "melange": {
+          "statut": "resolu",
+          "mots": [
+            "taxidermiste",
+            "atelier",
+            "vaan",
+            "trite",
+            "prosoviétique",
+            "drosnin",
+            "niro",
+            "bartali"
+          ],
+          "phases": [
+            "exact_principal",
+            "melange",
+            "melange",
+            "melange",
+            "melange",
+            "melange",
+            "melange",
+            "melange"
+          ]
+        },
+        "reconstruction": {
+          "statut": "budget_epuise",
+          "mots": [
+            "taxidermiste",
+            "atelier",
+            "placidité",
+            "flegmatique",
+            "flegme",
+            "revêche",
+            "taciturne",
+            "bluette"
+          ],
+          "phases": [
+            "exact_principal",
+            "reconstruction",
+            "reconstruction",
+            "reconstruction",
+            "reconstruction",
+            "reconstruction",
+            "reconstruction",
+            "reconstruction"
+          ]
+        }
+      },
+      "reconstructions": [
+        {
+          "sondes": 4,
+          "penalite": 0.0,
+          "cosinus_secret": 0.08945944623111417,
+          "rang": 4,
+          "residu_rms_c": 3.720567359326163e-15,
+          "condition_sous_espace": 1.3023299530110848
+        },
+        {
+          "sondes": 4,
+          "penalite": 0.01,
+          "cosinus_secret": 0.0894576557572376,
+          "rang": 4,
+          "residu_rms_c": 0.04271756774106297,
+          "condition_sous_espace": 1.3023299530110848
+        },
+        {
+          "sondes": 12,
+          "penalite": 0.0,
+          "cosinus_secret": 0.20643677090153187,
+          "rang": 12,
+          "residu_rms_c": 1.4154416115553055e-14,
+          "condition_sous_espace": 1.762145568428368
+        },
+        {
+          "sondes": 12,
+          "penalite": 0.01,
+          "cosinus_secret": 0.20645794695643113,
+          "rang": 12,
+          "residu_rms_c": 0.05060870700485753,
+          "condition_sous_espace": 1.762145568428368
+        }
+      ]
+    },
+    {
+      "graine": 1701,
+      "lot": "commun",
+      "secret": "percept",
+      "politiques": {
+        "plan": {
+          "statut": "resolu",
+          "mots": [
+            "factum",
+            "extorsion",
+            "percept"
+          ],
+          "phases": []
+        },
+        "robuste": {
+          "statut": "resolu",
+          "mots": [
+            "factum",
+            "extorsion",
+            "percept"
+          ],
+          "phases": []
+        },
+        "melange": {
+          "statut": "resolu",
+          "mots": [
+            "factum",
+            "extorsion",
+            "percept"
+          ],
+          "phases": [
+            "exact_principal",
+            "exact_principal",
+            "exact_principal"
+          ]
+        },
+        "reconstruction": {
+          "statut": "resolu",
+          "mots": [
+            "factum",
+            "extorsion",
+            "percept"
+          ],
+          "phases": [
+            "exact_principal",
+            "exact_principal",
+            "exact_principal"
+          ]
+        }
+      },
+      "reconstructions": [
+        {
+          "sondes": 4,
+          "penalite": 0.0,
+          "cosinus_secret": 0.3743785215136149,
+          "rang": 4,
+          "residu_rms_c": 1.5075136265974308e-14,
+          "condition_sous_espace": 1.060256422148599
+        },
+        {
+          "sondes": 4,
+          "penalite": 0.01,
+          "cosinus_secret": 0.37437851080113477,
+          "rang": 4,
+          "residu_rms_c": 0.18734953382627093,
+          "condition_sous_espace": 1.060256422148599
+        },
+        {
+          "sondes": 12,
+          "penalite": 0.0,
+          "cosinus_secret": 0.40953250649929535,
+          "rang": 12,
+          "residu_rms_c": 1.371084177828327e-14,
+          "condition_sous_espace": 1.6504439744311399
+        },
+        {
+          "sondes": 12,
+          "penalite": 0.01,
+          "cosinus_secret": 0.4095293252519035,
+          "rang": 12,
+          "residu_rms_c": 0.11382833538102642,
+          "condition_sous_espace": 1.6504439744311399
+        }
+      ]
+    },
+    {
+      "graine": 1701,
+      "lot": "etendu",
+      "secret": "rhizomanie",
+      "politiques": {
+        "plan": {
+          "statut": "aucun_candidat",
+          "mots": [
+            "factum",
+            "biais"
+          ],
+          "phases": []
+        },
+        "robuste": {
+          "statut": "budget_epuise",
+          "mots": [
+            "factum",
+            "biais",
+            "dermatologue",
+            "perquise",
+            "hydrophyte",
+            "hydrocraquage",
+            "surbaissement",
+            "balsamier"
+          ],
+          "phases": []
+        },
+        "melange": {
+          "statut": "resolu",
+          "mots": [
+            "factum",
+            "biais",
+            "rhizomanie"
+          ],
+          "phases": [
+            "exact_principal",
+            "exact_alternatif",
+            "exact_alternatif"
+          ]
+        },
+        "reconstruction": {
+          "statut": "resolu",
+          "mots": [
+            "factum",
+            "biais",
+            "rhizomanie"
+          ],
+          "phases": [
+            "exact_principal",
+            "exact_alternatif",
+            "exact_alternatif"
+          ]
+        }
+      },
+      "reconstructions": [
+        {
+          "sondes": 4,
+          "penalite": 0.0,
+          "cosinus_secret": 0.1747806755466847,
+          "rang": 4,
+          "residu_rms_c": 3.345813473843216e-15,
+          "condition_sous_espace": 1.060256422148599
+        },
+        {
+          "sondes": 4,
+          "penalite": 0.01,
+          "cosinus_secret": 0.17478067660737592,
+          "rang": 4,
+          "residu_rms_c": 0.08823081049333997,
+          "condition_sous_espace": 1.060256422148599
+        },
+        {
+          "sondes": 12,
+          "penalite": 0.0,
+          "cosinus_secret": 0.20039273936312055,
+          "rang": 12,
+          "residu_rms_c": 7.205902691029269e-15,
+          "condition_sous_espace": 1.6504439744311399
+        },
+        {
+          "sondes": 12,
+          "penalite": 0.01,
+          "cosinus_secret": 0.20039219630510752,
+          "rang": 12,
+          "residu_rms_c": 0.05725007146185402,
+          "condition_sous_espace": 1.6504439744311399
+        }
+      ]
+    },
+    {
+      "graine": 1701,
+      "lot": "etendu_bruite",
+      "secret": "rhizomanie",
+      "politiques": {
+        "plan": {
+          "statut": "aucun_candidat",
+          "mots": [
+            "factum",
+            "brut"
+          ],
+          "phases": []
+        },
+        "robuste": {
+          "statut": "budget_epuise",
+          "mots": [
+            "factum",
+            "rédaction",
+            "sablé",
+            "effectivement",
+            "malouf",
+            "consol",
+            "vincamine",
+            "bahaméen"
+          ],
+          "phases": []
+        },
+        "melange": {
+          "statut": "budget_epuise",
+          "mots": [
+            "factum",
+            "brut",
+            "ispynow",
+            "préfou",
+            "cruzado",
+            "lumiscaphe",
+            "wengué",
+            "niltava"
+          ],
+          "phases": [
+            "exact_principal",
+            "melange",
+            "melange",
+            "melange",
+            "melange",
+            "melange",
+            "melange",
+            "melange"
+          ]
+        },
+        "reconstruction": {
+          "statut": "budget_epuise",
+          "mots": [
+            "factum",
+            "brut",
+            "décoffrage",
+            "decoffrage",
+            "matériau",
+            "écrouissage",
+            "élastoplastique",
+            "viscoplasticité"
+          ],
+          "phases": [
+            "exact_principal",
+            "reconstruction",
+            "reconstruction",
+            "reconstruction",
+            "reconstruction",
+            "reconstruction",
+            "reconstruction",
+            "reconstruction"
+          ]
+        }
+      },
+      "reconstructions": [
+        {
+          "sondes": 4,
+          "penalite": 0.0,
+          "cosinus_secret": 0.17404348070256576,
+          "rang": 4,
+          "residu_rms_c": 3.768784066493577e-15,
+          "condition_sous_espace": 1.060256422148599
+        },
+        {
+          "sondes": 4,
+          "penalite": 0.01,
+          "cosinus_secret": 0.17404340815053795,
+          "rang": 4,
+          "residu_rms_c": 0.08698150600316021,
+          "condition_sous_espace": 1.060256422148599
+        },
+        {
+          "sondes": 12,
+          "penalite": 0.0,
+          "cosinus_secret": 0.19922784202807717,
+          "rang": 12,
+          "residu_rms_c": 6.700802157190525e-15,
+          "condition_sous_espace": 1.6504439744311399
+        },
+        {
+          "sondes": 12,
+          "penalite": 0.01,
+          "cosinus_secret": 0.1992138393538541,
+          "rang": 12,
+          "residu_rms_c": 0.05680140057773174,
+          "condition_sous_espace": 1.6504439744311399
+        }
+      ]
+    },
+    {
+      "graine": 1702,
+      "lot": "commun",
+      "secret": "rouspéter",
+      "politiques": {
+        "plan": {
+          "statut": "resolu",
+          "mots": [
+            "velu",
+            "fine",
+            "rouspéter"
+          ],
+          "phases": []
+        },
+        "robuste": {
+          "statut": "resolu",
+          "mots": [
+            "velu",
+            "fine",
+            "rouspéter"
+          ],
+          "phases": []
+        },
+        "melange": {
+          "statut": "resolu",
+          "mots": [
+            "velu",
+            "fine",
+            "rouspéter"
+          ],
+          "phases": [
+            "exact_principal",
+            "exact_principal",
+            "exact_principal"
+          ]
+        },
+        "reconstruction": {
+          "statut": "resolu",
+          "mots": [
+            "velu",
+            "fine",
+            "rouspéter"
+          ],
+          "phases": [
+            "exact_principal",
+            "exact_principal",
+            "exact_principal"
+          ]
+        }
+      },
+      "reconstructions": [
+        {
+          "sondes": 4,
+          "penalite": 0.0,
+          "cosinus_secret": 0.2482634469512785,
+          "rang": 4,
+          "residu_rms_c": 5.419449386414209e-15,
+          "condition_sous_espace": 1.3799584331084889
+        },
+        {
+          "sondes": 4,
+          "penalite": 0.01,
+          "cosinus_secret": 0.24826314802513377,
+          "rang": 4,
+          "residu_rms_c": 0.13244289092153977,
+          "condition_sous_espace": 1.3799584331084889
+        },
+        {
+          "sondes": 12,
+          "penalite": 0.0,
+          "cosinus_secret": 0.3252865663100713,
+          "rang": 12,
+          "residu_rms_c": 9.659050810839735e-15,
+          "condition_sous_espace": 1.776867489577802
+        },
+        {
+          "sondes": 12,
+          "penalite": 0.01,
+          "cosinus_secret": 0.32528563692421236,
+          "rang": 12,
+          "residu_rms_c": 0.09097260646564094,
+          "condition_sous_espace": 1.776867489577802
+        }
+      ]
+    },
+    {
+      "graine": 1702,
+      "lot": "etendu",
+      "secret": "sleeper",
+      "politiques": {
+        "plan": {
+          "statut": "aucun_candidat",
+          "mots": [
+            "velu",
+            "compassion"
+          ],
+          "phases": []
+        },
+        "robuste": {
+          "statut": "budget_epuise",
+          "mots": [
+            "velu",
+            "compassion",
+            "rosière",
+            "riffe",
+            "rythmicien",
+            "pifer",
+            "crabs",
+            "barrel"
+          ],
+          "phases": []
+        },
+        "melange": {
+          "statut": "resolu",
+          "mots": [
+            "velu",
+            "compassion",
+            "sleeper"
+          ],
+          "phases": [
+            "exact_principal",
+            "exact_alternatif",
+            "exact_alternatif"
+          ]
+        },
+        "reconstruction": {
+          "statut": "resolu",
+          "mots": [
+            "velu",
+            "compassion",
+            "sleeper"
+          ],
+          "phases": [
+            "exact_principal",
+            "exact_alternatif",
+            "exact_alternatif"
+          ]
+        }
+      },
+      "reconstructions": [
+        {
+          "sondes": 4,
+          "penalite": 0.0,
+          "cosinus_secret": 0.22152468261469974,
+          "rang": 4,
+          "residu_rms_c": 6.22811631122719e-15,
+          "condition_sous_espace": 1.3799584331084889
+        },
+        {
+          "sondes": 4,
+          "penalite": 0.01,
+          "cosinus_secret": 0.22152404584207921,
+          "rang": 4,
+          "residu_rms_c": 0.11327443630298847,
+          "condition_sous_espace": 1.3799584331084889
+        },
+        {
+          "sondes": 12,
+          "penalite": 0.0,
+          "cosinus_secret": 0.26328984670851285,
+          "rang": 12,
+          "residu_rms_c": 8.710690146138665e-15,
+          "condition_sous_espace": 1.776867489577802
+        },
+        {
+          "sondes": 12,
+          "penalite": 0.01,
+          "cosinus_secret": 0.2632882007712692,
+          "rang": 12,
+          "residu_rms_c": 0.08021457076627633,
+          "condition_sous_espace": 1.776867489577802
+        }
+      ]
+    },
+    {
+      "graine": 1702,
+      "lot": "etendu_bruite",
+      "secret": "sleeper",
+      "politiques": {
+        "plan": {
+          "statut": "aucun_candidat",
+          "mots": [
+            "velu",
+            "on"
+          ],
+          "phases": []
+        },
+        "robuste": {
+          "statut": "budget_epuise",
+          "mots": [
+            "velu",
+            "on",
+            "épileptiforme",
+            "tenno",
+            "hémophile",
+            "sodalite",
+            "superamas",
+            "macfarlane"
+          ],
+          "phases": []
+        },
+        "melange": {
+          "statut": "resolu",
+          "mots": [
+            "velu",
+            "on",
+            "djo",
+            "sacrifi",
+            "maxxis",
+            "tricker",
+            "sleeper"
+          ],
+          "phases": [
+            "exact_principal",
+            "melange",
+            "melange",
+            "melange",
+            "melange",
+            "melange",
+            "melange"
+          ]
+        },
+        "reconstruction": {
+          "statut": "budget_epuise",
+          "mots": [
+            "velu",
+            "on",
+            "glabre",
+            "pétiolé",
+            "globuleux",
+            "rameux",
+            "pulpeux",
+            "sexy"
+          ],
+          "phases": [
+            "exact_principal",
+            "reconstruction",
+            "reconstruction",
+            "reconstruction",
+            "reconstruction",
+            "reconstruction",
+            "reconstruction",
+            "reconstruction"
+          ]
+        }
+      },
+      "reconstructions": [
+        {
+          "sondes": 4,
+          "penalite": 0.0,
+          "cosinus_secret": 0.2213719008071771,
+          "rang": 4,
+          "residu_rms_c": 4.105104994197872e-15,
+          "condition_sous_espace": 1.3799584331084889
+        },
+        {
+          "sondes": 4,
+          "penalite": 0.01,
+          "cosinus_secret": 0.22136067378865057,
+          "rang": 4,
+          "residu_rms_c": 0.11232332938104092,
+          "condition_sous_espace": 1.3799584331084889
+        },
+        {
+          "sondes": 12,
+          "penalite": 0.0,
+          "cosinus_secret": 0.2618099145122238,
+          "rang": 12,
+          "residu_rms_c": 7.78860736819843e-15,
+          "condition_sous_espace": 1.776867489577802
+        },
+        {
+          "sondes": 12,
+          "penalite": 0.01,
+          "cosinus_secret": 0.2618128577057605,
+          "rang": 12,
+          "residu_rms_c": 0.08165366802328652,
+          "condition_sous_espace": 1.776867489577802
+        }
+      ]
+    },
+    {
+      "graine": 1703,
+      "lot": "commun",
+      "secret": "aromatisation",
+      "politiques": {
+        "plan": {
+          "statut": "resolu",
+          "mots": [
+            "viscose",
+            "incrustation",
+            "aromatisation"
+          ],
+          "phases": []
+        },
+        "robuste": {
+          "statut": "resolu",
+          "mots": [
+            "viscose",
+            "incrustation",
+            "aromatisation"
+          ],
+          "phases": []
+        },
+        "melange": {
+          "statut": "resolu",
+          "mots": [
+            "viscose",
+            "incrustation",
+            "aromatisation"
+          ],
+          "phases": [
+            "exact_principal",
+            "exact_principal",
+            "exact_principal"
+          ]
+        },
+        "reconstruction": {
+          "statut": "resolu",
+          "mots": [
+            "viscose",
+            "incrustation",
+            "aromatisation"
+          ],
+          "phases": [
+            "exact_principal",
+            "exact_principal",
+            "exact_principal"
+          ]
+        }
+      },
+      "reconstructions": [
+        {
+          "sondes": 4,
+          "penalite": 0.0,
+          "cosinus_secret": 0.1684691984188093,
+          "rang": 4,
+          "residu_rms_c": 6.772090282971798e-15,
+          "condition_sous_espace": 1.1044374772196124
+        },
+        {
+          "sondes": 4,
+          "penalite": 0.01,
+          "cosinus_secret": 0.16846911656512356,
+          "rang": 4,
+          "residu_rms_c": 0.08322976447818775,
+          "condition_sous_espace": 1.1044374772196124
+        },
+        {
+          "sondes": 12,
+          "penalite": 0.0,
+          "cosinus_secret": 0.2954326537321079,
+          "rang": 12,
+          "residu_rms_c": 2.6491382067811446e-14,
+          "condition_sous_espace": 1.6533839279385405
+        },
+        {
+          "sondes": 12,
+          "penalite": 0.01,
+          "cosinus_secret": 0.29543155037789187,
+          "rang": 12,
+          "residu_rms_c": 0.08906954238330089,
+          "condition_sous_espace": 1.6533839279385405
+        }
+      ]
+    },
+    {
+      "graine": 1703,
+      "lot": "etendu",
+      "secret": "forschungen",
+      "politiques": {
+        "plan": {
+          "statut": "aucun_candidat",
+          "mots": [
+            "viscose",
+            "déco"
+          ],
+          "phases": []
+        },
+        "robuste": {
+          "statut": "budget_epuise",
+          "mots": [
+            "viscose",
+            "déco",
+            "rochet",
+            "télémécanique",
+            "daleau",
+            "grazioso",
+            "orémus",
+            "chénas"
+          ],
+          "phases": []
+        },
+        "melange": {
+          "statut": "resolu",
+          "mots": [
+            "viscose",
+            "déco",
+            "forschungen"
+          ],
+          "phases": [
+            "exact_principal",
+            "exact_alternatif",
+            "exact_alternatif"
+          ]
+        },
+        "reconstruction": {
+          "statut": "resolu",
+          "mots": [
+            "viscose",
+            "déco",
+            "forschungen"
+          ],
+          "phases": [
+            "exact_principal",
+            "exact_alternatif",
+            "exact_alternatif"
+          ]
+        }
+      },
+      "reconstructions": [
+        {
+          "sondes": 4,
+          "penalite": 0.0,
+          "cosinus_secret": 0.20640484537536188,
+          "rang": 4,
+          "residu_rms_c": 6.3311465760602434e-15,
+          "condition_sous_espace": 1.1044374772196124
+        },
+        {
+          "sondes": 4,
+          "penalite": 0.01,
+          "cosinus_secret": 0.20640481704862731,
+          "rang": 4,
+          "residu_rms_c": 0.09849810436010704,
+          "condition_sous_espace": 1.1044374772196124
+        },
+        {
+          "sondes": 12,
+          "penalite": 0.0,
+          "cosinus_secret": 0.36611206391608564,
+          "rang": 12,
+          "residu_rms_c": 1.128437287778614e-14,
+          "condition_sous_espace": 1.6533839279385405
+        },
+        {
+          "sondes": 12,
+          "penalite": 0.01,
+          "cosinus_secret": 0.3661109892125712,
+          "rang": 12,
+          "residu_rms_c": 0.09355285504694218,
+          "condition_sous_espace": 1.6533839279385405
+        }
+      ]
+    },
+    {
+      "graine": 1703,
+      "lot": "etendu_bruite",
+      "secret": "forschungen",
+      "politiques": {
+        "plan": {
+          "statut": "aucun_candidat",
+          "mots": [
+            "viscose",
+            "chèvrefeuille"
+          ],
+          "phases": []
+        },
+        "robuste": {
+          "statut": "budget_epuise",
+          "mots": [
+            "viscose",
+            "chèvrefeuille",
+            "bandonéon",
+            "contrebasson",
+            "conceptisme",
+            "plumasserie",
+            "désharmonie",
+            "surcot"
+          ],
+          "phases": []
+        },
+        "melange": {
+          "statut": "resolu",
+          "mots": [
+            "viscose",
+            "chèvrefeuille",
+            "lejanos",
+            "biochem",
+            "résidenciel",
+            "cipolin",
+            "forschungen"
+          ],
+          "phases": [
+            "exact_principal",
+            "melange",
+            "melange",
+            "melange",
+            "melange",
+            "melange",
+            "melange"
+          ]
+        },
+        "reconstruction": {
+          "statut": "budget_epuise",
+          "mots": [
+            "viscose",
+            "chèvrefeuille",
+            "lonicera",
+            "chinensis",
+            "osmanthus",
+            "hypericum",
+            "saponaria",
+            "officinalis"
+          ],
+          "phases": [
+            "exact_principal",
+            "reconstruction",
+            "reconstruction",
+            "reconstruction",
+            "reconstruction",
+            "reconstruction",
+            "reconstruction",
+            "reconstruction"
+          ]
+        }
+      },
+      "reconstructions": [
+        {
+          "sondes": 4,
+          "penalite": 0.0,
+          "cosinus_secret": 0.2061898708072654,
+          "rang": 4,
+          "residu_rms_c": 5.022466363567369e-15,
+          "condition_sous_espace": 1.1044374772196124
+        },
+        {
+          "sondes": 4,
+          "penalite": 0.01,
+          "cosinus_secret": 0.20618687412461964,
+          "rang": 4,
+          "residu_rms_c": 0.09583353185939707,
+          "condition_sous_espace": 1.1044374772196124
+        },
+        {
+          "sondes": 12,
+          "penalite": 0.0,
+          "cosinus_secret": 0.36371709928827306,
+          "rang": 12,
+          "residu_rms_c": 1.2803725339179878e-14,
+          "condition_sous_espace": 1.6533839279385405
+        },
+        {
+          "sondes": 12,
+          "penalite": 0.01,
+          "cosinus_secret": 0.3637087496058938,
+          "rang": 12,
+          "residu_rms_c": 0.08992316688368922,
+          "condition_sous_espace": 1.6533839279385405
+        }
+      ]
+    },
+    {
+      "graine": 1704,
+      "lot": "commun",
+      "secret": "déshabillé",
+      "politiques": {
+        "plan": {
+          "statut": "resolu",
+          "mots": [
+            "dao",
+            "interview",
+            "déshabillé"
+          ],
+          "phases": []
+        },
+        "robuste": {
+          "statut": "resolu",
+          "mots": [
+            "dao",
+            "interview",
+            "déshabillé"
+          ],
+          "phases": []
+        },
+        "melange": {
+          "statut": "resolu",
+          "mots": [
+            "dao",
+            "interview",
+            "déshabillé"
+          ],
+          "phases": [
+            "exact_principal",
+            "exact_principal",
+            "exact_principal"
+          ]
+        },
+        "reconstruction": {
+          "statut": "resolu",
+          "mots": [
+            "dao",
+            "interview",
+            "déshabillé"
+          ],
+          "phases": [
+            "exact_principal",
+            "exact_principal",
+            "exact_principal"
+          ]
+        }
+      },
+      "reconstructions": [
+        {
+          "sondes": 4,
+          "penalite": 0.0,
+          "cosinus_secret": 0.18892232950987714,
+          "rang": 4,
+          "residu_rms_c": 7.88106850030428e-15,
+          "condition_sous_espace": 1.2197875353871646
+        },
+        {
+          "sondes": 4,
+          "penalite": 0.01,
+          "cosinus_secret": 0.1889220917335981,
+          "rang": 4,
+          "residu_rms_c": 0.09221008164696437,
+          "condition_sous_espace": 1.2197875353871646
+        },
+        {
+          "sondes": 12,
+          "penalite": 0.0,
+          "cosinus_secret": 0.35190817099330896,
+          "rang": 12,
+          "residu_rms_c": 1.1000351788117865e-14,
+          "condition_sous_espace": 1.5935024109422065
+        },
+        {
+          "sondes": 12,
+          "penalite": 0.01,
+          "cosinus_secret": 0.3519074150676711,
+          "rang": 12,
+          "residu_rms_c": 0.08358087128422025,
+          "condition_sous_espace": 1.5935024109422065
+        }
+      ]
+    },
+    {
+      "graine": 1704,
+      "lot": "etendu",
+      "secret": "caracoles",
+      "politiques": {
+        "plan": {
+          "statut": "aucun_candidat",
+          "mots": [
+            "dao",
+            "planifier"
+          ],
+          "phases": []
+        },
+        "robuste": {
+          "statut": "budget_epuise",
+          "mots": [
+            "dao",
+            "planifier",
+            "vacuomètre",
+            "immunocompétent",
+            "table",
+            "tectonique",
+            "exemplatif",
+            "bug"
+          ],
+          "phases": []
+        },
+        "melange": {
+          "statut": "resolu",
+          "mots": [
+            "dao",
+            "planifier",
+            "caracoles"
+          ],
+          "phases": [
+            "exact_principal",
+            "exact_alternatif",
+            "exact_alternatif"
+          ]
+        },
+        "reconstruction": {
+          "statut": "resolu",
+          "mots": [
+            "dao",
+            "planifier",
+            "caracoles"
+          ],
+          "phases": [
+            "exact_principal",
+            "exact_alternatif",
+            "exact_alternatif"
+          ]
+        }
+      },
+      "reconstructions": [
+        {
+          "sondes": 4,
+          "penalite": 0.0,
+          "cosinus_secret": 0.1380502982882912,
+          "rang": 4,
+          "residu_rms_c": 1.045449780448471e-14,
+          "condition_sous_espace": 1.2197875353871646
+        },
+        {
+          "sondes": 4,
+          "penalite": 0.01,
+          "cosinus_secret": 0.13805028144232406,
+          "rang": 4,
+          "residu_rms_c": 0.06236176406533564,
+          "condition_sous_espace": 1.2197875353871646
+        },
+        {
+          "sondes": 12,
+          "penalite": 0.0,
+          "cosinus_secret": 0.24992439694326782,
+          "rang": 12,
+          "residu_rms_c": 4.71685645215464e-15,
+          "condition_sous_espace": 1.5935024109422065
+        },
+        {
+          "sondes": 12,
+          "penalite": 0.01,
+          "cosinus_secret": 0.24992342106770982,
+          "rang": 12,
+          "residu_rms_c": 0.06905128814231319,
+          "condition_sous_espace": 1.5935024109422065
+        }
+      ]
+    },
+    {
+      "graine": 1704,
+      "lot": "etendu_bruite",
+      "secret": "caracoles",
+      "politiques": {
+        "plan": {
+          "statut": "aucun_candidat",
+          "mots": [
+            "dao",
+            "ale"
+          ],
+          "phases": []
+        },
+        "robuste": {
+          "statut": "budget_epuise",
+          "mots": [
+            "dao",
+            "ale",
+            "faufilage",
+            "chromage",
+            "euthérien",
+            "sylvie",
+            "boa",
+            "avalaison"
+          ],
+          "phases": []
+        },
+        "melange": {
+          "statut": "resolu",
+          "mots": [
+            "dao",
+            "ale",
+            "squeegee",
+            "linéa",
+            "vxe",
+            "caracoles"
+          ],
+          "phases": [
+            "exact_principal",
+            "melange",
+            "melange",
+            "melange",
+            "melange",
+            "melange"
+          ]
+        },
+        "reconstruction": {
+          "statut": "budget_epuise",
+          "mots": [
+            "dao",
+            "ale",
+            "cao",
+            "autocad",
+            "covadis",
+            "microstation",
+            "dwg",
+            "dxf"
+          ],
+          "phases": [
+            "exact_principal",
+            "reconstruction",
+            "reconstruction",
+            "reconstruction",
+            "reconstruction",
+            "reconstruction",
+            "reconstruction",
+            "reconstruction"
+          ]
+        }
+      },
+      "reconstructions": [
+        {
+          "sondes": 4,
+          "penalite": 0.0,
+          "cosinus_secret": 0.13736094020475975,
+          "rang": 4,
+          "residu_rms_c": 1.3615092990768423e-14,
+          "condition_sous_espace": 1.2197875353871646
+        },
+        {
+          "sondes": 4,
+          "penalite": 0.01,
+          "cosinus_secret": 0.137361439391935,
+          "rang": 4,
+          "residu_rms_c": 0.07442539983343092,
+          "condition_sous_espace": 1.2197875353871646
+        },
+        {
+          "sondes": 12,
+          "penalite": 0.0,
+          "cosinus_secret": 0.2486465476455261,
+          "rang": 12,
+          "residu_rms_c": 4.643483454638304e-15,
+          "condition_sous_espace": 1.5935024109422065
+        },
+        {
+          "sondes": 12,
+          "penalite": 0.01,
+          "cosinus_secret": 0.24863047569085409,
+          "rang": 12,
+          "residu_rms_c": 0.07480565671737205,
+          "condition_sous_espace": 1.5935024109422065
+        }
+      ]
+    },
+    {
+      "graine": 1705,
+      "lot": "commun",
+      "secret": "acyle",
+      "politiques": {
+        "plan": {
+          "statut": "resolu",
+          "mots": [
+            "restant",
+            "autonomie",
+            "acyle"
+          ],
+          "phases": []
+        },
+        "robuste": {
+          "statut": "resolu",
+          "mots": [
+            "restant",
+            "autonomie",
+            "acyle"
+          ],
+          "phases": []
+        },
+        "melange": {
+          "statut": "resolu",
+          "mots": [
+            "restant",
+            "autonomie",
+            "acyle"
+          ],
+          "phases": [
+            "exact_principal",
+            "exact_principal",
+            "exact_principal"
+          ]
+        },
+        "reconstruction": {
+          "statut": "resolu",
+          "mots": [
+            "restant",
+            "autonomie",
+            "acyle"
+          ],
+          "phases": [
+            "exact_principal",
+            "exact_principal",
+            "exact_principal"
+          ]
+        }
+      },
+      "reconstructions": [
+        {
+          "sondes": 4,
+          "penalite": 0.0,
+          "cosinus_secret": 0.16088883278421623,
+          "rang": 4,
+          "residu_rms_c": 8.333897564733124e-15,
+          "condition_sous_espace": 1.258209504145366
+        },
+        {
+          "sondes": 4,
+          "penalite": 0.01,
+          "cosinus_secret": 0.1608885737707435,
+          "rang": 4,
+          "residu_rms_c": 0.07912967100461235,
+          "condition_sous_espace": 1.258209504145366
+        },
+        {
+          "sondes": 12,
+          "penalite": 0.0,
+          "cosinus_secret": 0.24292819822671555,
+          "rang": 12,
+          "residu_rms_c": 7.214586815895312e-15,
+          "condition_sous_espace": 1.714714680010883
+        },
+        {
+          "sondes": 12,
+          "penalite": 0.01,
+          "cosinus_secret": 0.24292752825327282,
+          "rang": 12,
+          "residu_rms_c": 0.0731363259330894,
+          "condition_sous_espace": 1.714714680010883
+        }
+      ]
+    },
+    {
+      "graine": 1705,
+      "lot": "etendu",
+      "secret": "diava",
+      "politiques": {
+        "plan": {
+          "statut": "aucun_candidat",
+          "mots": [
+            "restant",
+            "complexe"
+          ],
+          "phases": []
+        },
+        "robuste": {
+          "statut": "budget_epuise",
+          "mots": [
+            "restant",
+            "complexe",
+            "jerker",
+            "reniflage",
+            "rober",
+            "com",
+            "bigorneau",
+            "ristretto"
+          ],
+          "phases": []
+        },
+        "melange": {
+          "statut": "resolu",
+          "mots": [
+            "restant",
+            "complexe",
+            "diava"
+          ],
+          "phases": [
+            "exact_principal",
+            "exact_alternatif",
+            "exact_alternatif"
+          ]
+        },
+        "reconstruction": {
+          "statut": "resolu",
+          "mots": [
+            "restant",
+            "complexe",
+            "diava"
+          ],
+          "phases": [
+            "exact_principal",
+            "exact_alternatif",
+            "exact_alternatif"
+          ]
+        }
+      },
+      "reconstructions": [
+        {
+          "sondes": 4,
+          "penalite": 0.0,
+          "cosinus_secret": 0.1776970976264688,
+          "rang": 4,
+          "residu_rms_c": 9.74537943758967e-15,
+          "condition_sous_espace": 1.258209504145366
+        },
+        {
+          "sondes": 4,
+          "penalite": 0.01,
+          "cosinus_secret": 0.17769691865144852,
+          "rang": 4,
+          "residu_rms_c": 0.08377921920012699,
+          "condition_sous_espace": 1.258209504145366
+        },
+        {
+          "sondes": 12,
+          "penalite": 0.0,
+          "cosinus_secret": 0.2427368402486126,
+          "rang": 12,
+          "residu_rms_c": 5.125758077488528e-15,
+          "condition_sous_espace": 1.714714680010883
+        },
+        {
+          "sondes": 12,
+          "penalite": 0.01,
+          "cosinus_secret": 0.2427363079929154,
+          "rang": 12,
+          "residu_rms_c": 0.06182103044767554,
+          "condition_sous_espace": 1.714714680010883
+        }
+      ]
+    },
+    {
+      "graine": 1705,
+      "lot": "etendu_bruite",
+      "secret": "diava",
+      "politiques": {
+        "plan": {
+          "statut": "aucun_candidat",
+          "mots": [
+            "restant",
+            "octobre"
+          ],
+          "phases": []
+        },
+        "robuste": {
+          "statut": "budget_epuise",
+          "mots": [
+            "restant",
+            "octobre",
+            "hypnologie",
+            "chérif",
+            "dyslexie",
+            "tigron",
+            "rafflesia",
+            "coucou"
+          ],
+          "phases": []
+        },
+        "melange": {
+          "statut": "resolu",
+          "mots": [
+            "restant",
+            "octobre",
+            "elvine",
+            "truveo",
+            "wikicriup",
+            "regal",
+            "maclachlan",
+            "diava"
+          ],
+          "phases": [
+            "exact_principal",
+            "melange",
+            "melange",
+            "melange",
+            "melange",
+            "melange",
+            "melange",
+            "melange"
+          ]
+        },
+        "reconstruction": {
+          "statut": "budget_epuise",
+          "mots": [
+            "restant",
+            "octobre",
+            "novembre",
+            "septembre",
+            "décembre",
+            "janvier",
+            "février",
+            "libertés"
+          ],
+          "phases": [
+            "exact_principal",
+            "reconstruction",
+            "reconstruction",
+            "reconstruction",
+            "reconstruction",
+            "reconstruction",
+            "reconstruction",
+            "reconstruction"
+          ]
+        }
+      },
+      "reconstructions": [
+        {
+          "sondes": 4,
+          "penalite": 0.0,
+          "cosinus_secret": 0.17721017356413457,
+          "rang": 4,
+          "residu_rms_c": 8.47710216111312e-15,
+          "condition_sous_espace": 1.258209504145366
+        },
+        {
+          "sondes": 4,
+          "penalite": 0.01,
+          "cosinus_secret": 0.17719370325322925,
+          "rang": 4,
+          "residu_rms_c": 0.076087817477551,
+          "condition_sous_espace": 1.258209504145366
+        },
+        {
+          "sondes": 12,
+          "penalite": 0.0,
+          "cosinus_secret": 0.24087000958756566,
+          "rang": 12,
+          "residu_rms_c": 5.370701733764164e-15,
+          "condition_sous_espace": 1.714714680010883
+        },
+        {
+          "sondes": 12,
+          "penalite": 0.01,
+          "cosinus_secret": 0.24089275731218399,
+          "rang": 12,
+          "residu_rms_c": 0.06188883593481565,
+          "condition_sous_espace": 1.714714680010883
+        }
+      ]
+    }
+  ]
+}

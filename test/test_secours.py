@@ -82,3 +82,22 @@ class SecoursTest(unittest.TestCase):
         v, d = reconstruire(self.a, [("c", 50), ("double", 40)], 0.01)
         self.assertEqual(d.rang, 1)
         self.assertLess(np.linalg.norm(v), 0.45)
+
+    def test_secret_absent_des_deux_modeles(self) -> None:
+        def source(mot: str) -> Observation:
+            return Observation(mot, "victoire", 100) if mot == "ailleurs" else Observation(mot, "score", 0)
+
+        for repli in Repli:
+            resultat = jouer(self.politique(repli), source, 10, 2)
+            self.assertEqual(resultat.statut, "aucun_candidat")
+            self.assertEqual({e.observation.mot for e in resultat.essais}, set(self.a.jouables))
+            self.assertTrue(all(e.observation.statut == "score" for e in resultat.essais))
+
+    def test_restriction_absente_du_principal_et_ouverture_etendue(self) -> None:
+        politique = Secours(self.p, np.empty(0, dtype=np.intp), self.a, self.a.indices_solutions(["double"]),
+                            2, 7)
+        source = nouvelle_grille(self.a, 0, ["double"])
+        resultat = jouer(politique, source, 2, 2, ouverture=self.a.indice("a"))
+        self.assertEqual([e.observation.mot for e in resultat.essais], ["a", "double"])
+        self.assertTrue(all(e.phase == "exact_alternatif" for e in resultat.essais))
+        self.assertEqual(resultat.statut, "resolu")

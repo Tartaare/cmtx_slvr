@@ -53,7 +53,7 @@ class Secours:
         if self.direction is not None:
             i = plus_proche(recherche.modele, np.flatnonzero(recherche.disponibles), self.direction)
             return recherche.modele.mots[i]
-        return recherche.prochain(budget, ouverture if self.phase == "exact_principal" else None)
+        return recherche.prochain(budget, ouverture)
 
     def _appliquer(self, obs: Observation) -> None:
         recherche = self.recherche
