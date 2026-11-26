@@ -14,7 +14,7 @@ python -m solveur simuler --graine 42 rivière maison poule
 
 Cette graine et cette version du modèle donnent respectivement 20,68 °C, −2,97 °C et 6,07 °C. Relancez avec la même graine pour essayer d’autres mots sur la même grille. La commande émet une observation JSON par proposition et s’arrête au mot exact. Le statut distingue un score, un refus du simulateur et une victoire.
 
-Le tirage utilise les formes jouables et non ambiguës du modèle actif. Pour restreindre les secrets tout en conservant les autres mots comme propositions, passez `--solutions mots.txt` (UTF-8, un mot par ligne). La simulation arrondit le cosinus multiplié par 100 à deux décimales par défaut. La correspondance avec les températures réelles sera mesurée lors de la calibration.
+Le tirage utilise les formes jouables et non ambiguës du modèle actif. Pour restreindre les secrets tout en conservant les autres mots comme propositions, passez `--solutions mots.txt` (UTF-8, un mot par ligne). La simulation arrondit le cosinus multiplié par 100 à deux décimales par défaut. Une première comparaison sur quatre grilles réelles est disponible dans le [rapport de calibration](benchmarks/calibration/sprint-4.json).
 
 ## Résoudre une grille
 
@@ -48,6 +48,18 @@ Prévoyez environ 5 Go libres pour les deux originaux et leurs matrices prépar�
 Chaque modèle préparé contient son lexique ordonné, sa matrice normalisée en float32 et son `rapport.json` (empreintes, provenance, dimensions et anomalies). La comparaison vérifie les fichiers préparés et compte les formes communes après harmonisation de la casse, des apostrophes et de l’Unicode. Les accents restent significatifs.
 
 Les vecteurs originaux sont de Jean-Philippe Fauconnier, *French Word Embeddings*, sous CC BY 3.0. Le modèle réduit provient de la sélection réalisée par Amodio pour Cemantbot. La préparation locale normalise les vecteurs. Les binaires restent dans le cache exclu de Git. [Modèles et attribution](https://fauconnier.github.io/) · [Licence CC BY 3.0](https://creativecommons.org/licenses/by/3.0/) · [Source du modèle réduit](https://github.com/Amodio/cemantbot)
+
+## Calibrer les scores réels
+
+Après avoir préparé les deux modèles, lancez la comparaison depuis la racine du dépôt.
+
+```sh
+python -m solveur calibrer benchmarks/calibration/parties.json --export calibration-locale.json
+```
+
+Le rapport donne, pour chaque observation, la température relevée, le score brut calculé et la température arrondie. Les erreurs et la marge empirique sont en °C, à l’exception de la MSE en °C². Les taux de compatibilité aux tolérances indiquées portent sur les paires calculables. La fraction exacte sur toutes les observations inclut les mots absents ou ambigus dans le dénominateur. Sans option d’export, le JSON est écrit dans le terminal.
+
+Pour ajouter une partie terminée, utilisez le format du corpus livré. Renseignez une source vérifiable, un identifiant de grille, le secret confirmé, le lot et les couples mot–température. Affectez les lots avant d’examiner les prédictions. Chaque grille apparaît une fois et toutes les parties partageant un secret appartiennent au même lot. Retirez la proposition gagnante, dont la température de 100 °C est imposée par le jeu. Le corpus est lu uniquement par la commande de calibration. [Corpus et sources](benchmarks/calibration/parties.json)
 
 ## Jouer sur la grille du jour
 

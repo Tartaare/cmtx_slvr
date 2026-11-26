@@ -1,5 +1,25 @@
 # Avancement
 
+## Sprint 4 — Calibration sur des parties terminées
+
+US-006 et US-007 sont livrées. Le corpus contient **38 températures observées sur 4 grilles**, de −14,66 à 61,65 °C. Les secrets sont confirmés par la ligne de victoire de chaque capture. Les 13 listes françaises de voisins de Cemantbot donnent des rangs utiles à son propre benchmark mais aucune température. La capture fournie dans son dossier `images` contient 16 essais chiffrés avant la victoire et fait partie du test. Son numéro de grille est illisible ou absent de la capture, d’où un identifiant textuel stable. [Corpus et sources par partie](benchmarks/calibration/parties.json)
+
+Sur les grilles 202 et 749, les relevés retiennent les cinq premiers essais, le dernier avant la victoire, les extrêmes et la température la plus proche de 25 °C, après dédoublonnage. La grille 922 et la capture Cemantbot fournissent tous leurs essais avant la victoire. La séparation des lots est fixée dans le corpus et contrôlée à l’import. Le secret de test n’intervient ni dans l’estimation de la marge ni dans le choix du modèle.
+
+| Lot | Températures observées | Modèle réduit, scores exacts au centième | Modèle original, scores exacts au centième |
+|---|---:|---:|---:|
+| Calibration · magique | 8 | 8 | 8 |
+| Validation · renvoi | 9 | 9 | 9 |
+| Test · creux et prestigieux | 21 | 19 | 21 |
+
+**Choix du modèle.** La sélection sur validation privilégie le nombre de températures exactes, puis la couverture, l’erreur absolue moyenne entre scores affichés et enfin le modèle le plus petit. Les deux modèles reproduisent les neuf températures de validation. Le réduit reste la référence pour les mots qu’il couvre. Le test montre l’intérêt du modèle original pour « avant-garde » et « avant-gardiste », absents du réduit. [Rapport, empreintes et écarts individuels](benchmarks/calibration/sprint-4.json)
+
+**Précision.** Sur le test, l’erreur absolue moyenne avant arrondi vaut 0,00315 °C pour le réduit et 0,00316 °C pour l’original. L’arrondi au centième reproduit toutes les températures calculables. La troncature en reproduit 9 sur 21 pour l’original. Le contrôle du produit scalaire en float64 donne les mêmes températures arrondies que le moteur sur ce corpus. Aucune correction de biais n’est appliquée.
+
+**Marge et portée.** Le P95 des écarts bruts du réduit, estimé sur huit observations de calibration, vaut 0,00470 °C. Seuls 17 des 19 scores calculables du test se situent dans cette marge, alors que les 19 arrondis sont exacts. Employer ce P95 comme seuil d’élimination rejetterait donc deux observations valides. L’inversion exacte est cohérente avec les scores couverts de ces quatre grilles. La compatibilité avec une nouvelle grille reste à vérifier au fil des observations.
+
+Le build TypeScript, les deux tests Node et les neuf tests Python passent. Deux exécutions indépendantes de la commande ont produit un JSON identique octet par octet. Le sprint 5 portera sur la sélection des propositions avec le même protocole de benchmark que le sprint 3.
+
 ## Sprint 3 — Résolution automatique et premier benchmark
 
 US-004 et US-005 sont livrées. L’inversion exacte conserve les candidats dont la température reproduit toutes les observations à la précision de la grille. Le filtrage matriciel inclut une marge pour les erreurs numériques, puis recalcule les scores retenus avec la même opération scalaire et le même arrondi que le simulateur. Les scores négatifs, les refus et la confirmation finale sont couverts.
