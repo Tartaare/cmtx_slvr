@@ -1,5 +1,11 @@
 # Avancement
 
+## Sprint 30 — Sélection animée dans la barre flottante
+
+US-043 ajoute une lentille de verre qui glisse sous l’option sélectionnée et met son pictogramme et son libellé en ambre. « Carte des mots » est sélectionnée par défaut. Les trois options changent uniquement l’état visuel de la barre, au clic, au toucher et au clavier. La lentille se place directement lorsque la réduction du mouvement est activée.
+
+Le build TypeScript, les quatre tests Node, les 26 tests Python et les deux parcours Edge passent. Le parcours d’accueil vérifie la transition, le focus clavier, l’alignement en mouvement réduit et l’absence de navigation. Le rendu a été contrôlé à 320 et 1 440 pixels, avec une sélection tactile à 320 pixels.
+
 ## Sprint 29 — Navigation flottante
 
 US-042 ajoute sur l’accueil une capsule de navigation centrée en bas de la carte. « Carte des mots » indique la vue courante. « Grille du jour » et « Parties locales » sont désactivées en attendant leur raccordement. Sur petit écran, le zoom, les champs lexicaux et l’aide remontent au-dessus de la capsule.
