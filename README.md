@@ -6,7 +6,7 @@ L’application locale recommande un mot, interprète sa température et change 
 
 ## Ouvrir l’application
 
-Sur l’accueil, **Carte des mots** est sélectionnée par défaut dans la barre flottante. Cliquez ou utilisez les flèches du clavier pour déplacer la lentille de verre. La sélection change uniquement l’apparence de la barre.
+Sur l’accueil, **Carte des mots** est sélectionnée par défaut dans la barre flottante. Cliquez, touchez ou utilisez les flèches du clavier pour déplacer la lentille de verre. Vous pouvez aussi maintenir la lentille et la faire glisser avant de relâcher. La sélection change uniquement l’apparence de la barre.
 
 Depuis la racine du projet, avec Python 3.12, Node.js 22.16 ou supérieur et les modèles préparés sous le compte qui lancera le serveur, exécutez les commandes suivantes.
 

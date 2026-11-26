@@ -1,5 +1,11 @@
 # Avancement
 
+## Sprint 31 — Lentille de verre au glissement
+
+US-044 reprend le soulèvement et l’étirement de l’export CodePen. La lentille agrandit les pictogrammes et les libellés qu’elle recouvre. Au maintien, elle suit le pointeur et prévisualise l’option en ambre. Au relâchement, elle rejoint l’option la plus proche en tenant compte de l’élan. Le clavier et le réglage de mouvement réduit restent pris en charge. La sélection reste visuelle.
+
+Le build TypeScript, les quatre tests Node, les 26 tests Python et les deux parcours Edge passent. Le parcours d’accueil contrôle le soulèvement, le grossissement, le glissement sans changement de sélection avant le relâchement et le focus clavier. Le rendu est vérifié à 320 et 1 440 pixels, avec un glissement tactile à 320 pixels.
+
 ## Sprint 30 — Sélection animée dans la barre flottante
 
 US-043 ajoute une lentille de verre qui glisse sous l’option sélectionnée et met son pictogramme et son libellé en ambre. « Carte des mots » est sélectionnée par défaut. Les trois options changent uniquement l’état visuel de la barre, au clic, au toucher et au clavier. La lentille se place directement lorsque la réduction du mouvement est activée.

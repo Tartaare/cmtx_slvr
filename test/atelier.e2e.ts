@@ -122,38 +122,41 @@ test("l’accueil affiche la carte sur toute la fenêtre sans ouvrir de partie",
       const dock = await navigation.boundingBox();
       assert.ok(dock && Math.abs(dock.x * 2 + dock.width - dimensions.width) < 1);
       assert.ok(zoom.y + zoom.height < dock.y || dock.x + dock.width < zoom.x);
+      const lentille = navigation.locator(".dock-lentille");
       const carte = navigation.getByRole("radio", {name: "Carte des mots"});
       const grille = navigation.getByRole("radio", {name: "Grille du jour"});
       const parties = navigation.getByRole("radio", {name: "Parties locales"});
       assert.ok(await carte.isChecked());
       if (dimensions.width === 1440) {
         await page.emulateMedia({reducedMotion: "no-preference"});
-        await navigation.evaluate(element => {
-          (element as HTMLElement).addEventListener("transitionend", event => {
-            if (event.pseudoElement === "::before" && event.propertyName === "transform") {
-              element.dataset.lentilleDeplacee = "true";
-            }
-          });
-        });
         await grille.click();
-        await page.locator('.dock[data-lentille-deplacee="true"]').waitFor({timeout: 5000});
+        const soulevee = page.locator(".dock[data-soulevee]");
+        await page.waitForFunction(() => {
+          const drop = document.querySelector<HTMLElement>(".dock[data-soulevee] .dock-lentille");
+          return drop && drop.getBoundingClientRect().height > drop.offsetHeight * 1.1;
+        }, undefined, {timeout: 3000});
+        await soulevee.waitFor({state: "detached", timeout: 5000});
+        const depart = (await grille.boundingBox())!;
+        const arrivee = (await carte.boundingBox())!;
+        await page.mouse.move(depart.x + depart.width / 2, depart.y + depart.height / 2);
+        await page.mouse.down();
+        await page.mouse.move(arrivee.x + arrivee.width / 2, arrivee.y + arrivee.height / 2, {steps: 10});
+        await page.locator('.dock[data-soulevee][data-survol="2"]').waitFor({timeout: 3000});
+        const pictogramme = await navigation.locator(".dock-reflet label:last-child svg").boundingBox();
+        assert.ok(pictogramme && pictogramme.width > 21);
+        assert.ok(await grille.isChecked());
+        await page.mouse.up();
+        assert.ok(await carte.isChecked());
+        await soulevee.waitFor({state: "detached", timeout: 5000});
         await page.emulateMedia({reducedMotion: "reduce"});
-      } else {
-        await grille.click();
       }
+      await grille.click();
       assert.deepEqual(await Promise.all([grille.isChecked(), parties.isChecked(), carte.isChecked()]), [true, false, false]);
       await grille.press("ArrowRight");
       assert.ok(await parties.isChecked());
       assert.ok(await parties.evaluate(element => element.matches(":focus-visible")));
-      await navigation.evaluate(element => {
-        const lentille = getComputedStyle(element, "::before");
-        const selection = element.querySelector("input:checked")!.getBoundingClientRect();
-        const gauche = element.getBoundingClientRect().left + element.clientLeft
-          + Number.parseFloat(lentille.left) + new DOMMatrixReadOnly(lentille.transform).m41;
-        if (lentille.transitionDuration !== "0s" || Math.abs(gauche - selection.left) >= 1) {
-          throw new Error("La lentille doit rejoindre immédiatement la sélection en mouvement réduit.");
-        }
-      });
+      assert.equal(await navigation.getAttribute("data-soulevee"), null);
+      assert.ok(Math.abs((await lentille.boundingBox())!.x - (await parties.boundingBox())!.x) < 1);
       await parties.press("ArrowRight");
       assert.ok(await carte.isChecked());
       assert.equal(page.url(), url);
