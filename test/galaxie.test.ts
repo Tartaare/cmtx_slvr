@@ -15,6 +15,15 @@ test("l’atlas livre chaque mot du lexique réduit à sa ligne d’origine",asy
     "8fb690c1c296a3c4345dd77e7dc67bf0f881de6d90f38e286f14b582ec8ba3b8");
   assert.ok(carte.positions.every(v=>Number.isFinite(v) && Math.abs(v)<=1));
   assert.ok(atlas.reperes.every((id,groupe)=>atlas.mots[id][4]===groupe));
+  assert.ok(atlas.voisins);
+  assert.equal(atlas.voisins.length, atlas.mots.length);
+  const chien = carte.index.get("chien")!;
+  assert.ok(atlas.voisins[chien].some(i => atlas.mots[i][0] === "chiens"));
+  const ancienAtlas = {...atlas, voisins: undefined};
+  assert.equal(indexer(ancienAtlas).index.size, carte.index.size);
+  const voisinsInvalides = atlas.voisins.slice();
+  voisinsInvalides[chien] = [chien, ...atlas.voisins[chien].slice(1)];
+  assert.throws(() => indexer({...atlas, voisins: voisinsInvalides}), /Liens de projection incohérents/);
   const id=carte.index.get("piano")!, camera=cameraInitiale(1.5);
   camera.centre=[carte.positions[id*3],carte.positions[id*3+1],carte.positions[id*3+2]];
   const [x,y,z]=projeter(cadre(camera,1200,800),carte.positions,id,1200,800);

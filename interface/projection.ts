@@ -3,14 +3,23 @@ export const cleMot=(mot:string)=>mot.trim().normalize("NFC").toLocaleLowerCase(
 type Ligne = [string, number, number, number, number];
 export interface Atlas {
   mots: Ligne[]; reperes: number[]; dimensions: number; methode: string; format: number; modele: string;
+  voisins?: number[][];
 }
+
+export const palette = ["ffb458","f39452","fc7966","f16a91","ea6dad","d884ed","bb8bfa","938cfa",
+  "78a9ff","64c2ef","53d8da","65dbc1","95dc9b","b1db81","d6ce6c","e7c078"];
 
 export function indexer(atlas: Atlas) {
   if (atlas.format !== 1 || !atlas.mots.length) throw new Error("Format de carte inconnu.");
+  const n = atlas.mots.length;
+  if (atlas.voisins !== undefined && (!Array.isArray(atlas.voisins) || atlas.voisins.length !== n ||
+    atlas.voisins.some((ligne, i) => !Array.isArray(ligne) || ligne.length !== Math.min(4,n-1) ||
+      new Set(ligne).size !== ligne.length ||
+      ligne.some(j => !Number.isInteger(j) || j < 0 || j >= n || j === i)))) {
+    throw new Error("Liens de projection incohérents.");
+  }
   const index = new Map<string, number>(), positions = new Float32Array(atlas.mots.length * 3);
   const couleurs = new Uint8Array(positions.length);
-  const palette = ["ffb458","f39452","fc7966","f16a91","ea6dad","d884ed","bb8bfa","938cfa",
-    "78a9ff","64c2ef","53d8da","65dbc1","95dc9b","b1db81","d6ce6c","e7c078"];
   atlas.mots.forEach(([mot,x,y,z,groupe],i) => {
     if (!mot || index.has(mot) || ![x,y,z].every(Number.isFinite) || !palette[groupe])
       throw new Error("Données de projection incohérentes.");
