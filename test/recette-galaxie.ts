@@ -76,6 +76,7 @@ try{
   let url="";
   for await(const ligne of lignes){url=ligne.match(/http:\/\/127\.0\.0\.1:\d+\//)?.[0]??"";if(url)break;}
   assert.ok(url,diagnostic || "Adresse du moteur local indisponible");
+  url=new URL("/atelier",url).href;
   const page=await navigateur.newPage({viewport:{width:1920,height:1080}});
   const erreurs:string[]=[];page.on("pageerror",e=>erreurs.push(e.message));
   const empreinte=()=>page.evaluate(async()=>{

@@ -27,6 +27,65 @@ async function fermer(p: ChildProcessWithoutNullStreams): Promise<void> {
   const fin = once(p, "exit"); p.kill(); await fin;
 }
 
+test("l’accueil affiche la carte sur toute la fenêtre sans ouvrir de partie", {timeout: 90000}, async () => {
+  const dossier = await mkdtemp(join(tmpdir(), "cemantix-carte-"));
+  const navigateur = await ouvrirNavigateur();
+  let serveur: ChildProcessWithoutNullStreams | undefined;
+  try {
+    let url: string;
+    [serveur, url] = await demarrer(join(dossier, "sessions.sqlite3"));
+    const page = await navigateur.newPage({viewport: {width: 1440, height: 900}, reducedMotion: "reduce"});
+    const appels: string[] = [], erreurs: Error[] = [];
+    page.on("request", r => { if (new URL(r.url()).pathname.startsWith("/api/")) appels.push(r.url()); });
+    page.on("pageerror", e => erreurs.push(e));
+    const atlas = new URL("/atlas.json", url).href;
+    await page.route(atlas, route => route.abort());
+    await page.goto(url);
+    const recharger = page.getByRole("button", {name: "Recharger la carte"});
+    await recharger.waitFor();
+    await page.unroute(atlas);
+    await recharger.click();
+    const recherche = page.getByRole("searchbox");
+    await recherche.waitFor();
+    const marque = page.getByRole("heading", {name: "Cémantix", exact: true});
+    assert.equal(await page.getByRole("heading").count(), 1);
+    assert.ok(await marque.locator("img").evaluate((image: HTMLImageElement) => image.naturalWidth > 0));
+    assert.equal(await page.getByRole("button", {name: /nouvelle partie|mes parties|suivi du solveur/i}).count(), 0);
+    const canevas = page.locator("#galaxie");
+    for (const dimensions of [{width: 1440, height: 900}, {width: 320, height: 640}]) {
+      await page.setViewportSize(dimensions);
+      assert.deepEqual(await canevas.boundingBox(), {x: 0, y: 0, ...dimensions});
+      assert.ok(await page.evaluate(() => document.documentElement.scrollHeight === innerHeight));
+      const titre = await marque.boundingBox();
+      const champ = await recherche.boundingBox();
+      assert.ok(titre && champ && titre.x + titre.width < champ.x);
+    }
+    await page.locator(".aide summary").click();
+    await page.getByText("Glissez ou utilisez les flèches", {exact: false}).waitFor();
+    await recherche.fill("zzzzzzzzzzzz");
+    await recherche.press("Enter");
+    await page.locator("#resultats").getByText("Mot absent du dictionnaire réduit").waitFor();
+    await recherche.fill("hirsut");
+    await page.getByRole("button", {name: "hirsute", exact: true}).waitFor();
+    await recherche.press("Enter");
+    assert.equal(await recherche.inputValue(), "hirsute");
+    assert.deepEqual(erreurs.map(e => e.message), []);
+    await page.waitForFunction(() => document.querySelector("#niveau")?.textContent === "Vue immersive", undefined, {timeout: 5000});
+    await page.getByRole("button", {name: "Dézoomer", exact: true}).click();
+    await page.waitForFunction(() => document.querySelector("#niveau")?.textContent === "Vue régionale", undefined, {timeout: 5000});
+    await page.getByRole("button", {name: "Zoomer", exact: true}).click();
+    await page.waitForFunction(() => document.querySelector("#niveau")?.textContent === "Vue immersive", undefined, {timeout: 5000});
+    await page.getByRole("button", {name: "Revenir à la vue globale"}).click();
+    await page.waitForFunction(() => document.querySelector("#niveau")?.textContent === "Vue globale");
+    assert.deepEqual(appels, []);
+    assert.deepEqual(erreurs, []);
+  } finally {
+    if (serveur) await fermer(serveur);
+    await navigateur.close();
+    await rm(dossier, {recursive: true, force: true});
+  }
+});
+
 test("la partie reprend après redémarrage du serveur et aboutit dans le navigateur", {timeout: 90000}, async () => {
   const dossier = await mkdtemp(join(tmpdir(), "cemantix-s8-"));
   const base = join(dossier, "sessions.sqlite3");
@@ -47,7 +106,7 @@ test("la partie reprend après redémarrage du serveur et aboutit dans le naviga
     const logoRecu = page.waitForResponse(new URL("logo-cemantix-transparent.png", url).href);
     const atlas = new URL("atlas.json", url).href;
     await page.route(atlas, route=>route.abort("connectionreset"));
-    await page.goto(url);
+    await page.goto(new URL("/atelier", url).href);
     const logo = await logoRecu;
     assert.equal(logo.status(), 200);
     assert.equal(logo.headers()["content-type"], "image/png");
@@ -70,7 +129,7 @@ test("la partie reprend après redémarrage du serveur et aboutit dans le naviga
     const budget = await page.locator("#restants").innerText();
     await fermer(serveur);
     [serveur, url] = await demarrer(base);
-    await page.goto(url);
+    await page.goto(new URL("/atelier", url).href);
     await page.getByRole("heading", {name:prochain,exact:true}).waitFor();
     assert.equal(await page.locator("#restants").innerText(),budget);
     await page.getByRole("button", {name:"Mode automatique"}).click();

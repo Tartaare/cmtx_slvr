@@ -139,10 +139,11 @@ function indisponible(message:string):void {
 }
 function monter():void {
   if(!carte)return;
+  el("scene").classList.remove("indisponible");
   scene=new Scene(canvas,el<HTMLCanvasElement>("annotations"),carte,nom=>{
     if(el("niveau").textContent!==nom)texte("niveau",nom);
   });
-  el("scene").classList.remove("indisponible");el("repli").hidden=true;
+  el("repli").hidden=true;
   el("outils-carte").hidden=false;el("chercher").hidden=false;canvas.tabIndex=0;
   if(aideCarte)aideCarte.hidden=false;
   if(boutonSuivi)boutonSuivi.hidden=false;
