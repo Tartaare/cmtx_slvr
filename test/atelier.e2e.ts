@@ -281,6 +281,17 @@ test("la barre ouvre les vues et affiche le contexte du jeu sous Cémantix", {ti
     const numero = (await page.getByText("n°1234", {exact: true}).boundingBox())!;
     assert.ok(numero.y >= logo.y + logo.height && numero.x >= logo.x);
     assert.deepEqual(await (await page.request.get(api)).json(), []);
+    for (const width of [320, 1440]) {
+      await page.setViewportSize({width, height: 780});
+      assert.deepEqual(await page.locator("#scene").boundingBox(), {x:0, y:0, width, height:780});
+      const panneau = (await page.locator(".panneau-jeu").boundingBox())!;
+      const barre = (await dock.boundingBox())!;
+      assert.ok(panneau.y + panneau.height <= barre.y || panneau.x + panneau.width <= barre.x);
+      await page.locator("#volet").press("Enter");
+      assert.equal(await page.locator("#contenu-jeu").isVisible(), false);
+      await page.locator("#volet").press("Enter");
+    }
+    await page.setViewportSize({width:375, height:780});
 
     await page.getByRole("button", {name: "Nouvelle partie"}).click();
     await page.getByRole("button", {name: "Résoudre la grille du jour"}).click();
@@ -351,6 +362,7 @@ test("la partie reprend après redémarrage du serveur et aboutit dans le naviga
     await page.getByRole("heading", {name:"hirsute",exact:true}).or(page.locator("#erreur:visible")).waitFor();
     assert.ok(await page.locator("#erreur").isHidden(), await page.locator("#erreur").textContent() ?? "");
     await page.getByRole("button", {name:"Jouer un essai"}).click();
+    await page.locator("#volet").click();
     await page.getByRole("cell", {name:"hirsute",exact:true}).waitFor();
     const prochain = await page.locator("#mot").innerText();
     const budget = await page.locator("#restants").innerText();
@@ -359,6 +371,7 @@ test("la partie reprend après redémarrage du serveur et aboutit dans le naviga
     await page.goto(new URL("/atelier", url).href);
     await page.getByRole("heading", {name:prochain,exact:true}).waitFor();
     assert.equal(await page.locator("#restants").innerText(),budget);
+    await page.locator("#volet").click();
     await page.getByRole("button", {name:"Mode automatique"}).click();
     await page.getByText("Solution confirmée", {exact:true}).first().waitFor();
     assert.equal(await page.locator("#mot").innerText(),"balane");

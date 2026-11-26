@@ -54,6 +54,7 @@ async function tourner(page:Page,duree:number){
   },duree);
 }
 async function nouvelle(page:Page){
+  if (await page.locator("#contenu-jeu").isHidden()) await page.locator("#volet").click();
   await page.locator("#nouvelle").click();
   await page.locator("#creation [name=strategie]").selectOption("plan");
   await page.locator("#creation button[type=submit]").click();
@@ -98,7 +99,8 @@ try{
   await page.waitForFunction(()=>document.querySelector("#niveau")?.textContent==="Vue immersive");
   await page.waitForTimeout(600);await page.screenshot({path:join(sortie,"vue-immersive.png")});
   assert.equal(await page.locator("#suivi").getAttribute("aria-pressed"),"false");
-  await page.locator("#essai").click();await page.locator("#recents tr").first().waitFor();
+  await page.locator("#essai").click();await page.locator("#volet").click();
+  await page.locator("#recents tr").first().waitFor();
   assert.equal(await page.locator("#etat-carte").innerText(),"piano");
   await page.locator("#suivi").click();assert.equal(await page.locator("#etat-carte").innerText(),"hirsute");
   await resoudre(page);assert.equal(await page.locator("#mot").innerText(),"balane");
