@@ -139,6 +139,14 @@ Pour ajouter une partie terminée, utilisez le format du corpus livré. Renseign
 
 ## Jouer sur la grille du jour
 
+Pour résoudre automatiquement la grille officielle, démarrez l’atelier avec `python -m solveur application` sur son port par défaut (8765), puis exécutez cette commande dans un deuxième terminal.
+
+```sh
+npm start -- --resoudre 20
+```
+
+Le nombre fixe le budget maximal (1 à 200, 20 par défaut). Chaque essai apparaît dans le terminal et la partie est consultable dans **Mes parties**. Le code de sortie vaut 0 pour une victoire confirmée, 2 si la recherche se termine sans victoire et 1 en cas d’erreur.
+
 Installez Node.js 22.16 ou supérieur et disposez de Microsoft Edge sous Windows ou de Google Chrome sous macOS et Linux. Depuis le dossier du projet, installez les dépendances une fois avec `npm ci`, puis lancez un essai.
 
 ```sh

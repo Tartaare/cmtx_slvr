@@ -1,5 +1,9 @@
 # Avancement
 
+## Sprint 9 — Résolution automatique de la grille du jour
+
+US-017 relie les recommandations de l’atelier au formulaire officiel. La grille nº 1730 a été résolue en trois essais le 26 novembre 2026. Le test de régression distingue deux mots affichés à 100 °C par leur rang (999 ou 1000 ‰). Le build, les 26 tests Python, les trois tests Node et le parcours navigateur de l’atelier passent.
+
 ## Sprint 8 — Atelier de résolution local
 
 US-014 à US-016 sont livrées. Le navigateur permet de jouer une simulation pas à pas ou automatiquement, de saisir les résultats d’une grille identifiée et de reprendre un historique JSONL. La recommandation, le budget, les candidats, leur probabilité estimée et la raison des bascules sont visibles pendant la partie. Une base SQLite locale conserve les observations et les configurations. Les modifications concurrentes sont contrôlées par révision.
