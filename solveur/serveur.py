@@ -25,7 +25,7 @@ FICHIERS = {
     "/logo-cemantix-transparent.png": (RACINE / "logo-cemantix-transparent.png", "image/png"),
     "/atlas.json": (RACINE / "interface/atlas.json", "application/json"),
     **{f"/{nom}.js": (RACINE / f"dist/interface/{nom}.js", "text/javascript")
-       for nom in ("arcs", "carte", "galaxie", "projection", "scene")},
+       for nom in ("arcs", "carte", "galaxie", "lentille", "projection", "scene")},
     "/app.js": (RACINE / "dist/interface/app.js", "text/javascript"),
     "/rendu.js": (RACINE / "dist/interface/rendu.js", "text/javascript"),
 }
