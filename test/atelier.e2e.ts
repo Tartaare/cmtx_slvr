@@ -6,6 +6,7 @@ import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { createInterface } from "node:readline";
 import test from "node:test";
+import type { Page } from "playwright-core";
 import type { Archive } from "../interface/rendu.ts";
 import { ouvrirNavigateur } from "../jeu.ts";
 
@@ -25,6 +26,15 @@ async function demarrer(base: string): Promise<[ChildProcessWithoutNullStreams, 
 async function fermer(p: ChildProcessWithoutNullStreams): Promise<void> {
   if (p.exitCode !== null || p.signalCode !== null) return;
   const fin = once(p, "exit"); p.kill(); await fin;
+}
+
+async function attendreContraste(page: Page, actif: boolean): Promise<void> {
+  await page.waitForFunction(valeur => {
+    const gl = document.querySelector<HTMLCanvasElement>("#galaxie")?.getContext("webgl");
+    const programme = gl?.getParameter(gl.CURRENT_PROGRAM) as WebGLProgram | null | undefined;
+    const uniforme = programme && gl?.getUniformLocation(programme, "modeEssais");
+    return uniforme && gl?.getUniform(programme, uniforme) === valeur;
+  }, Number(actif));
 }
 
 test("l’accueil affiche la carte sur toute la fenêtre sans ouvrir de partie", {timeout: 90000}, async () => {
@@ -47,6 +57,7 @@ test("l’accueil affiche la carte sur toute la fenêtre sans ouvrir de partie",
     await recharger.click();
     const recherche = page.getByRole("searchbox");
     await recherche.waitFor();
+    await attendreContraste(page, false);
     const marque = page.getByRole("heading", {name: "Cémantix", exact: true});
     assert.equal(await page.getByRole("heading").count(), 1);
     assert.ok(await marque.locator("img").evaluate((image: HTMLImageElement) => image.naturalWidth > 0));
@@ -135,6 +146,7 @@ test("la partie reprend après redémarrage du serveur et aboutit dans le naviga
     await page.getByRole("button", {name:"Mode automatique"}).click();
     await page.getByText("Solution confirmée", {exact:true}).first().waitFor();
     assert.equal(await page.locator("#mot").innerText(),"balane");
+    await attendreContraste(page, false);
     await page.setViewportSize({width:375,height:812});
     assert.ok(await page.evaluate(()=>document.body.scrollWidth <= window.innerWidth));
     await page.getByRole("button", {name:"Nouvelle partie"}).click();
@@ -147,6 +159,7 @@ test("la partie reprend après redémarrage du serveur et aboutit dans le naviga
     await config.getByRole("button", {name:"Démarrer la partie"}).click();
     await page.getByRole("heading", {name:"chignin-bergeron"}).waitFor();
     assert.equal(await page.locator("#strategie").innerText(),"Inversion étendue");
+    await attendreContraste(page, true);
     await page.getByRole("button", {name:"Saisir le score"}).click();
     await page.locator("#score [name=statut]").selectOption("victoire");
     await page.getByRole("button", {name:"Enregistrer l’essai"}).click();
@@ -160,6 +173,7 @@ test("la partie reprend après redémarrage du serveur et aboutit dans le naviga
     await config.getByRole("button", {name:"Résoudre la grille du jour"}).click();
     await page.getByText("Grille 1234", {exact:true}).waitFor();
     await page.getByText("Solution confirmée", {exact:true}).first().waitFor();
+    await attendreContraste(page, true);
     assert.equal(await page.locator("#mot").innerText(),"hirsute");
     assert.equal(await page.locator("#restants").innerText(),"0");
     await page.getByRole("button", {name:"Mes parties"}).click();

@@ -32,7 +32,7 @@ function synchroniser(force=false): void {
   focal=mot;
 }
 function journal():void {
-  scene?.journal(partie?.essais.map(e=>e.observation)??[]);
+  scene?.journal(partie?.essais.map(e=>e.observation)??[],partie && partie.config.source!=="simulation");
   if(!carte || !partie)return;
   for(const ligne of el("recents").querySelectorAll<HTMLTableRowElement>("tr")){
     const cellule=ligne.cells[1], mot=cellule.firstChild?.textContent;
