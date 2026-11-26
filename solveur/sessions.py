@@ -7,6 +7,8 @@ from pathlib import Path
 from uuid import uuid4
 
 from .atelier import Atelier, Configuration, Objet
+from .resolution import Recherche
+from .secours import Secours
 
 
 class Conflit(ValueError):
@@ -18,6 +20,7 @@ class Sessions:
         fichier.parent.mkdir(parents=True, exist_ok=True)
         self.fichier = fichier
         self.atelier = atelier
+        self.active: dict[tuple[str, int], Recherche | Secours] = {}
         with closing(sqlite3.connect(fichier)) as db, db:
             db.execute("""CREATE TABLE IF NOT EXISTS parties (
                 id TEXT PRIMARY KEY, creation TEXT NOT NULL, revision INTEGER NOT NULL, etat TEXT NOT NULL
@@ -56,8 +59,9 @@ class Sessions:
         date = etat.pop("creation")
         etat.pop("id")
         statut = etat["statut"]
+        politique = self.active.pop((identifiant, revision), None)
         if action == "essai":
-            self.atelier.avancer(etat, entrees)
+            politique = self.atelier.avancer(etat, entrees, politique)
         elif action == "pause" and statut == "active":
             etat["statut"] = "pause"
         elif action == "reprendre" and statut == "pause":
@@ -71,4 +75,8 @@ class Sessions:
                                   (json.dumps(etat, allow_nan=False), identifiant, revision))
             if resultat.rowcount != 1:
                 raise Conflit(conflit)
+        # Une seule politique chaude. Un changement de session ou un échec impose le rejeu du journal.
+        self.active.clear()
+        if politique is not None and etat["statut"] in ("active", "pause"):
+            self.active[identifiant, revision + 1] = politique
         return dict(etat, id=identifiant, revision=revision + 1, creation=date)

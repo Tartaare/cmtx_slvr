@@ -30,7 +30,7 @@ def creer_serveur(cache: Path, base: Path, port: int) -> ThreadingHTTPServer:
             self.send_header("Content-Length", str(len(contenu)))
             self.send_header("Cache-Control", "no-store")
             self.send_header("X-Content-Type-Options", "nosniff")
-            self.send_header("Content-Security-Policy", "default-src 'self'; object-src 'none'; "
+            self.send_header("Content-Security-Policy", "default-src 'self'; img-src 'self' data:; object-src 'none'; "
                              "base-uri 'none'; frame-ancestors 'none'; form-action 'self'")
             self.end_headers()
             self.wfile.write(contenu)
@@ -85,8 +85,8 @@ def creer_serveur(cache: Path, base: Path, port: int) -> ThreadingHTTPServer:
                 self.json(404, {"erreur": "Partie introuvable."})
             except (ValueError, TypeError, RecursionError) as erreur:
                 self.json(400, {"erreur": str(erreur)})
-            except (OSError, sqlite3.Error):
-                self.json(500, {"erreur": "Lecture ou sauvegarde impossible. Vérifiez les fichiers locaux."})
+            except (OSError, sqlite3.Error) as erreur:
+                self.json(500, {"erreur": f"Lecture ou sauvegarde impossible. {erreur}"})
 
         def do_GET(self) -> None:
             self.traiter(False)
