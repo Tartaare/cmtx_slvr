@@ -8,11 +8,13 @@ from pathlib import Path
 
 from .benchmark import exporter, mesurer, resumer
 from .calibration import calibrer
+from .evaluation_inference import evaluer_historiques, evaluer_simulations
+from .inference import MARGE_CALIBRATION
 from .modele import Modele, cle
 from .preparation import preparer
-from .resolution import REFERENCES, Strategie, resoudre
+from .resolution import REFERENCES, ROBUSTESSE, SELECTION, Strategie, resoudre
 from .selection import ouverture_optimisee
-from .simulation import Observation, nouvelle_grille
+from .simulation import Observation, Scenario, nouvelle_grille
 from .sources import SOURCES, acquerir
 
 
@@ -40,6 +42,14 @@ def main() -> int:
     calibration = commandes.add_parser("calibrer", help="Comparer les modèles sur des parties réelles terminées.")
     calibration.add_argument("corpus", type=Path, help="Corpus JSON avec lots de calibration, validation et test.")
     calibration.add_argument("--export", type=Path, help="Écrire le rapport JSON dans un nouveau fichier UTF-8.")
+    evaluation = commandes.add_parser("evaluer-inference", help="Mesurer le rang du secret sur les historiques de test.")
+    origine = evaluation.add_mutually_exclusive_group(required=True)
+    origine.add_argument("corpus", nargs="?", type=Path)
+    origine.add_argument("--simulations", type=int, help="Nombre de grilles à sonder avec trois mots indépendants.")
+    evaluation.add_argument("--graine", type=int)
+    evaluation.add_argument("--scenario", type=Scenario, choices=list(Scenario))
+    evaluation.add_argument("--modele", choices=SOURCES, default="reduit")
+    evaluation.add_argument("--export", type=Path, help="Nouveau fichier JSON.")
     simulation = commandes.add_parser("simuler", help="Proposer des mots à une même grille locale.")
     simulation.add_argument("mots", nargs="+")
     resolution = commandes.add_parser("resoudre", help="Résoudre automatiquement une grille locale.")
@@ -47,23 +57,40 @@ def main() -> int:
     resolution.add_argument("--historique", type=Path, help="Observations JSONL de cette grille, au format simuler.")
     benchmark = commandes.add_parser("benchmark", help="Comparer les cinq stratégies sur des grilles appariées.")
     benchmark.add_argument("--parties", type=int, default=100)
-    benchmark.add_argument("--selection", action="store_true", help="Inclure les quatre stratégies du sprint 5.")
+    comparaison = benchmark.add_mutually_exclusive_group()
+    comparaison.add_argument("--selection", action="store_true", help="Inclure les quatre stratégies du sprint 5.")
+    comparaison.add_argument("--robustesse", action="store_true", help="Comparer les pertes et les vraisemblances.")
     benchmark.add_argument("--export", type=Path, help="Nouveau fichier CSV des résultats par partie.")
     for commande in (simulation, resolution, benchmark):
+        commande.add_argument("--scenario", type=Scenario, choices=list(Scenario), default=Scenario.EXACT)
         commande.add_argument("--modele", choices=SOURCES, default="reduit")
         commande.add_argument("--graine", type=int, required=True)
         commande.add_argument("--solutions", type=Path, help="Fichier UTF-8, une solution admissible par ligne.")
         commande.add_argument("--decimales", type=int, default=2)
+    for commande in (resolution, benchmark, evaluation):
+        commande.add_argument("--marge-calibration", type=float, default=MARGE_CALIBRATION,
+                              help="Plancher d’échelle du bruit en degrés issu de la calibration.")
     for commande in (resolution, benchmark):
         commande.add_argument("--ouverture", choices=("aleatoire", "entropie", "collisions"), default="aleatoire")
         commande.add_argument("--budget", type=int, default=20)
         commande.add_argument("--graine-choix", type=int, default=17, help="Graine du choix des propositions.")
     args = parser.parse_args()
     try:
-        if args.action == "calibrer":
-            modeles = {nom: Modele(args.cache / nom, verifier=True, source=s.empreinte)
-                       for nom, s in SOURCES.items()}
-            rapport = json.dumps(calibrer(args.corpus, modeles), ensure_ascii=False, allow_nan=False, indent=2)
+        if args.action in ("calibrer", "evaluer-inference"):
+            if args.action == "calibrer":
+                modeles = {nom: Modele(args.cache / nom, verifier=True, source=s.empreinte)
+                           for nom, s in SOURCES.items()}
+                mesures_corpus = calibrer(args.corpus, modeles)
+            else:
+                modele = Modele(args.cache / args.modele, verifier=True, source=SOURCES[args.modele].empreinte)
+                if args.simulations is not None:
+                    mesures_corpus = evaluer_simulations(modele, args.simulations, args.graine or 0,
+                                                         args.scenario or Scenario.BRUIT, args.marge_calibration)
+                elif args.graine is not None or args.scenario is not None:
+                    raise ValueError("--graine et --scenario concernent uniquement les simulations.")
+                else:
+                    mesures_corpus = evaluer_historiques(modele, args.corpus, args.marge_calibration)
+            rapport = json.dumps(mesures_corpus, ensure_ascii=False, allow_nan=False, indent=2)
             if args.export:
                 with args.export.open("x", encoding="utf-8", newline="\n") as sortie:
                     sortie.write(rapport + "\n")
@@ -102,12 +129,13 @@ def main() -> int:
             if args.action == "benchmark":
                 mesures = mesurer(modele, solutions, args.parties, args.budget,
                                  args.graine, args.graine_choix, args.decimales, ouverture=ouverture,
-                                 strategies=tuple(Strategie) if args.selection else REFERENCES)
+                                 strategies=ROBUSTESSE if args.robustesse else SELECTION if args.selection else REFERENCES,
+                                 scenario=args.scenario, marge=args.marge_calibration)
                 if args.export:
                     exporter(mesures, args.export)
                 print(json.dumps(resumer(mesures), ensure_ascii=False, indent=2))
                 return 0
-            proposer = nouvelle_grille(modele, args.graine, solutions, args.decimales)
+            proposer = nouvelle_grille(modele, args.graine, solutions, args.decimales, args.scenario)
             if args.action == "resoudre":
                 indices = modele.indices_solutions(solutions)
                 for observation in historique:
@@ -115,8 +143,14 @@ def main() -> int:
                                                                 observation.temperature):
                         raise ValueError(f"Historique incompatible avec la grille pour « {observation.mot} ».")
                 resultat = resoudre(modele, proposer, indices, Strategie(args.strategie),
-                                    args.budget, args.decimales, args.graine_choix, historique, ouverture=ouverture)
-                print(json.dumps(asdict(resultat), ensure_ascii=False, indent=2))
+                                    args.budget, args.decimales, args.graine_choix, historique,
+                                    ouverture=ouverture, marge=args.marge_calibration)
+                sortie = asdict(resultat)
+                for essai in sortie["essais"]:
+                    for champ in ("estimation", "motif_bascule"):
+                        if essai[champ] is None:
+                            del essai[champ]
+                print(json.dumps(sortie, ensure_ascii=False, allow_nan=False, indent=2))
                 return 0 if resultat.statut == "resolu" else 2
             for mot in args.mots:
                 observation = proposer(mot)
