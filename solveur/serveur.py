@@ -6,10 +6,12 @@ import re
 import sqlite3
 import subprocess
 import traceback
+from html import escape
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from functools import lru_cache
 from pathlib import Path
 from threading import Lock
+from time import time
 from urllib.parse import urlsplit
 
 import numpy as np
@@ -54,16 +56,26 @@ def consulter_jeu(*arguments: str) -> str | Objet:
     return json.loads(resultat.stdout)
 
 
-def numero_grille_du_jour() -> str:
-    grille = consulter_jeu("--grille")
-    if not isinstance(grille, str) or not re.fullmatch(r"[0-9]+", grille):
-        raise ValueError("Numéro de grille illisible.")
-    return grille
-
-
 def creer_serveur(cache: Path, base: Path, port: int) -> ThreadingHTTPServer:
     sessions = Sessions(base, Atelier(cache))
     mutations = Lock()
+    consultation_grille = Lock()
+
+    def grille_du_jour() -> tuple[str, int]:
+        with consultation_grille:
+            conservee = sessions.grille_du_jour(time())
+            if conservee:
+                return conservee
+            resultat = consulter_jeu("--grille", "--expiration")
+            grille = resultat.get("grille") if isinstance(resultat, dict) else None
+            expiration = resultat.get("expiration") if isinstance(resultat, dict) else None
+            if not isinstance(grille, str) or not re.fullmatch(r"[0-9]+", grille):
+                raise ValueError("Numéro de grille illisible.")
+            maintenant = time()
+            if type(expiration) is not int or not maintenant < expiration <= maintenant + 25 * 3_600:
+                raise ValueError("La grille a changé pendant la consultation. Réessayez.")
+            sessions.conserver_grille_du_jour(grille, expiration)
+            return grille, expiration
 
     class Requete(BaseHTTPRequestHandler):
         def repondre(self, statut: int, contenu: bytes, type_mime: str, *, etag: str = "", compresse: bool = False) -> None:
@@ -113,13 +125,20 @@ def creer_serveur(cache: Path, base: Path, port: int) -> ThreadingHTTPServer:
                     if mime == "text/html":
                         href = f'href="{chemin}"'.encode()
                         navigation = NAVIGATION.read_bytes().replace(href, href + b' aria-current="page"', 1)
-                        sous_titre = "Grille du jour…" if chemin == "/jour" else "Partie Locale"
+                        sous_titre = "Partie Locale"
+                        if chemin == "/jour":
+                            conservee = sessions.grille_du_jour(time())
+                            sous_titre = f"n°{conservee[0]}" if conservee else "Grille du jour…"
+                            if conservee:
+                                attribut = f'data-expiration="{int(conservee[1])}"'.encode()
+                                contenu = contenu.replace(b'data-expiration=""', attribut, 1)
                         contenu = contenu.replace(b"<!-- navigation -->", navigation, 1)
-                        contenu = contenu.replace(b"<!-- sous-titre -->", sous_titre.encode(), 1)
+                        contenu = contenu.replace(b"<!-- sous-titre -->", escape(sous_titre).encode(), 1)
                     self.repondre(200, contenu, mime)
                     return
                 if not ecriture and chemin == "/api/grille-du-jour":
-                    self.json(200, {"grille": numero_grille_du_jour()})
+                    grille, expiration = grille_du_jour()
+                    self.json(200, {"grille": grille, "expiration": expiration})
                     return
                 identifiant = re.fullmatch(r"/api/parties/([a-f0-9]{32})", chemin)
                 if not identifiant and (chemin != "/api/parties" or self.command == "DELETE"):
@@ -164,7 +183,7 @@ def creer_serveur(cache: Path, base: Path, port: int) -> ThreadingHTTPServer:
                     else:
                         config = donnees.get("config", {})
                         if isinstance(config, dict) and config.get("source") == "jour":
-                            config["grille"] = numero_grille_du_jour()
+                            config["grille"] = grille_du_jour()[0]
                             donnees.pop("observations", None)
                         resultat = sessions.creer(config, donnees.get("observations"))
                 self.json(200 if identifiant else 201, resultat)

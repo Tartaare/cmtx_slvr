@@ -25,6 +25,20 @@ class Sessions:
             db.execute("""CREATE TABLE IF NOT EXISTS parties (
                 id TEXT PRIMARY KEY, creation TEXT NOT NULL, revision INTEGER NOT NULL, etat TEXT NOT NULL
             )""")
+            db.execute("""CREATE TABLE IF NOT EXISTS grille_du_jour (
+                id INTEGER PRIMARY KEY CHECK (id=1), numero TEXT NOT NULL, expiration INTEGER NOT NULL
+            )""")
+
+    def grille_du_jour(self, maintenant: float) -> tuple[str, int] | None:
+        with closing(sqlite3.connect(self.fichier)) as db:
+            return db.execute("SELECT numero, expiration FROM grille_du_jour WHERE id=1 AND expiration>?",
+                              (maintenant,)).fetchone()
+
+    def conserver_grille_du_jour(self, numero: str, expiration: int) -> None:
+        with closing(sqlite3.connect(self.fichier)) as db, db:
+            db.execute("""INSERT INTO grille_du_jour VALUES (1, ?, ?)
+                ON CONFLICT(id) DO UPDATE SET numero=excluded.numero, expiration=excluded.expiration
+                WHERE excluded.expiration>=grille_du_jour.expiration""", (numero, expiration))
 
     def liste(self) -> list[Objet]:
         with closing(sqlite3.connect(self.fichier)) as db:

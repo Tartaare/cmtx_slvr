@@ -8,13 +8,24 @@ async function jouer(): Promise<void> {
   if (automatique && args.length > 2) throw new Error("Usage : npm start -- --resoudre [budget]");
   const releve = args[0] === "--observation";
   const numero = args[0] === "--grille";
+  const avecExpiration = numero && args[1] === "--expiration";
   const mot = automatique || numero ? "" : lireMot(releve ? args.slice(2) : args);
   const navigateur = await ouvrirNavigateur();
   try {
-    const page = await navigateur.newPage({ locale: "fr-FR" });
+    const page = await navigateur.newPage({ locale: "fr-FR", timezoneId: avecExpiration ? "Europe/Paris" : undefined });
     page.setDefaultTimeout(20_000);
+    const instant = Date.now();
     const accueil = await page.goto("https://cemantix.certitudes.org/", { waitUntil: "domcontentloaded" });
     if (!accueil?.ok()) throw new Error(`Site indisponible (HTTP ${accueil?.status() ?? "inconnu"}).`);
+    if (avecExpiration) {
+      const grille = await page.locator("#script").evaluate((script, debut) => {
+        const publication = new Date(debut);
+        publication.setHours(24, 0, 0, 0);
+        return {grille: script.getAttribute("data-puzzle-number"), expiration: publication.getTime() / 1000};
+      }, instant);
+      console.log(JSON.stringify(grille));
+      return;
+    }
     if (numero || releve) {
       console.log(JSON.stringify(numero ? await page.locator("#script").getAttribute("data-puzzle-number")
         : await observer(page, args[1], mot)));

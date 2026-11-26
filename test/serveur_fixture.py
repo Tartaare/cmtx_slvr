@@ -2,6 +2,7 @@
 import sys
 from functools import lru_cache
 from pathlib import Path
+from time import time
 from unittest.mock import patch
 
 from solveur.modele import Modele
@@ -22,8 +23,8 @@ def lancer(base: Path) -> None:
         return Modele(dossier / nom, verifier=True)
 
     def consulter(*arguments: str) -> str | dict:
-        if arguments == ("--grille",):
-            return "1234"
+        if arguments == ("--grille", "--expiration"):
+            return {"grille": "1234", "expiration": int(time()) + 3_600}
         assert arguments == ("--observation", "1234", "hirsute")
         return {"mot": "hirsute", "statut": "victoire", "temperature": 100}
 
