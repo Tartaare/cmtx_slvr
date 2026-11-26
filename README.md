@@ -153,7 +153,7 @@ Pour ajouter une partie terminée, utilisez le format du corpus livré. Renseign
 
 ## Jouer sur la grille du jour
 
-Ouvrez **Grille du jour** dans la barre flottante. La page charge le numéro officiel et reprend une session enregistrée pour cette grille si elle existe. Pour démarrer une session, ouvrez **Nouvelle partie**, réglez le budget puis cliquez sur **Résoudre la grille du jour**. Gardez l’onglet ouvert pour suivre les mots et les températures. **Arrêter l’automatique** suspend les prochains essais et laisse finir celui en cours. Pour continuer plus tard, ouvrez la session dans **Mes parties** et cliquez sur **Mode automatique**.
+Ouvrez **Grille du jour** dans la barre flottante. Le numéro officiel est conservé dans la base locale jusqu’à la prochaine publication, à minuit, heure de Paris. La page réutilise ce numéro dès l’ouverture et reprend une session enregistrée pour cette grille si elle existe. Pour démarrer une session, ouvrez **Nouvelle partie**, réglez le budget puis cliquez sur **Résoudre la grille du jour**. Gardez l’onglet ouvert pour suivre les mots et les températures. **Arrêter l’automatique** suspend les prochains essais et laisse finir celui en cours. Pour continuer plus tard, ouvrez la session dans **Mes parties** et cliquez sur **Mode automatique**.
 
 Pour résoudre automatiquement la grille officielle, démarrez l’atelier avec `python -m solveur application` sur son port par défaut (8765), puis exécutez cette commande dans un deuxième terminal.
 

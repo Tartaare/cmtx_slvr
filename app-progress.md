@@ -1,5 +1,11 @@
 # Avancement
 
+## Sprint 33 — Cache du numéro de grille
+
+US-046 conserve dans SQLite le numéro officiel jusqu’à la prochaine publication. La page affiche directement le numéro valide, y compris après redémarrage du serveur. L’ouverture de la page et la création d’une partie partagent la même consultation. Une erreur laisse la consultation disponible au prochain essai.
+
+Le build TypeScript, les quatre tests Node, les 27 tests Python et les trois parcours Edge passent. Les contrôles couvrent les demandes simultanées, la persistance, l’expiration, le nouvel essai après indisponibilité et le rechargement de la page sans appel à l’API du numéro.
+
 ## Sprint 32 — Navigation entre les vues de jeu
 
 US-045 relie la barre flottante à la carte des mots, à la grille du jour et à l’atelier local. La grille du jour affiche son numéro officiel sous Cémantix et reprend une session de cette grille si elle existe. L’atelier affiche « Partie Locale » au même endroit. Le clic, le toucher, le clavier et le glissement permettent de changer de vue.
