@@ -40,7 +40,10 @@ class GrilleDuJourTest(TestCase):
         ) as consulter:
             base = Path(dossier) / "parties.sqlite3"
             with atelier(base) as url:
-                self.assertIn("Grille du jour…", lire(url + "/jour"))
+                self.assertIn('data-grille="" data-expiration=""', lire(url + "/"))
+                for chemin in ("/jour", "/atelier"):
+                    with urlopen(url + chemin, timeout=5) as ancienne_adresse:
+                        self.assertEqual(ancienne_adresse.geturl(), url + "/")
                 with self.assertRaises(HTTPError) as erreur:
                     lire(url + endpoint)
                 erreur.exception.close()
@@ -49,11 +52,11 @@ class GrilleDuJourTest(TestCase):
                 self.assertEqual([json.loads(reponse) for reponse in lectures], [premier, premier])
                 self.assertEqual(consulter.call_count, 2)
             with atelier(base) as url:
-                self.assertIn('data-expiration="200">n°1730', lire(url + "/jour"))
+                self.assertIn('data-grille="1730" data-expiration="200"', lire(url + "/"))
                 self.assertEqual(json.loads(lire(url + endpoint)), premier)
                 self.assertEqual(consulter.call_count, 2)
                 horloge.return_value = 200
-                self.assertIn("Grille du jour…", lire(url + "/jour"))
+                self.assertIn('data-grille="" data-expiration=""', lire(url + "/"))
                 self.assertEqual(json.loads(lire(url + endpoint)), suivant)
-                self.assertIn("n°1731", lire(url + "/jour"))
+                self.assertIn('data-grille="1731"', lire(url + "/"))
                 self.assertEqual(consulter.call_count, 3)

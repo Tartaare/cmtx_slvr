@@ -123,10 +123,10 @@ test("l’accueil affiche la carte sur toute la fenêtre sans ouvrir de partie",
       assert.ok(dock && Math.abs(dock.x * 2 + dock.width - dimensions.width) < 1);
       assert.ok(zoom.y + zoom.height < dock.y || dock.x + dock.width < zoom.x);
       const lentille = navigation.locator(".dock-lentille");
-      const carte = navigation.getByRole("link", {name: "Carte des mots"});
-      const grille = navigation.getByRole("link", {name: "Grille du jour"});
-      const parties = navigation.getByRole("link", {name: "Parties locales"});
-      assert.equal(await carte.getAttribute("aria-current"), "page");
+      const carte = navigation.getByRole("button", {name: "Carte des mots"});
+      const grille = navigation.getByRole("button", {name: "Grille du jour"});
+      const parties = navigation.getByRole("button", {name: "Parties locales"});
+      assert.equal(await carte.getAttribute("aria-current"), "true");
       if (dimensions.width === 1440) {
         await page.emulateMedia({reducedMotion: "no-preference"});
         const depart = (await grille.boundingBox())!;
@@ -140,7 +140,7 @@ test("l’accueil affiche la carte sur toute la fenêtre sans ouvrir de partie",
         }, undefined, {timeout: 3000});
         await page.mouse.move(arrivee.x + arrivee.width / 2, arrivee.y + arrivee.height / 2, {steps: 10});
         await page.locator('.dock[data-soulevee][data-survol="2"]').waitFor({timeout: 3000});
-        const pictogramme = await navigation.locator(".dock-reflet a:last-child svg").boundingBox();
+        const pictogramme = await navigation.locator(".dock-reflet button:last-child svg").boundingBox();
         assert.ok(pictogramme && pictogramme.width > 21);
         assert.equal(page.url(), url);
         await page.mouse.up();
@@ -248,7 +248,7 @@ test("l’accueil affiche la carte sur toute la fenêtre sans ouvrir de partie",
   }
 });
 
-test("la barre ouvre les vues et affiche le contexte du jeu sous Cémantix", {timeout: 90000}, async () => {
+test("la barre change de vue sans recharger la carte ni modifier l’adresse", {timeout: 90000}, async () => {
   const dossier = await mkdtemp(join(tmpdir(), "cemantix-vues-"));
   const navigateur = await ouvrirNavigateur();
   let serveur: ChildProcessWithoutNullStreams | undefined;
@@ -256,16 +256,19 @@ test("la barre ouvre les vues et affiche le contexte du jeu sous Cémantix", {ti
     let url: string;
     [serveur, url] = await demarrer(join(dossier, "sessions.sqlite3"));
     const page = await navigateur.newPage({viewport: {width: 375, height: 780}, hasTouch: true, reducedMotion: "reduce"});
-    const jour = new URL("/jour", url).href, atelier = new URL("/atelier", url).href;
     const api = new URL("/api/parties", url).href;
     const dock = page.getByRole("navigation", {name: "Vues de Cémantix"});
-    const grille = dock.getByRole("link", {name: "Grille du jour"});
-    const local = dock.getByRole("link", {name: "Parties locales"});
-    const carte = dock.getByRole("link", {name: "Carte des mots"});
-    await page.route("**/api/grille-du-jour", route => route.abort("connectionreset"), {times: 2});
+    const grille = dock.getByRole("button", {name: "Grille du jour"});
+    const local = dock.getByRole("button", {name: "Parties locales"});
+    const carte = dock.getByRole("button", {name: "Carte des mots"});
+    await page.route("**/api/grille-du-jour", route => route.abort("connectionreset"), {times: 4});
     await page.goto(url);
     await grille.tap();
-    await page.waitForURL(jour);
+    assert.equal(page.url(), url);
+    await page.getByText("Numéro indisponible", {exact: true}).waitFor();
+    await carte.tap();
+    assert.ok(await page.getByRole("button", {name: "Réessayer"}).isHidden());
+    await page.goBack();
     await page.getByText("Numéro indisponible", {exact: true}).waitFor();
     await page.getByRole("button", {name: "Réessayer"}).click();
     await page.getByText("n°1234", {exact: true}).waitFor();
@@ -276,8 +279,15 @@ test("la barre ouvre les vues et affiche le contexte du jeu sous Cémantix", {ti
     await page.reload();
     await page.locator("#atelier-vide").waitFor();
     assert.deepEqual(lecturesGrille, []);
-    assert.equal(await grille.getAttribute("aria-current"), "page");
-    const logo = (await page.getByRole("link", {name: "Cémantix, accueil"}).boundingBox())!;
+    assert.equal(await grille.getAttribute("aria-current"), "true");
+    const logo = (await page.getByRole("link", {name: "Cémantix", exact: true}).boundingBox())!;
+    const requetesCarte: string[] = [];
+    page.on("request", requete => {
+      if (requete.isNavigationRequest() || new URL(requete.url()).pathname === "/atlas.json")
+        requetesCarte.push(requete.url());
+    });
+    const canevas = await page.locator("#galaxie").elementHandle();
+    const recherche = page.getByRole("searchbox");
     const numero = (await page.getByText("n°1234", {exact: true}).boundingBox())!;
     assert.ok(numero.y >= logo.y + logo.height && numero.x >= logo.x);
     assert.deepEqual(await (await page.request.get(api)).json(), []);
@@ -296,16 +306,22 @@ test("la barre ouvre les vues et affiche le contexte du jeu sous Cémantix", {ti
     await page.getByRole("button", {name: "Nouvelle partie"}).click();
     await page.getByRole("button", {name: "Résoudre la grille du jour"}).click();
     await page.getByText("Solution confirmée", {exact: true}).first().waitFor();
+    await recherche.fill("piano");
+    await recherche.press("Enter");
     await grille.press("ArrowRight");
     await page.keyboard.press("Enter");
-    await page.waitForURL(atelier);
+    assert.equal(page.url(), url);
     await page.getByText("Partie Locale", {exact: true}).waitFor();
     await page.locator("#atelier-vide").waitFor();
-    assert.equal(await local.getAttribute("aria-current"), "page");
+    assert.equal(await local.getAttribute("aria-current"), "true");
     assert.ok(await page.getByText("n°1234", {exact: true}).isHidden());
     assert.ok(await page.evaluate(() => document.body.scrollWidth <= innerWidth));
     await page.goBack();
-    await page.waitForURL(jour);
+    assert.equal(page.url(), url);
+    await page.getByText("Solution confirmée", {exact: true}).first().waitFor();
+    await page.goForward();
+    await page.getByText("Partie Locale", {exact: true}).waitFor();
+    await page.goBack();
     await page.getByText("Solution confirmée", {exact: true}).first().waitFor();
     await page.emulateMedia({reducedMotion: "no-preference"});
     const depart = (await grille.boundingBox())!, arrivee = (await carte.boundingBox())!;
@@ -313,10 +329,18 @@ test("la barre ouvre les vues et affiche le contexte du jeu sous Cémantix", {ti
     await page.mouse.down();
     await page.mouse.move(arrivee.x + arrivee.width / 2, arrivee.y + arrivee.height / 2, {steps: 8});
     await page.locator('.dock[data-soulevee][data-survol="2"]').waitFor({timeout: 3000});
-    assert.equal(page.url(), jour);
+    assert.equal(await grille.getAttribute("aria-current"), "true");
     await page.mouse.up();
-    await page.waitForURL(url);
-    assert.equal(await carte.getAttribute("aria-current"), "page");
+    await page.locator("#panneau-jeu").waitFor({state: "hidden"});
+    assert.equal(page.url(), url);
+    assert.equal(await carte.getAttribute("aria-current"), "true");
+    assert.deepEqual(requetesCarte, []);
+    assert.ok(await page.locator("#galaxie").evaluate((actuel, initial) => actuel === initial, canevas));
+    assert.equal(await recherche.inputValue(), "piano");
+    assert.equal(await page.locator("#niveau").textContent(), "Vue immersive");
+    await attendreUniforme(page, "modeEssais", 0);
+    await page.getByRole("link", {name: "Cémantix", exact: true}).click();
+    assert.equal(page.url(), url);
   } finally {
     if (serveur) await fermer(serveur);
     await navigateur.close();
@@ -344,11 +368,12 @@ test("la partie reprend après redémarrage du serveur et aboutit dans le naviga
     const logoRecu = page.waitForResponse(new URL("logo-cemantix-transparent.png", url).href);
     const atlas = new URL("atlas.json", url).href;
     await page.route(atlas, route=>route.abort("connectionreset"));
-    await page.goto(new URL("/atelier", url).href);
+    await page.goto(url);
+    await page.getByRole("button", {name:"Parties locales"}).click();
     const logo = await logoRecu;
     assert.equal(logo.status(), 200);
     assert.equal(logo.headers()["content-type"], "image/png");
-    const marque = page.getByRole("link", {name:"Cémantix, accueil"}).locator("img");
+    const marque = page.getByRole("link", {name:"Cémantix", exact: true}).locator("img");
     assert.ok(await marque.evaluate((image: HTMLImageElement) => image.naturalWidth > 0));
     await page.getByRole("alert").filter({hasText:"Connexion au moteur local interrompue"}).waitFor();
     await page.getByRole("button",{name:"Recharger la carte"}).waitFor();
@@ -368,7 +393,8 @@ test("la partie reprend après redémarrage du serveur et aboutit dans le naviga
     const budget = await page.locator("#restants").innerText();
     await fermer(serveur);
     [serveur, url] = await demarrer(base);
-    await page.goto(new URL("/atelier", url).href);
+    await page.goto(url);
+    await page.getByRole("button", {name:"Parties locales"}).click();
     await page.getByRole("heading", {name:prochain,exact:true}).waitFor();
     assert.equal(await page.locator("#restants").innerText(),budget);
     await page.locator("#volet").click();

@@ -77,7 +77,6 @@ try{
   let url="";
   for await(const ligne of lignes){url=ligne.match(/http:\/\/127\.0\.0\.1:\d+\//)?.[0]??"";if(url)break;}
   assert.ok(url,diagnostic || "Adresse du moteur local indisponible");
-  url=new URL("/atelier",url).href;
   const page=await navigateur.newPage({viewport:{width:1920,height:1080}});
   const erreurs:string[]=[];page.on("pageerror",e=>erreurs.push(e.message));
   const empreinte=()=>page.evaluate(async()=>{
@@ -87,6 +86,7 @@ try{
     return Array.from(new Uint8Array(digest),n=>n.toString(16).padStart(2,"0")).join("");
   });
   await page.goto(url);
+  await page.getByRole("button",{name:"Parties locales"}).click();
   await page.locator("#suivi:visible").waitFor();
   await page.waitForFunction(()=>document.querySelector("#mot")?.textContent==="hirsute");
   const ouverture=await page.evaluate(()=>Math.round(performance.now()));
@@ -114,7 +114,8 @@ try{
       return type==="webgl"?null:Reflect.apply(obtenir,this,[type,...args]);
     } as typeof obtenir;
   });
-  await sans.goto(url);await sans.locator("#repli:visible").waitFor();
+  await sans.goto(url);await sans.getByRole("button",{name:"Parties locales"}).click();
+  await sans.locator("#repli:visible").waitFor();
   const avec3d:number[]=[],sans3d:number[]=[];
   for(let i=0;i<5;i++){
     for(const p of i%2?[sans,page]:[page,sans]){
