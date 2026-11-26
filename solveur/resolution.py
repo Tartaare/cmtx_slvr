@@ -11,6 +11,7 @@ import numpy as np
 from numpy.typing import NDArray
 
 from .modele import Modele, cle
+from .selection import discriminant, fin_de_partie
 from .simulation import Observation
 
 
@@ -20,6 +21,14 @@ class Strategie(StrEnum):
     VOISIN = "voisin"
     COMPTAGE = "comptage"
     CEMANTBOT = "cemantbot"
+    ENTROPIE = "entropie"
+    COLLISIONS = "collisions"
+    PLAN = "plan"
+    DECORRELATION = "decorrelation"
+
+
+REFERENCES = (Strategie.EXACTE, Strategie.HASARD, Strategie.VOISIN, Strategie.COMPTAGE, Strategie.CEMANTBOT)
+INVERSION = {Strategie.EXACTE, Strategie.ENTROPIE, Strategie.COLLISIONS, Strategie.PLAN, Strategie.DECORRELATION}
 
 
 @dataclass(frozen=True)
@@ -49,11 +58,23 @@ class Recherche:
         self.voisins: NDArray[np.float32] | None = None
         self.temperature_max = -math.inf
 
-    def choisir(self) -> int:
+    def choisir(self, budget: int) -> int:
         disponibles = np.flatnonzero(self.disponibles)
         if self.hist:
             if self.strategie == Strategie.EXACTE:
                 return int(disponibles[0])
+            if self.strategie in INVERSION:
+                if disponibles.size == 1 or budget == 1:
+                    return int(disponibles[0])
+                if self.strategie == Strategie.DECORRELATION:
+                    cumul = np.zeros(disponibles.size)
+                    for j in self.hist:
+                        cumul += np.abs(self.modele.similarites(self.modele.mots[j])[disponibles])
+                    return int(disponibles[np.argmin(cumul)])
+                if self.strategie == Strategie.PLAN and disponibles.size <= 8:
+                    return fin_de_partie(self.modele, disponibles, self.decimales, budget, self.hist)
+                critere = "collisions" if self.strategie == Strategie.COLLISIONS else "entropie"
+                return discriminant(self.modele, disponibles, self.hist, self.decimales, critere)
             if self.strategie == Strategie.VOISIN and self.voisins is not None:
                 return int(disponibles[np.argmax(self.voisins[disponibles])])
             if self.comptes:
@@ -73,7 +94,7 @@ class Recherche:
         self.disponibles[indice] = False
         if obs.statut != "score" or obs.temperature is None or self.strategie == Strategie.HASARD:
             return
-        if self.strategie == Strategie.EXACTE:
+        if self.strategie in INVERSION:
             self.filtrer(obs.mot, obs.temperature)
         elif self.strategie == Strategie.VOISIN:
             if obs.temperature > self.temperature_max:
@@ -103,7 +124,7 @@ class Recherche:
 
 def resoudre(modele: Modele, source: Callable[[str], Observation], indices: NDArray[np.intp],
              strategie: Strategie, budget: int, decimales: int, graine_choix: int,
-             historique: Iterable[Observation] = ()) -> Resultat:
+             historique: Iterable[Observation] = (), *, ouverture: int | None = None) -> Resultat:
     if budget < 1 or not 0 <= decimales <= 6:
         raise ValueError("Budget positif et précision de 0 à 6 décimales requis.")
     recherche = Recherche(modele, indices, strategie, decimales, random.Random(f"choix:{graine_choix}"))
@@ -127,7 +148,7 @@ def resoudre(modele: Modele, source: Callable[[str], Observation], indices: NDAr
         if obs.statut != "refus" or modele.indices.get(mot, -1) >= 0:
             recherche.observer(modele.indice(mot), obs)
         deja_joues.add(mot)
-        restants = int(recherche.disponibles.sum()) if strategie == Strategie.EXACTE else None
+        restants = int(recherche.disponibles.sum()) if strategie in INVERSION else None
         essais.append(Essai(obs, restants if obs.statut != "victoire" else None))
 
     for obs in historique:
@@ -139,7 +160,11 @@ def resoudre(modele: Modele, source: Callable[[str], Observation], indices: NDAr
             return Resultat("aucun_candidat", tuple(essais))
         if len(essais) >= budget:
             return Resultat("budget_epuise", tuple(essais))
-        indice = recherche.choisir()
+        restants = budget - len(essais)
+        if not essais and ouverture is not None and (restants > 1 or recherche.admis[ouverture]):
+            indice = ouverture
+        else:
+            indice = recherche.choisir(restants)
         mot = modele.mots[indice]
         enregistrer(mot, source(mot))
     return Resultat("resolu", tuple(essais))

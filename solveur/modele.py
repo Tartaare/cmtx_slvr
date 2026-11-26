@@ -1,5 +1,6 @@
 """Vocabulaire indexé et similarités cosinus sur une matrice en lecture seule."""
 
+import hashlib
 import json
 import re
 import unicodedata
@@ -29,6 +30,9 @@ class Modele:
         if source is not None and rapport["source_sha256"] != source:
             raise ValueError("Le cache correspond à une autre version du modèle.")
         self.source_sha256: str = rapport["source_sha256"]
+        self.empreinte_preparation = hashlib.sha256(
+            (self.source_sha256 + rapport["vecteurs_sha256"] + rapport["mots_sha256"]).encode("ascii")
+        ).hexdigest()
         if verifier:
             for nom, champ in (("vecteurs.f32", "vecteurs_sha256"), ("mots.txt", "mots_sha256")):
                 if empreinte(dossier / nom) != rapport[champ]:
@@ -71,6 +75,10 @@ class Modele:
 
     def indices_solutions(self, solutions: Iterable[str] | None = None) -> NDArray[np.intp]:
         return np.fromiter((self.indices[m] for m in self.solutions_admises(solutions)), dtype=np.intp)
+
+    @cached_property
+    def lignes_jouables(self) -> NDArray[np.intp]:
+        return self.indices_solutions()
 
     def cosinus(self, premier: str, second: str) -> float:
         a, b = self.indice(premier), self.indice(second)
