@@ -2,7 +2,7 @@
 
 L’accueil s’ouvre sur le dictionnaire. La scène 3D couvre la fenêtre bord à bord. Le logo et le titre Cémantix occupent le coin supérieur gauche. La recherche, le zoom, le retour à la vue globale et l’aide de navigation se superposent à la scène.
 
-Dans l’atelier de résolution, la carte, la proposition du solveur et le journal forment trois niveaux de lecture dans cet ordre. Les diagnostics et paramètres de session s’ouvrent à la demande.
+Les deux vues de jeu reprennent la carte plein écran et ses commandes aux mêmes emplacements. Un panneau graphite superposé présente le mot proposé et l’action principale. Le bouton « Partie » dévoile le journal, le mode automatique et la gestion des sessions. Les diagnostics s’ouvrent dans « Détails ».
 
 | Élément | Règle |
 | --- | --- |
@@ -15,6 +15,6 @@ Dans l’atelier de résolution, la carte, la proposition du solveur et le journ
 | Repères | En vue globale, les champs lexicaux s’affichent au voisinage du centre de leur groupe. La case « Champs lexicaux », près du zoom, masque ou affiche leurs titres. Au survol, le filet du titre, le cœur des points et leur halo reprennent la couleur du groupe. Les autres points passent en gris neutre en conservant leur opacité et leur relief. Les mots apparaissent en vue rapprochée. |
 | Résultats | Sur une grille réelle, dès qu’un essai est localisable, les mots non testés et leurs arcs passent au second plan. Les arcs pointillés suivent l’ordre des essais. Un contour signale un essai, une étoile repère le meilleur et une coche indique la victoire. |
 | Mouvement | Une caméra continue entre trois échelles. Une manipulation suspend le suivi. La préférence système de réduction du mouvement applique la pose directement. |
-| Petit écran | À l’accueil, la scène suit la hauteur visible et les commandes respectent les zones sûres. Dans l’atelier, la commande de jeu et le journal se lisent sous la carte, dans une colonne. |
+| Petit écran | La scène suit la hauteur visible dans les trois vues. Le panneau de jeu respecte les zones sûres et défile indépendamment de la carte. |
 
 [Spécification de la galaxie](documents_design/cemantix_galaxy/galaxie-semantique-spec-ui-ux.md)

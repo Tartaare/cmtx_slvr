@@ -6,6 +6,8 @@ L’application locale recommande un mot, interprète sa température et change 
 
 ## Ouvrir l’application
 
+Dans **Grille du jour** et **Parties locales**, la carte occupe toute la fenêtre. Le panneau **Partie** affiche le mot proposé et permet de jouer un essai. Dépliez-le pour consulter le journal, démarrer le mode automatique ou retrouver les parties enregistrées. À l’ouverture d’une grille sans session, le panneau donne directement accès à **Nouvelle partie**.
+
 La barre flottante relie **Carte des mots**, **Grille du jour** et **Parties locales**. Cliquez, touchez ou déplacez le focus avec les flèches puis validez avec Entrée. En glissant, gardez la lentille sous le pointeur puis relâchez-la sur la destination. L’en-tête affiche le numéro officiel sous **Cémantix** sur **Grille du jour**, et **Partie Locale** dans l’atelier.
 
 Depuis la racine du projet, avec Python 3.12, Node.js 22.16 ou supérieur et les modèles préparés sous le compte qui lancera le serveur, exécutez les commandes suivantes.

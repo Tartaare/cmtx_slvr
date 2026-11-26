@@ -1,5 +1,11 @@
 # Avancement
 
+## Sprint 34 — Carte plein écran dans les vues de jeu
+
+US-047 aligne la grille quotidienne et les parties locales sur la carte du dictionnaire. Le panneau « Partie » garde la proposition et l’action de jeu accessibles en mode compact. Le journal, le mode automatique et les commandes de session se déplient à la demande.
+
+Le build TypeScript, les quatre tests Node, les 27 tests Python et les trois parcours Edge passent. Le contrôle de mise en page vérifie les dimensions de la scène, la position du panneau par rapport à la navigation et son ouverture au clavier à 320 et 1 440 pixels de large.
+
 ## Sprint 33 — Cache du numéro de grille
 
 US-046 conserve dans SQLite le numéro officiel jusqu’à la prochaine publication. La page affiche directement le numéro valide, y compris après redémarrage du serveur. L’ouverture de la page et la création d’une partie partagent la même consultation. Une erreur laisse la consultation disponible au prochain essai.
