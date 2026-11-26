@@ -5,13 +5,14 @@ import random
 from collections.abc import Callable, Iterable
 from dataclasses import dataclass
 from enum import StrEnum
-from typing import Literal
+from typing import Literal, Protocol
 
 import numpy as np
 from numpy.typing import NDArray
 
 from .inference import Estimation, Inference, MARGE_CALIBRATION, Methode
 from .modele import Modele, cle
+from .reconstruction import Diagnostic
 from .selection import discriminant, fin_de_partie
 from .simulation import Observation
 
@@ -48,7 +49,10 @@ class Essai:
     observation: Observation
     candidats_exacts: int | None
     estimation: Estimation | None = None
-    motif_bascule: Literal["aucun_candidat_exact"] | None = None
+    motif_bascule: str | None = None
+    phase: str | None = None
+    scores_inexploitables: int | None = None
+    reconstruction: Diagnostic | None = None
 
 
 @dataclass(frozen=True)
@@ -75,6 +79,25 @@ class Recherche:
         self.avant_bascule: list[tuple[str, float]] = []
         self.inference = (Inference(modele, indices, Methode(strategie.value), decimales, marge)
                           if strategie.value in Methode else None)
+
+    @property
+    def epuisee(self) -> bool:
+        return not self.disponibles.any()
+
+    def prochain(self, budget: int, ouverture: int | None) -> str:
+        if ouverture is not None and (budget > 1 or self.admis[ouverture]):
+            return self.modele.mots[ouverture]
+        return self.modele.mots[self.choisir(budget)]
+
+    def enregistrer(self, obs: Observation) -> Essai:
+        etait_exact = self.filtre_exact
+        if obs.statut != "refus" or self.modele.indices.get(cle(obs.mot), -1) >= 0:
+            self.observer(self.modele.indice(obs.mot), obs)
+        restants = int(self.disponibles.sum()) if self.filtre_exact and obs.statut != "victoire" else None
+        estimation = (self.inference.estimation(self.disponibles)
+                      if self.inference is not None and obs.statut != "victoire" else None)
+        motif = "aucun_candidat_exact" if etait_exact and not self.filtre_exact else None
+        return Essai(obs, restants, estimation, motif)
 
     @property
     def filtre_exact(self) -> bool:
@@ -162,22 +185,33 @@ class Recherche:
             self.disponibles[i] = round(100 * cosinus, self.decimales) == temperature
 
 
+class Politique(Protocol):
+    @property
+    def epuisee(self) -> bool: ...
+    def prochain(self, budget: int, ouverture: int | None) -> str: ...
+    def enregistrer(self, obs: Observation) -> Essai: ...
+
+
 def resoudre(modele: Modele, source: Callable[[str], Observation], indices: NDArray[np.intp],
              strategie: Strategie, budget: int, decimales: int, graine_choix: int,
              historique: Iterable[Observation] = (), *, ouverture: int | None = None,
              marge: float = MARGE_CALIBRATION) -> Resultat:
-    if budget < 1 or not 0 <= decimales <= 6:
-        raise ValueError("Budget positif et précision de 0 à 6 décimales requis.")
     if not math.isfinite(marge) or not 0 <= marge <= 100:
         raise ValueError("La marge de calibration doit être comprise entre 0 et 100 °C.")
     recherche = Recherche(modele, indices, strategie, decimales, random.Random(f"choix:{graine_choix}"), marge)
+    return jouer(recherche, source, budget, decimales, historique, ouverture)
+
+
+def jouer(recherche: Politique, source: Callable[[str], Observation], budget: int, decimales: int,
+          historique: Iterable[Observation] = (), ouverture: int | None = None) -> Resultat:
+    if budget < 1 or not 0 <= decimales <= 6:
+        raise ValueError("Budget positif et précision de 0 à 6 décimales requis.")
     essais: list[Essai] = []
 
     deja_joues: set[str] = set()
 
     def enregistrer(proposition: str, obs: Observation) -> None:
         mot = cle(proposition)
-        etait_exact = recherche.filtre_exact
         if cle(obs.mot) != mot or obs.statut not in ("score", "refus", "victoire"):
             raise ValueError("La réponse ne correspond pas au mot proposé ou au statut attendu.")
         if mot in deja_joues:
@@ -189,29 +223,19 @@ def resoudre(modele: Modele, source: Callable[[str], Observation], indices: NDAr
               or round(obs.temperature, decimales) != obs.temperature
               or (obs.statut == "victoire" and obs.temperature != 100)):
             raise ValueError("Température incohérente avec le statut ou la précision.")
-        if obs.statut != "refus" or modele.indices.get(mot, -1) >= 0:
-            recherche.observer(modele.indice(mot), obs)
         deja_joues.add(mot)
-        restants = int(recherche.disponibles.sum()) if recherche.filtre_exact and obs.statut != "victoire" else None
-        estimation = (recherche.inference.estimation(recherche.disponibles)
-                      if recherche.inference is not None and obs.statut != "victoire" else None)
-        motif = "aucun_candidat_exact" if etait_exact and not recherche.filtre_exact else None
-        essais.append(Essai(obs, restants, estimation, motif))
+        essais.append(recherche.enregistrer(obs))
 
     for obs in historique:
         if len(essais) >= budget or (essais and essais[-1].observation.statut == "victoire"):
             raise ValueError("Historique incohérent avec le budget ou la fin de partie.")
         enregistrer(obs.mot, obs)
     while not essais or essais[-1].observation.statut != "victoire":
-        if not recherche.disponibles.any():
+        if recherche.epuisee:
             return Resultat("aucun_candidat", tuple(essais))
         if len(essais) >= budget:
             return Resultat("budget_epuise", tuple(essais))
         restants = budget - len(essais)
-        if not essais and ouverture is not None and (restants > 1 or recherche.admis[ouverture]):
-            indice = ouverture
-        else:
-            indice = recherche.choisir(restants)
-        mot = modele.mots[indice]
+        mot = recherche.prochain(restants, ouverture if not essais else None)
         enregistrer(mot, source(mot))
     return Resultat("resolu", tuple(essais))

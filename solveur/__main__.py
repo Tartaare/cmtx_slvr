@@ -6,13 +6,17 @@ import sys
 from dataclasses import asdict
 from pathlib import Path
 
+import numpy as np
+from numpy.typing import NDArray
+
 from .benchmark import exporter, mesurer, resumer
 from .calibration import calibrer
 from .evaluation_inference import evaluer_historiques, evaluer_simulations
 from .inference import MARGE_CALIBRATION
 from .modele import Modele, cle
 from .preparation import preparer
-from .resolution import REFERENCES, ROBUSTESSE, SELECTION, Strategie, resoudre
+from .resolution import REFERENCES, ROBUSTESSE, SELECTION, Strategie, jouer, resoudre
+from .secours import Repli, Secours
 from .selection import ouverture_optimisee
 from .simulation import Observation, Scenario, nouvelle_grille
 from .sources import SOURCES, acquerir
@@ -53,7 +57,9 @@ def main() -> int:
     simulation = commandes.add_parser("simuler", help="Proposer des mots à une même grille locale.")
     simulation.add_argument("mots", nargs="+")
     resolution = commandes.add_parser("resoudre", help="Résoudre automatiquement une grille locale.")
-    resolution.add_argument("--strategie", choices=list(Strategie), default=Strategie.EXACTE)
+    resolution.add_argument("--strategie", choices=[*Strategie, "secours"], default=Strategie.EXACTE)
+    resolution.add_argument("--modele-source", choices=SOURCES, help="Modèle utilisé pour simuler la grille.")
+    resolution.add_argument("--repli", choices=list(Repli), help="Classement après épuisement des deux inversions.")
     resolution.add_argument("--historique", type=Path, help="Observations JSONL de cette grille, au format simuler.")
     benchmark = commandes.add_parser("benchmark", help="Comparer les cinq stratégies sur des grilles appariées.")
     benchmark.add_argument("--parties", type=int, default=100)
@@ -121,11 +127,37 @@ def main() -> int:
         else:
             solutions = args.solutions.read_text(encoding="utf-8-sig").splitlines() if args.solutions else None
             modele = Modele(dossier, source=SOURCES[args.modele].empreinte)
+            adaptatif = args.action == "resoudre" and args.strategie == "secours"
+            if args.action == "resoudre" and args.repli and not adaptatif:
+                raise ValueError("--repli demande la stratégie secours.")
+            modeles = {args.modele: modele}
+
+            def charger(nom: str) -> Modele:
+                if nom not in modeles:
+                    modeles[nom] = Modele(args.cache / nom, source=SOURCES[nom].empreinte)
+                return modeles[nom]
+
+            source = charger(args.modele_source or args.modele) if args.action == "resoudre" else modele
+            if adaptatif:
+                alternatif = charger("original" if args.modele == "reduit" else "reduit")
+                admises = source.solutions_admises(solutions) if solutions is not None else None
+
+                def couvertes(m: Modele) -> NDArray[np.intp]:
+                    if admises is None:
+                        return m.lignes_jouables
+                    return np.array([m.indices[mot] for mot in admises if m.indices.get(mot, -1) >= 0],
+                                    dtype=np.intp)
+
+                indices = couvertes(modele)
+                secours = Secours(modele, indices, alternatif, couvertes(alternatif), args.decimales,
+                                  args.graine_choix, Repli(args.repli or Repli.MELANGE), args.marge_calibration)
             historique = lire_historique(args.historique) if args.action == "resoudre" and args.historique else []
             ouverture = None
             if args.action != "simuler" and not historique and args.ouverture != "aleatoire":
-                ouverture = ouverture_optimisee(modele, modele.indices_solutions(solutions),
-                                                args.decimales, args.ouverture, args.cache / "ouvertures")
+                candidats = indices if adaptatif else modele.indices_solutions(solutions)
+                if candidats.size:
+                    ouverture = ouverture_optimisee(modele, candidats, args.decimales,
+                                                    args.ouverture, args.cache / "ouvertures")
             if args.action == "benchmark":
                 mesures = mesurer(modele, solutions, args.parties, args.budget,
                                  args.graine, args.graine_choix, args.decimales, ouverture=ouverture,
@@ -135,19 +167,21 @@ def main() -> int:
                     exporter(mesures, args.export)
                 print(json.dumps(resumer(mesures), ensure_ascii=False, indent=2))
                 return 0
-            proposer = nouvelle_grille(modele, args.graine, solutions, args.decimales, args.scenario)
+            proposer = nouvelle_grille(source, args.graine, solutions, args.decimales, args.scenario)
             if args.action == "resoudre":
-                indices = modele.indices_solutions(solutions)
                 for observation in historique:
                     if proposer(observation.mot) != Observation(cle(observation.mot), observation.statut,
                                                                 observation.temperature):
                         raise ValueError(f"Historique incompatible avec la grille pour « {observation.mot} ».")
-                resultat = resoudre(modele, proposer, indices, Strategie(args.strategie),
-                                    args.budget, args.decimales, args.graine_choix, historique,
-                                    ouverture=ouverture, marge=args.marge_calibration)
+                if adaptatif:
+                    resultat = jouer(secours, proposer, args.budget, args.decimales, historique, ouverture)
+                else:
+                    resultat = resoudre(modele, proposer, modele.indices_solutions(solutions), Strategie(args.strategie),
+                                        args.budget, args.decimales, args.graine_choix, historique,
+                                        ouverture=ouverture, marge=args.marge_calibration)
                 sortie = asdict(resultat)
                 for essai in sortie["essais"]:
-                    for champ in ("estimation", "motif_bascule"):
+                    for champ in ("estimation", "motif_bascule", "phase", "scores_inexploitables", "reconstruction"):
                         if essai[champ] is None:
                             del essai[champ]
                 print(json.dumps(sortie, ensure_ascii=False, allow_nan=False, indent=2))
