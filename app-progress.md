@@ -1,5 +1,11 @@
 # Avancement
 
+## Sprint 11 — Suppression dans Mes parties
+
+US-019 ajoute une suppression individuelle avec confirmation. La partie et son journal sont effacés de la base locale. La révision affichée protège les modifications effectuées depuis un autre onglet. L’atelier vide invite à ouvrir une autre partie ou à en démarrer une.
+
+Le parcours Edge vérifie l’annulation, le rejet d’une ancienne révision, la suppression de la partie ouverte, l’historique vide sur un écran de 375 pixels et la persistance après redémarrage du serveur. Le build, les 26 tests Python et les trois tests Node passent.
+
 ## Sprint 10 — Grille officielle depuis l’atelier
 
 US-018 permet de lancer la résolution depuis Nouvelle partie et de suivre chaque résultat dans le journal. La grille 1730 a été confirmée en trois essais depuis le navigateur avec un budget de cinq. Le test navigateur couvre aussi le lancement sur écran étroit, la confirmation et le décompte du budget avec une source de contrôle.

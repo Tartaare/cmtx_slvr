@@ -23,6 +23,8 @@ Le journal enregistre la recommandation, le mot effectivement joué, le modèle 
 
 Les parties sont conservées dans `.sessions/parties.sqlite3`. **Mes parties** permet de les retrouver après fermeture du navigateur ou redémarrage du serveur. **Repartir avec ces réglages** crée une nouvelle partie. L’export JSON conserve la configuration, les empreintes des modèles, les observations et les diagnostics. Utilisez `python -m solveur application --port 8766 --base mes-parties.sqlite3` pour choisir une autre adresse locale et une autre base. Arrêtez le serveur avec Ctrl+C dans son terminal.
 
+Pour retirer une partie de l’historique, ouvrez **Mes parties**, cliquez sur **Supprimer** dans sa ligne, puis sur **Supprimer la partie**. La confirmation efface définitivement la partie et son journal local.
+
 ## Simuler une grille locale
 
 Depuis la racine du dépôt, avec Python 3.12 et un environnement virtuel activé, installez NumPy et préparez le modèle réduit une fois.
