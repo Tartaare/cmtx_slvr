@@ -8,6 +8,7 @@ Dans l’atelier de résolution, la carte, la proposition du solveur et le journ
 | --- | --- |
 | Surface et texte | Fond graphite `#0a0c0f`, scène presque noire, texte principal `#f2f1ed`, secondaire `#a5acb2`. Les filets séparent les fonctions. |
 | Action principale | Ambre `#f5b86d` pour jouer un essai, signaler le suivi et repérer le focus clavier. |
+| Navigation de l’accueil | Capsule graphite translucide centrée en bas, pictogrammes au trait et libellés visibles. Une pastille ambre repère la destination courante. Sur petit écran, les commandes de carte passent au-dessus. La préférence de réduction de transparence donne à la capsule un fond opaque. |
 | Typographie | Sans empattement pour la navigation et le mot proposé. Chasse fixe pour les libellés de carte, relevés et mesures. Piles de polices locales définies dans `interface/style.css`. |
 | Dictionnaire | Une particule ronde et ombrée par mot. La taille apparente augmente au premier plan avec un plafond progressif. La couleur identifie le groupe de vecteurs. Les arcs fins suivent la scène 3D jusque sur les bords de la vue. Le zoom révèle davantage de liens locaux. |
 | Repères | En vue globale, les champs lexicaux s’affichent au voisinage du centre de leur groupe. La case « Champs lexicaux », près du zoom, masque ou affiche leurs titres. Au survol, le filet du titre, le cœur des points et leur halo reprennent la couleur du groupe. Les autres points passent en gris neutre en conservant leur opacité et leur relief. Les mots apparaissent en vue rapprochée. |

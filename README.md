@@ -6,6 +6,8 @@ L’application locale recommande un mot, interprète sa température et change 
 
 ## Ouvrir l’application
 
+Sur l’accueil, la barre flottante indique **Carte des mots** comme vue courante. Les entrées **Grille du jour** et **Parties locales** sont réservées à un prochain branchement.
+
 Depuis la racine du projet, avec Python 3.12, Node.js 22.16 ou supérieur et les modèles préparés sous le compte qui lancera le serveur, exécutez les commandes suivantes.
 
 ```sh

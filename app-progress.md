@@ -1,5 +1,11 @@
 # Avancement
 
+## Sprint 29 — Navigation flottante
+
+US-042 ajoute sur l’accueil une capsule de navigation centrée en bas de la carte. « Carte des mots » indique la vue courante. « Grille du jour » et « Parties locales » sont désactivées en attendant leur raccordement. Sur petit écran, le zoom, les champs lexicaux et l’aide remontent au-dessus de la capsule.
+
+Le build TypeScript, les quatre tests Node, les 26 tests Python et les deux parcours navigateur passent. Le parcours d’accueil contrôle le centrage à 320 et 1 440 pixels, le dégagement du zoom et l’état des trois destinations.
+
 ## Sprint 28 — Halo néon et affichage des champs lexicaux
 
 US-040 remplace les reflets blancs du champ survolé par un cœur lumineux et un halo radial de la couleur du groupe. US-041 ajoute la case « Champs lexicaux » près du zoom sur l’accueil et dans l’atelier. Masquer les titres annule le survol et rétablit les couleurs de la carte.
