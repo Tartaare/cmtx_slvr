@@ -1,6 +1,6 @@
 import {Arcs} from "./arcs.js";
-import {axes, cadre, cameraInitiale, cleMot, projeter} from "./projection.js";
-import type {Camera, Carte, Point} from "./projection.js";
+import {axes, cadre, cameraInitiale, cleMot, placerLibelle, projeter} from "./projection.js";
+import type {Camera, Carte, Point, Zone} from "./projection.js";
 import type {Observation} from "./rendu.js";
 
 const sommet = `
@@ -233,12 +233,13 @@ export class Scene {
     gl.uniform1f(this.diametre,limite(h*.0045,2,4.8));
     gl.uniform1f(this.modeEssais,Number(this.attenuer));
     gl.drawArrays(gl.POINTS,0,this.carte.index.size);
-    this.annotations(m,w,h,ratio);
-    this.niveau(this.camera.distance<.36?"Vue immersive":this.camera.distance<1.35?"Vue régionale":"Vue globale");
+    const globale=this.camera.distance>=1.35;
+    this.annotations(m,w,h,ratio,globale);
+    this.niveau(globale?"Vue globale":this.camera.distance<.36?"Vue immersive":"Vue régionale");
     this.dernier=t;
     if(suite) this.actualiser();
   }
-  private annotations(m: Float32Array,w: number,h: number,ratio: number): void {
+  private annotations(m: Float32Array,w: number,h: number,ratio: number,globale: boolean): void {
     const ctx=this.dessin; ctx.setTransform(ratio,0,0,ratio,0,0);ctx.clearRect(0,0,w,h);
     const ecran=(i:number)=>projeter(m,this.carte.positions,i,w,h);
     const visible=([x,y,d]:Point)=>d>.005 && x>0 && x<w && y>0 && y<h;
@@ -267,29 +268,39 @@ export class Scene {
         ctx.beginPath();ctx.arc(p[0],p[1],6,0,Math.PI*2);ctx.stroke();
       }
     }
-    const reperes=this.attenuer?[...this.joues].reverse():
+    const reperes=this.attenuer?[...this.joues].reverse():globale?[]:
       [...this.proches.slice(0,Math.ceil(96*proximite)),...this.carte.atlas.reperes];
-    const candidats=[this.choix,meilleur??-1,...reperes];
-    const zones:number[][]=[];
-    for(const i of new Set(candidats)){
-      if(i<0) continue;
-      const p=ecran(i); if(!visible(p))continue;
-      const prioritaire=i===this.choix || i===meilleur || (this.attenuer && this.joues.has(i));
-      const mot=this.carte.atlas.mots[i][0];
+    const mots=new Set([this.choix,meilleur??-1,...reperes]);
+    const champs=globale && !this.attenuer?this.carte.champs:[];
+    const zones:Zone[]=[];
+    for(const candidat of [...mots,...champs]){
+      const i=typeof candidat==="number"?candidat:-1;
+      const champ=typeof candidat==="number"?undefined:candidat;
+      if(!champ && i<0)continue;
+      const p=champ?projeter(m,this.carte.centres,champ.groupe,w,h):ecran(i);
+      if(!visible(p))continue;
+      const prioritaire=!champ && (i===this.choix || i===meilleur || (this.attenuer && this.joues.has(i)));
+      const mot=champ?.nom??this.carte.atlas.mots[i][0];
       const resultat=this.resultats.get(mot);
       const marque=resultat?.statut==="victoire"?"✓ ":i===meilleur?"★ ":"";
       const score=resultat?.temperature;
-      const libelle=marque+mot+(prioritaire && resultat?
+      const libelle=marque+mot+(!champ && prioritaire && resultat?
         (score==null?" · refus":" · "+score.toLocaleString("fr-FR")+" °C"):"");
-      ctx.font=(prioritaire?"600 14px":"12px")+" Consolas, monospace";
-      const largeur=ctx.measureText(libelle).width+12, x=limite(p[0]+9,5,w-largeur-5), y=limite(p[1]-20,5,h-24);
-      if((y<62 && (x<120 || x+largeur>w-220)) || (y>h-72 && (x<155 || x+largeur>w-150)))continue;
-      if(zones.some(([a,b,c,d])=>x<a+c+12 && x+largeur+12>a && y<b+d+9 && y+28>b))continue;
-      zones.push([x,y,largeur,20]);
-      ctx.globalAlpha=prioritaire || this.carte.atlas.reperes.includes(i)?1:proximite;
-      ctx.fillStyle=prioritaire?"#181b1f":"rgba(10,12,15,.75)";ctx.fillRect(x,y,largeur,20);
-      ctx.fillStyle=prioritaire?"#fff6d8":"#d0d6d8";ctx.fillText(libelle,x+6,y+14);
-      if(zones.length >= (w<560?3:this.camera.distance<1.35?10:5))break;
+      ctx.font=champ?'600 13px Inter, "Segoe UI", Arial, sans-serif':(prioritaire?"600 14px":"12px")+" Consolas, monospace";
+      const zone=placerLibelle(p,ctx.measureText(libelle).width+(champ?25:12),champ?24:20,w,h,zones,!!champ);
+      if(!zone)continue;
+      const [x,y,largeur,hauteur]=zone;
+      zones.push(zone);
+      ctx.globalAlpha=champ || prioritaire || this.carte.atlas.reperes.includes(i)?1:proximite;
+      ctx.fillStyle=champ?"rgba(10,12,15,.94)":prioritaire?"#181b1f":"rgba(10,12,15,.75)";
+      if(champ){
+        ctx.beginPath();ctx.roundRect(x,y,largeur,hauteur,5);ctx.fill();
+        ctx.fillStyle=champ.couleur;
+        ctx.beginPath();ctx.arc(x+9,y+12,2.5,0,Math.PI*2);ctx.fill();
+      }else ctx.fillRect(x,y,largeur,hauteur);
+      ctx.fillStyle=champ?"#f2f1ed":prioritaire?"#fff6d8":"#d0d6d8";
+      ctx.fillText(libelle,x+(champ?17:6),y+(champ?16:14));
+      if(zones.length >= (w<560?(champs.length?5:3):globale?16:10))break;
     }
     ctx.globalAlpha=1;
   }

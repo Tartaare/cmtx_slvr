@@ -58,6 +58,20 @@ function mesurerPixels(page: Page, zooms: number): Promise<number[]> {
   }), zooms);
 }
 
+function lireLibelles(page: Page, touche: string): Promise<string[]> {
+  return page.evaluate(cle => new Promise<string[]>(fin => {
+    const canvas = document.querySelector<HTMLCanvasElement>("#galaxie")!;
+    const ctx = document.querySelector<HTMLCanvasElement>("#annotations")!.getContext("2d")!;
+    const dessiner = ctx.fillText, libelles: string[] = [];
+    ctx.fillText = function (texte, x, y) {
+      libelles.push(texte);
+      dessiner.call(this, texte, x, y);
+    };
+    canvas.dispatchEvent(new KeyboardEvent("keydown", {key: cle}));
+    requestAnimationFrame(() => { ctx.fillText = dessiner; fin(libelles); });
+  }), touche);
+}
+
 test("l’accueil affiche la carte sur toute la fenêtre sans ouvrir de partie", {timeout: 90000}, async () => {
   const dossier = await mkdtemp(join(tmpdir(), "cemantix-carte-"));
   const navigateur = await ouvrirNavigateur();
@@ -91,6 +105,9 @@ test("l’accueil affiche la carte sur toute la fenêtre sans ouvrir de partie",
       const titre = await marque.boundingBox();
       const champ = await recherche.boundingBox();
       assert.ok(titre && champ && titre.x + titre.width < champ.x);
+      const libelles = await lireLibelles(page, "Home");
+      assert.ok(libelles.length >= (dimensions.width === 320 ? 3 : 8), libelles.join(", "));
+      assert.ok(libelles.every(nom => nom.includes(" ") && /^[A-ZÉ]/u.test(nom)), libelles.join(", "));
     }
     await page.locator(".aide summary").click();
     await page.getByText("Glissez ou utilisez les flèches", {exact: false}).waitFor();
@@ -103,6 +120,8 @@ test("l’accueil affiche la carte sur toute la fenêtre sans ouvrir de partie",
     assert.equal(await recherche.inputValue(), "hirsute");
     assert.deepEqual(erreurs.map(e => e.message), []);
     await page.waitForFunction(() => document.querySelector("#niveau")?.textContent === "Vue immersive", undefined, {timeout: 5000});
+    const mots = await lireLibelles(page, "ArrowRight");
+    assert.ok(mots.includes("hirsute") && mots.every(mot => !mot.includes(" ")), mots.join(", "));
     await page.getByRole("button", {name: "Dézoomer", exact: true}).click();
     await page.waitForFunction(() => document.querySelector("#niveau")?.textContent === "Vue régionale", undefined, {timeout: 5000});
     await page.getByRole("button", {name: "Zoomer", exact: true}).click();
