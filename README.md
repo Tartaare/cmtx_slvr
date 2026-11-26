@@ -6,7 +6,7 @@ L’application locale recommande un mot, interprète sa température et change 
 
 ## Ouvrir l’application
 
-Sur l’accueil, **Carte des mots** est sélectionnée par défaut dans la barre flottante. Cliquez, touchez ou utilisez les flèches du clavier pour déplacer la lentille de verre. Vous pouvez aussi maintenir la lentille et la faire glisser avant de relâcher. La sélection change uniquement l’apparence de la barre.
+La barre flottante relie **Carte des mots**, **Grille du jour** et **Parties locales**. Cliquez, touchez ou déplacez le focus avec les flèches puis validez avec Entrée. En glissant, gardez la lentille sous le pointeur puis relâchez-la sur la destination. L’en-tête affiche le numéro officiel sous **Cémantix** sur **Grille du jour**, et **Partie Locale** dans l’atelier.
 
 Depuis la racine du projet, avec Python 3.12, Node.js 22.16 ou supérieur et les modèles préparés sous le compte qui lancera le serveur, exécutez les commandes suivantes.
 
@@ -153,7 +153,7 @@ Pour ajouter une partie terminée, utilisez le format du corpus livré. Renseign
 
 ## Jouer sur la grille du jour
 
-Dans l’atelier, ouvrez **Nouvelle partie**, choisissez **Grille du jour · résolution automatique**, réglez le budget puis cliquez sur **Résoudre la grille du jour**. Gardez l’onglet ouvert pour suivre les mots et les températures. **Arrêter l’automatique** suspend les prochains essais et laisse finir celui en cours. Pour continuer plus tard, ouvrez la session dans **Mes parties** et cliquez sur **Mode automatique**.
+Ouvrez **Grille du jour** dans la barre flottante. La page charge le numéro officiel et reprend une session enregistrée pour cette grille si elle existe. Pour démarrer une session, ouvrez **Nouvelle partie**, réglez le budget puis cliquez sur **Résoudre la grille du jour**. Gardez l’onglet ouvert pour suivre les mots et les températures. **Arrêter l’automatique** suspend les prochains essais et laisse finir celui en cours. Pour continuer plus tard, ouvrez la session dans **Mes parties** et cliquez sur **Mode automatique**.
 
 Pour résoudre automatiquement la grille officielle, démarrez l’atelier avec `python -m solveur application` sur son port par défaut (8765), puis exécutez cette commande dans un deuxième terminal.
 

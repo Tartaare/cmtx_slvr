@@ -1,5 +1,11 @@
 # Avancement
 
+## Sprint 32 — Navigation entre les vues de jeu
+
+US-045 relie la barre flottante à la carte des mots, à la grille du jour et à l’atelier local. La grille du jour affiche son numéro officiel sous Cémantix et reprend une session de cette grille si elle existe. L’atelier affiche « Partie Locale » au même endroit. Le clic, le toucher, le clavier et le glissement permettent de changer de vue.
+
+Le build TypeScript, les quatre tests Node, les 26 tests Python et les trois parcours Edge passent. Les contrôles couvrent le chargement et la reprise du numéro officiel, le retour arrière et le changement de vue au relâchement. Les deux en-têtes sont contrôlés à 320 et 1 440 pixels. La lecture de la source officielle a également été vérifiée.
+
 ## Sprint 31 — Lentille de verre au glissement
 
 US-044 reprend le soulèvement et l’étirement de l’export CodePen. La lentille agrandit les pictogrammes et les libellés qu’elle recouvre. Au maintien, elle suit le pointeur et prévisualise l’option en ambre. Au relâchement, elle rejoint l’option la plus proche en tenant compte de l’élan. Le clavier et le réglage de mouvement réduit restent pris en charge. La sélection reste visuelle.
