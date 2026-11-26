@@ -7,7 +7,7 @@ import {createInterface} from "node:readline";
 import {mkdtemp, readFile, writeFile, rm} from "node:fs/promises";
 import {cpus, tmpdir} from "node:os";
 import {join} from "node:path";
-import type {Page} from "playwright-core";
+import type {Browser, Page} from "playwright-core";
 import {ouvrirNavigateur} from "../jeu.ts";
 
 const sortie="documents_design/cemantix_galaxy", dossier=await mkdtemp(join(tmpdir(),"galaxie-recette-"));
@@ -16,9 +16,11 @@ const courte=process.argv.includes("--courte");
 const moteur=spawn(python,["-m","solveur","application","--port","0","--base",base],{
   windowsHide:true,env:{...process.env,OPENBLAS_NUM_THREADS:"1",PYTHONIOENCODING:"utf-8"}
 });
-moteur.stderr.on("data",()=>{}); // Le serveur journalise chaque requête HTTP sur stderr.
+let diagnostic="";
+moteur.stderr.on("data",(b:Buffer)=>{diagnostic=(diagnostic+b.toString()).slice(-2000);});
+moteur.on("error",e=>{diagnostic=e.message;});
 const lignes=createInterface({input:moteur.stdout});
-const navigateur=await ouvrirNavigateur();
+let navigateur:Browser|undefined;
 const mediane=(v:number[])=>[...v].sort((a,b)=>a-b)[Math.floor(v.length/2)];
 async function tourner(page:Page,duree:number){
   return page.evaluate(async ms=>{
@@ -71,9 +73,10 @@ async function resoudre(page:Page){
   }));
 }
 try{
+  navigateur=await ouvrirNavigateur();
   let url="";
   for await(const ligne of lignes){url=ligne.match(/http:\/\/127\.0\.0\.1:\d+\//)?.[0]??"";if(url)break;}
-  assert.ok(url,"Adresse du moteur local");
+  assert.ok(url,diagnostic || "Adresse du moteur local indisponible");
   const page=await navigateur.newPage({viewport:{width:1920,height:1080}});
   const erreurs:string[]=[];page.on("pageerror",e=>erreurs.push(e.message));
   const atlasURL=new URL("atlas.json",url).href;
@@ -82,6 +85,7 @@ try{
   await page.goto(url);
   await page.locator("#suivi:visible").waitFor();
   await page.waitForFunction(()=>document.querySelector("#mot")?.textContent==="hirsute");
+  const ouverture=await page.evaluate(()=>Math.round(performance.now()));
   await page.screenshot({path:join(sortie,"vue-globale.png")});
   await page.locator("#plus").click();await page.locator("#plus").click();
   await page.waitForFunction(()=>document.querySelector("#niveau")?.textContent==="Vue régionale");
@@ -157,11 +161,11 @@ try{
   assert.deepEqual(erreurs,[]);
   const chargement=await page.evaluate(()=>performance.getEntriesByType("resource").filter(r=>r.name.endsWith("atlas.json")).map(r=>Math.round(r.duration)));
   const rapport={cpu:cpus()[0].model,navigateur:navigateur.version(),mots:55402,atlas_sha256:signature,
-    chargement_atlas_ms:chargement,debit,bureau,mobile};
+    ouverture_atelier_ms:ouverture,chargement_atlas_ms:chargement,debit,bureau,mobile};
   await writeFile(join(sortie,courte?"mesures-controle.json":"mesures.json"),JSON.stringify(rapport,null,2)+"\n");
   console.log(JSON.stringify(rapport));
 }finally{
-  await navigateur.close();
-  if(moteur.exitCode===null && moteur.signalCode===null){const fin=once(moteur,"exit");moteur.kill();await fin;}
+  await navigateur?.close();
+  if(moteur.pid && moteur.exitCode===null && moteur.signalCode===null){const fin=once(moteur,"exit");moteur.kill();await fin;}
   await rm(dossier,{recursive:true,force:true});
 }
