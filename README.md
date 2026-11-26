@@ -25,6 +25,8 @@ Les parties sont conservées dans `.sessions/parties.sqlite3`. **Mes parties** p
 
 Pour retirer une partie de l’historique, ouvrez **Mes parties**, cliquez sur **Supprimer** dans sa ligne, puis sur **Supprimer la partie**. La confirmation efface définitivement la partie et son journal local.
 
+Après une mise à jour de l’application, relancez `python -m solveur application` et rechargez l’onglet pour utiliser le serveur et l’interface de la même version.
+
 ## Simuler une grille locale
 
 Depuis la racine du dépôt, avec Python 3.12 et un environnement virtuel activé, installez NumPy et préparez le modèle réduit une fois.

@@ -1,5 +1,9 @@
 # Avancement
 
+## Sprint 12 — Réponse du serveur lors d’une suppression
+
+US-020 remplace l’erreur de lecture JSON par une demande de redémarrage lorsque le serveur en cours d’exécution répond HTTP 501 à la suppression. Le dialogue reste ouvert pour permettre une nouvelle tentative. Le test Edge reproduit la réponse HTML de l’ancien serveur et vérifie que la partie existe encore avant la nouvelle tentative. Le build, les 26 tests Python et les trois tests Node passent.
+
 ## Sprint 11 — Suppression dans Mes parties
 
 US-019 ajoute une suppression individuelle avec confirmation. La partie et son journal sont effacés de la base locale. La révision affichée protège les modifications effectuées depuis un autre onglet. L’atelier vide invite à ouvrir une autre partie ou à en démarrer une.
