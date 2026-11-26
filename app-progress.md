@@ -1,5 +1,11 @@
 # Avancement
 
+## Sprint 26 — Survol des champs lexicaux
+
+US-038 met en évidence les points d’un champ lexical au survol de son titre en vue globale. WebGL applique le contraste à partir de l’identifiant de groupe chargé avec chaque point. Le survol s’appuie sur les zones des titres déjà dessinés et prend fin quand le pointeur les quitte, au début d’un glissement ou quand le zoom les masque.
+
+Le build TypeScript, les quatre tests Node, les 26 tests Python et les deux parcours Edge passent. Le parcours vérifie le survol d’un titre réel, le retour à la luminosité normale et l’annulation au passage en vue rapprochée.
+
 ## Sprint 25 — Champs lexicaux en vue globale
 
 US-037 donne un nom aux seize groupes de l’atlas à partir de leurs mots représentatifs. Les libellés se placent près de leur centre projeté et reprennent la couleur du groupe. Le placement évite les collisions avec les commandes et les repères prioritaires. En vue rapprochée, la carte affiche les mots. Sur une grille réelle, le contraste des essais conserve la priorité.
