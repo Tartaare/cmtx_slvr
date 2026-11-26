@@ -1,6 +1,27 @@
-# Cémantix en ligne de commande
+# Atelier Cémantix
 
-La CLI TypeScript lit le score d’un essai sur la grille du jour. Le moteur Python résout des grilles simulées hors ligne à partir des températures de chaque proposition.
+L’application locale recommande un mot, interprète sa température et change de modèle lorsque les observations l’exigent. Le navigateur et la CLI Python utilisent le même moteur de résolution.
+
+## Ouvrir l’application
+
+Depuis la racine du projet, avec Python 3.12, Node.js 22.16 ou supérieur et les modèles préparés sous le compte qui lancera le serveur, exécutez les commandes suivantes.
+
+```sh
+python -m pip install -r requirements.txt
+python -m solveur preparer reduit
+python -m solveur preparer original
+npm ci
+npm run build
+python -m solveur application
+```
+
+Ouvrez [l’atelier local](http://127.0.0.1:8765/). La première visite prépare une simulation de graine 42. **Jouer un essai** demande un seul score. **Mode automatique** enchaîne les essais simulés tant que l’atelier reste ouvert. Le mode adaptatif commence avec « hirsute », l’ouverture sélectionnée par entropie sur le modèle réduit. Il essaie ensuite de départager les candidats exacts, étend la recherche au modèle original si nécessaire, puis reclasse les mots par probabilité si les températures divergent encore. Si seul le modèle réduit est préparé, la partie utilise son repli probabiliste local. La rubrique **Diagnostic** indique la couverture effective.
+
+Pour une grille réelle, choisissez **Nouvelle partie**, puis **Grille réelle · saisie ou import** et indiquez son identifiant. Reportez la température, un refus ou la victoire à chaque essai. Un score de 100 °C et une victoire sont deux réponses distinctes. À la création, vous pouvez importer un fichier JSONL au format de la commande `simuler`. Chaque ligne consomme un essai. Pour changer de grille, créez une nouvelle partie.
+
+Le journal enregistre la recommandation, le mot effectivement joué, le modèle de recherche, la phase et le temps de calcul. Lorsqu’une hypothèse précédente existe, le journal donne aussi son score prédit et l’écart avec le score reçu. Le graphique permet de suivre les candidats, l’entropie, les écarts et les temps. Les probabilités du classement reposent sur le modèle et les observations disponibles.
+
+Les parties sont conservées dans `.sessions/parties.sqlite3`. **Mes parties** permet de les retrouver après fermeture du navigateur ou redémarrage du serveur. **Repartir avec ces réglages** crée une nouvelle partie. L’export JSON conserve la configuration, les empreintes des modèles, les observations et les diagnostics. Utilisez `python -m solveur application --port 8766 --base mes-parties.sqlite3` pour choisir une autre adresse locale et une autre base. Arrêtez le serveur avec Ctrl+C dans son terminal.
 
 ## Simuler une grille locale
 
@@ -138,6 +159,7 @@ Pour utiliser une autre installation de Chromium, définissez la variable d’en
 
 ## Vérifier le projet
 
-- `npm run build` vérifie les types en mode strict. Node exécute directement les fichiers TypeScript.
+- `npm run build` vérifie les types en mode strict et compile l’interface dans `dist/interface/`.
+- Après le build, `npm run test:atelier` contrôle le parcours web dans Edge ou Chrome, le redémarrage du serveur, la reprise du budget, l’import et la confirmation. Ce test utilise un lexique isolé et une base temporaire. Définissez `CEMANTIX_PYTHON` si Python 3.12 avec NumPy est installé hors du PATH.
 - `npm test` vérifie la saisie et le parcours du formulaire dans un navigateur local, hors ligne.
 - `python -m unittest discover -s test -p "test_*.py" -v` vérifie la préparation, le calcul cosinus, la conservation du vrai candidat, le budget, les historiques et la comparaison des stratégies sur des modèles de contrôle.

@@ -1,5 +1,15 @@
 # Avancement
 
+## Sprint 8 — Atelier de résolution local
+
+US-014 à US-016 sont livrées. Le navigateur permet de jouer une simulation pas à pas ou automatiquement, de saisir les résultats d’une grille identifiée et de reprendre un historique JSONL. La recommandation, le budget, les candidats, leur probabilité estimée et la raison des bascules sont visibles pendant la partie. Une base SQLite locale conserve les observations et les configurations. Les modifications concurrentes sont contrôlées par révision.
+
+**Contrôles sur les modèles complets.** La stratégie adaptative ouvre avec « hirsute ». Sur la simulation réduite de graine 42, « frileux » isole « balane », confirmé au troisième essai. Sur la graine 27 du modèle original, le score de « catastrophe » épuise les candidats du réduit et « chignin-bergeron » est confirmé au troisième essai dans l’original. Avec le scénario bruité sur cette même grille, le mélange probabiliste prend le relais au deuxième essai et confirme le mot au septième. Ces trois parcours vérifient l’intégration. Les comparaisons appariées de stratégies restent celles des sprints 5 à 7.
+
+**Reprise et non-régression.** Le test de bout en bout ferme le processus serveur après un essai, le relance sur la même base et vérifie le prochain mot et le budget dans Edge. Il termine ensuite la simulation, importe un score dans une seconde grille, déclenche le secours et enregistre une victoire sur écran de 375 pixels. Le build TypeScript, les 26 tests Python, les deux tests Node du formulaire et le test navigateur de l’atelier passent.
+
+Le prochain jalon est la validation finale comparative. Le fonctionnement sur la grille réelle reste assisté par la saisie du joueur.
+
 ## Sprint 7 — Mots absents du modèle réduit
 
 US-012 et US-013 sont livrées. Le mode `secours` utilise la sélection discriminante du sprint 5 dans le modèle principal. En cas d’incompatibilité, il réinterprète les observations par mot dans le modèle alternatif. L’original de Fauconnier ajoute 371 303 formes jouables non ambiguës aux 55 402 mots du réduit selon le filtre du simulateur. Les candidats exacts restent prioritaires tant que les scores en laissent au moins un. La victoire exige une confirmation explicite de la source.

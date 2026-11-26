@@ -3,6 +3,7 @@ import type {Archive, Config, Observation, Partie} from "./rendu.js";
 
 const api = "/api/parties", cleSession = "cemantix-session";
 let session: Partie | null = null, occupe = false, automatique = false;
+let prochainTour: number | undefined;
 const creation = el<HTMLFormElement>("creation"), score = el<HTMLFormElement>("score");
 const parametres = el<HTMLDialogElement>("parametres"), saisie = el<HTMLDialogElement>("saisie");
 
@@ -111,9 +112,14 @@ score.onsubmit=e=>{
 async function boucle(): Promise<void> {
   if(!automatique || !session || session.statut!=="active")return;
   await traiter(()=>modifier("essai"));
-  if(automatique)window.setTimeout(()=>void boucle(),350);
+  if(automatique)prochainTour=window.setTimeout(()=>void boucle(),350);
 }
-el("auto").onclick=()=>{automatique=!automatique;texte("auto",automatique?"Arrêter l’automatique":"Mode automatique");if(automatique)void boucle()};
+el("auto").onclick=()=>{
+  window.clearTimeout(prochainTour);
+  automatique=!automatique;
+  texte("auto",automatique?"Arrêter l’automatique":"Mode automatique");
+  if(automatique)void boucle();
+};
 el("pause").onclick=()=>{automatique=false;void traiter(()=>modifier("pause"))};
 el("interrompre").onclick=()=>{
   automatique=false;
@@ -148,4 +154,3 @@ void traiter(async()=>{
   const id=localStorage.getItem(cleSession), archive=archives.find(a=>a.id===id)??archives[0];
   choisir(archive?await requete<Partie>(api+"/"+archive.id):await requete<Partie>(api,{initial:true}));
 });
-
