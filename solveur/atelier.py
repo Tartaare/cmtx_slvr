@@ -10,7 +10,7 @@ from typing import Any
 import numpy as np
 
 from .modele import Modele, cle, mot_jouable
-from .resolution import Recherche, Strategie, valider_observation
+from .resolution import Essai, Recherche, Strategie, valider_observation
 from .secours import Secours
 from .simulation import Observation, Scenario, nouvelle_grille
 from .sources import SOURCES
@@ -90,6 +90,13 @@ class Atelier:
         strategie = Strategie.ROBUSTE if config.strategie == "secours" else Strategie(config.strategie)
         return Recherche(m, m.lignes_jouables, strategie, 2, random.Random("choix:17"))
 
+    @staticmethod
+    def integrer(politique: Recherche | Secours, obs: Observation) -> Essai:
+        if (isinstance(politique, Recherche) and obs.statut == "score"
+                and politique.modele.indices.get(cle(obs.mot), -1) < 0):
+            return Essai(obs, int(politique.disponibles.sum()) if politique.filtre_exact else None)
+        return politique.enregistrer(obs)
+
     def creer(self, config: Configuration) -> Objet:
         debut = perf_counter()
         etendu = (config.strategie == "secours" and config.modele == "reduit"
@@ -122,7 +129,7 @@ class Atelier:
         if politique is None:
             politique = self.politique(config, etat["etendu"])
             for o in historique:
-                politique.enregistrer(Observation(**o))
+                self.integrer(politique, Observation(**o))
         joues = {cle(o["mot"]) for o in historique}
         if config.source == "simulation":
             if entrees is not None:
@@ -149,7 +156,7 @@ class Atelier:
                 etat["statut"] = "resolu"
                 apres = dict(avant, nombre=1, entropie=0.0, candidats=[{"mot": mot, "p": 1.0, "rms": None}])
             else:
-                essai = politique.enregistrer(obs)
+                essai = self.integrer(politique, obs)
                 motif = essai.motif_bascule
                 historique.append(asdict(obs))
                 apres = vue(politique, config, historique)
@@ -164,7 +171,10 @@ class Atelier:
             for c in apres["candidats"]:
                 c["rang_avant"] = precedents.index(c["mot"]) + 1 if c["mot"] in precedents else None
             etat["vue"] = apres
+            inexploitable = (obs.statut == "score"
+                             and charger(self.cache, apres["modele"]).indices.get(mot, -1) < 0)
             etat["essais"].append({"observation": asdict(obs), "prediction": prediction, "motif": motif,
+                                   "inexploitable": inexploitable,
                                    "recommande": recommandation, "phase": avant["phase"], "apres": apres["phase"],
                                    "nombre": apres["nombre"], "entropie": apres["entropie"],
                                    "ms": round(1000 * (perf_counter() - debut), 2)})

@@ -66,3 +66,12 @@ class SessionsTest(unittest.TestCase):
         self.sessions.modifier(autre["id"], 0, "interrompre", None)
         self.assertEqual(len(self.sessions.liste()), 2)
         self.assertEqual(self.sessions.lire(s["id"]), s)
+
+    def test_score_accepte_hors_modele_reste_dans_le_journal(self) -> None:
+        config = {"source": "assiste", "grille": "820", "strategie": "robuste", "budget": 2}
+        s = self.sessions.creer(config, [{"mot": "ailleurs", "statut": "score", "temperature": -2}])
+        self.assertTrue(s["essais"][0]["inexploitable"])
+        self.assertEqual(s["vue"]["nombre"], 2)
+        reprise = Sessions(self.fichier, Atelier(self.racine))
+        s = reprise.modifier(s["id"], 0, "essai", [{"mot": s["prochain"], "statut": "refus", "temperature": None}])
+        self.assertEqual(s["statut"], "budget_epuise")

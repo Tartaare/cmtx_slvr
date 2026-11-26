@@ -3,7 +3,7 @@ export interface Config {
   scenario: string; graine: number; budget: number; grille: string;
 }
 export interface Observation { mot: string; statut: "score" | "victoire" | "refus"; temperature: number | null }
-interface Essai { observation: Observation; prediction: number | null; motif: string | null; phase: string;
+interface Essai { observation: Observation; prediction: number | null; motif: string | null; phase: string; inexploitable: boolean;
   apres: string; nombre: number; entropie: number | null; ms: number; recommande: string }
 interface Candidat { mot: string; p: number; rms: number | null; rang_avant?: number | null }
 export interface Archive { id: string; config: Config; statut: string; creation: string }
@@ -108,7 +108,8 @@ export function afficher(s: Partie): void {
     [...s.essais].reverse().forEach((e,i)=>{const o=e.observation,row=body.insertRow(),score=o.temperature;
       for(const valeur of [String(n-i),o.mot,o.statut==="victoire"?"Victoire":score===null?"Refus":fmt(score)+" °C",
         e.prediction===null?"—":fmt(e.prediction)+" °C",e.prediction===null||score===null?"—":fmt(score-e.prediction)+" °C",
-        (e.recommande!==o.mot?"Saisie libre · ":"")+phase(e.phase)+(e.motif?" · "+motif(e.motif):""),fmt(e.ms,0)+" ms"])row.insertCell().textContent=valeur});
+        (e.recommande!==o.mot?"Saisie libre · ":"")+phase(e.phase)+(e.motif?" · "+motif(e.motif):"")+
+        (e.inexploitable?" · score hors modèle":""),fmt(e.ms,0)+" ms"])row.insertCell().textContent=valeur});
     journal.append(table,cellule("small","¹ Prédiction du candidat en tête avant l’essai. L’écart est la température observée moins cette prédiction."))}
   texte("calibration","Calibration sur deux grilles de test · "+(v.modele==="original"?"21":"19")+" températures reproduites au centième sur 21.");
   texte("couverture",s.etendu?"Secours activé · modèle réduit, puis original, puis mélange probabiliste si les scores divergent.":
