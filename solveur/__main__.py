@@ -7,6 +7,7 @@ from dataclasses import asdict
 from pathlib import Path
 
 from .benchmark import exporter, mesurer, resumer
+from .calibration import calibrer
 from .modele import Modele, cle
 from .preparation import preparer
 from .resolution import Strategie, resoudre
@@ -35,6 +36,9 @@ def main() -> int:
     preparation = commandes.add_parser("preparer", help="Acquérir, vérifier et normaliser un modèle.")
     preparation.add_argument("modele", choices=SOURCES)
     commandes.add_parser("comparer", help="Contrôler les empreintes et comparer les vocabulaires.")
+    calibration = commandes.add_parser("calibrer", help="Comparer les modèles sur des parties réelles terminées.")
+    calibration.add_argument("corpus", type=Path, help="Corpus JSON avec lots de calibration, validation et test.")
+    calibration.add_argument("--export", type=Path, help="Écrire le rapport JSON dans un nouveau fichier UTF-8.")
     simulation = commandes.add_parser("simuler", help="Proposer des mots à une même grille locale.")
     simulation.add_argument("mots", nargs="+")
     resolution = commandes.add_parser("resoudre", help="Résoudre automatiquement une grille locale.")
@@ -53,6 +57,16 @@ def main() -> int:
         commande.add_argument("--graine-choix", type=int, default=17, help="Graine du choix des propositions.")
     args = parser.parse_args()
     try:
+        if args.action == "calibrer":
+            modeles = {nom: Modele(args.cache / nom, verifier=True, source=s.empreinte)
+                       for nom, s in SOURCES.items()}
+            rapport = json.dumps(calibrer(args.corpus, modeles), ensure_ascii=False, allow_nan=False, indent=2)
+            if args.export:
+                with args.export.open("x", encoding="utf-8", newline="\n") as sortie:
+                    sortie.write(rapport + "\n")
+            else:
+                print(rapport)
+            return 0
         if args.action == "comparer":
             reduit, original = (
                 Modele(args.cache / nom, verifier=True, source=SOURCES[nom].empreinte)
