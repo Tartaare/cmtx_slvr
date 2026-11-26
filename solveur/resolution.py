@@ -202,6 +202,22 @@ def resoudre(modele: Modele, source: Callable[[str], Observation], indices: NDAr
     return jouer(recherche, source, budget, decimales, historique, ouverture)
 
 
+def valider_observation(proposition: str, obs: Observation, decimales: int, deja_joues: set[str]) -> str:
+    mot = cle(proposition)
+    if cle(obs.mot) != mot or obs.statut not in ("score", "refus", "victoire"):
+        raise ValueError("La réponse ne correspond pas au mot proposé ou au statut attendu.")
+    if mot in deja_joues:
+        raise ValueError(f"Proposition répétée : {mot}.")
+    if obs.statut == "refus":
+        if obs.temperature is not None:
+            raise ValueError("Un refus doit être dépourvu de température.")
+    elif (type(obs.temperature) not in (float, int) or not -100 <= obs.temperature <= 100
+          or round(obs.temperature, decimales) != obs.temperature
+          or (obs.statut == "victoire" and obs.temperature != 100)):
+        raise ValueError("Température incohérente avec le statut ou la précision.")
+    return mot
+
+
 def jouer(recherche: Politique, source: Callable[[str], Observation], budget: int, decimales: int,
           historique: Iterable[Observation] = (), ouverture: int | None = None) -> Resultat:
     if budget < 1 or not 0 <= decimales <= 6:
@@ -211,18 +227,7 @@ def jouer(recherche: Politique, source: Callable[[str], Observation], budget: in
     deja_joues: set[str] = set()
 
     def enregistrer(proposition: str, obs: Observation) -> None:
-        mot = cle(proposition)
-        if cle(obs.mot) != mot or obs.statut not in ("score", "refus", "victoire"):
-            raise ValueError("La réponse ne correspond pas au mot proposé ou au statut attendu.")
-        if mot in deja_joues:
-            raise ValueError(f"Proposition répétée : {mot}.")
-        if obs.statut == "refus":
-            if obs.temperature is not None:
-                raise ValueError("Un refus doit être dépourvu de température.")
-        elif (type(obs.temperature) not in (float, int) or not -100 <= obs.temperature <= 100
-              or round(obs.temperature, decimales) != obs.temperature
-              or (obs.statut == "victoire" and obs.temperature != 100)):
-            raise ValueError("Température incohérente avec le statut ou la précision.")
+        mot = valider_observation(proposition, obs, decimales, deja_joues)
         deja_joues.add(mot)
         essais.append(recherche.enregistrer(obs))
 
