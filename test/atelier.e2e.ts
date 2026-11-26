@@ -106,6 +106,8 @@ test("l’accueil affiche la carte sur toute la fenêtre sans ouvrir de partie",
     assert.ok(await marque.locator("img").evaluate((image: HTMLImageElement) => image.naturalWidth > 0));
     assert.equal(await page.getByRole("button", {name: /nouvelle partie|mes parties|suivi du solveur/i}).count(), 0);
     const canevas = page.locator("#galaxie");
+    const afficherChamps = page.getByRole("checkbox", {name: "Champs lexicaux"});
+    assert.ok(await afficherChamps.isChecked());
     for (const dimensions of [{width: 1440, height: 900}, {width: 320, height: 640}]) {
       await page.setViewportSize(dimensions);
       assert.deepEqual(await canevas.boundingBox(), {x: 0, y: 0, ...dimensions});
@@ -113,6 +115,9 @@ test("l’accueil affiche la carte sur toute la fenêtre sans ouvrir de partie",
       const titre = await marque.boundingBox();
       const champ = await recherche.boundingBox();
       assert.ok(titre && champ && titre.x + titre.width < champ.x);
+      const option = await afficherChamps.locator("..").boundingBox();
+      const zoom = await page.locator("#outils-carte").boundingBox();
+      assert.ok(option && zoom && option.y + option.height < zoom.y);
       const libelles = await lireLibelles(page, "Home");
       const noms = libelles.map(({texte}) => texte);
       assert.ok(noms.length >= (dimensions.width === 320 ? 3 : 8), noms.join(", "));
@@ -123,6 +128,13 @@ test("l’accueil affiche la carte sur toute la fenêtre sans ouvrir de partie",
         const survoler = () => page.mouse.move(titreChamp.x + 8, titreChamp.y - 5);
         await survoler();
         await attendreUniforme(page, "champSurvole", 11);
+        await afficherChamps.press("Space");
+        assert.equal(await afficherChamps.isChecked(), false);
+        await attendreUniforme(page, "champSurvole", -1);
+        assert.deepEqual(await lireLibelles(page, "Home"), []);
+        await afficherChamps.press("Space");
+        assert.ok(await afficherChamps.isChecked());
+        assert.ok((await lireLibelles(page, "Home")).some(({texte}) => texte === "Langues et musique"));
         await page.mouse.move(20, 180);
         await attendreUniforme(page, "champSurvole", -1);
         await survoler();
@@ -190,6 +202,8 @@ test("l’accueil affiche la carte sur toute la fenêtre sans ouvrir de partie",
     assert.equal(survol.erreur, 0);
     const [champ, autre] = survol.couleurs;
     assert.ok(champ[3] > normal.couleurs[0][3] && champ[1] > normal.couleurs[0][1]);
+    assert.ok(survol.moities[0] > normal.moities[0], "Le halo doit agrandir la surface éclairée.");
+    assert.ok(Math.abs(champ[2] / champ[0] - 88 / 255) < .02, "Le cœur doit conserver la couleur du groupe.");
     assert.deepEqual(autre, [autre[0], autre[0], autre[0], normal.couleurs[1][3]]);
     assert.ok(normal.couleurs[1][0] > normal.couleurs[1][2]);
     assert.deepEqual(erreurs, []);

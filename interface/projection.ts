@@ -99,7 +99,8 @@ export function placerLibelle([x,y]: Point, largeur: number, hauteur: number, w:
     : [[x+9,y-20]];
   for(const [gauche,haut] of positions){
     const a=Math.max(5,Math.min(gauche,w-largeur-5)), b=Math.max(5,Math.min(haut,h-hauteur-5));
-    if((b<62 && (a<120 || a+largeur>w-220)) || (b+hauteur>h-52 && (a<155 || a+largeur>w-150)))continue;
+    if((b<62 && (a<120 || a+largeur>w-220)) ||
+      (b+hauteur>h-52 && a<155) || (b+hauteur>h-132 && a+largeur>w-178))continue;
     if(zones.some(([c,d,l,k])=>a<c+l+12 && a+largeur+12>c && b<d+k+9 && b+hauteur+9>d))continue;
     return [a,b,largeur,hauteur];
   }
