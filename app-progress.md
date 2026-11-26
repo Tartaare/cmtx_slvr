@@ -1,5 +1,9 @@
 # Avancement
 
+## Sprint 15 — Logo de l’atelier
+
+US-023 affiche le logo fourni dans le lien d’accueil, sur un fond vert profond. Le serveur local livre le PNG avec le type `image/png`. Le parcours Edge vérifie le chargement du logo et l’affichage à 375 pixels. Le build, les 26 tests Python et les trois tests Node passent.
+
 ## Sprint 14 — Connexion au moteur local
 
 US-022 détecte au démarrage les installations de NumPy dépourvues de `vecdot`. Une exception interne du moteur renvoie désormais un diagnostic HTTP. Lors d’une coupure réseau, l’atelier retente une lecture une fois et invite à recharger la partie si la coupure persiste. Chaque action de jeu reste soumise une seule fois. Le parcours navigateur simule les coupures persistantes et transitoires. Le build, les 26 tests Python avec NumPy 2.3.5, les trois tests Node et le parcours navigateur passent.
