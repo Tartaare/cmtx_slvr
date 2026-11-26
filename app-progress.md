@@ -1,5 +1,11 @@
 # Avancement
 
+## Sprint 27 — Contraste du survol
+
+US-039 convertit les points hors du champ survolé en niveaux de gris en conservant leur opacité et leur relief. Les points du champ survolé conservent leur teinte avec des reflets plus lumineux.
+
+Le build TypeScript, les quatre tests Node, les 26 tests Python et les deux parcours Edge passent. Le contrôle de pixels vérifie la neutralité du gris, la conservation de son opacité et la hausse d’intensité du point du champ survolé.
+
 ## Sprint 26 — Survol des champs lexicaux
 
 US-038 met en évidence les points d’un champ lexical au survol de son titre en vue globale. WebGL applique le contraste à partir de l’identifiant de groupe chargé avec chaque point. Le survol s’appuie sur les zones des titres déjà dessinés et prend fin quand le pointeur les quitte, au début d’un glissement ou quand le zoom les masque.
