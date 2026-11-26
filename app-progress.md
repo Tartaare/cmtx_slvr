@@ -1,5 +1,9 @@
 # Avancement
 
+## Sprint 10 — Grille officielle depuis l’atelier
+
+US-018 permet de lancer la résolution depuis Nouvelle partie et de suivre chaque résultat dans le journal. La grille 1730 a été confirmée en trois essais depuis le navigateur avec un budget de cinq. Le test navigateur couvre aussi le lancement sur écran étroit, la confirmation et le décompte du budget avec une source de contrôle.
+
 ## Sprint 9 — Résolution automatique de la grille du jour
 
 US-017 relie les recommandations de l’atelier au formulaire officiel. La grille nº 1730 a été résolue en trois essais le 26 novembre 2026. Le test de régression distingue deux mots affichés à 100 °C par leur rang (999 ou 1000 ‰). Le build, les 26 tests Python, les trois tests Node et le parcours navigateur de l’atelier passent.

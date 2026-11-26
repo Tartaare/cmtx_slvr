@@ -139,6 +139,8 @@ Pour ajouter une partie terminée, utilisez le format du corpus livré. Renseign
 
 ## Jouer sur la grille du jour
 
+Dans l’atelier, ouvrez **Nouvelle partie**, choisissez **Grille du jour · résolution automatique**, réglez le budget puis cliquez sur **Résoudre la grille du jour**. Gardez l’onglet ouvert pour suivre les mots et les températures. **Arrêter l’automatique** suspend les prochains essais et laisse finir celui en cours. Pour continuer plus tard, ouvrez la session dans **Mes parties** et cliquez sur **Mode automatique**.
+
 Pour résoudre automatiquement la grille officielle, démarrez l’atelier avec `python -m solveur application` sur son port par défaut (8765), puis exécutez cette commande dans un deuxième terminal.
 
 ```sh
