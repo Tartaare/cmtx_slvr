@@ -1,5 +1,25 @@
 # Avancement
 
+## Sprint 3 — Résolution automatique et premier benchmark
+
+US-004 et US-005 sont livrées. L’inversion exacte conserve les candidats dont la température reproduit toutes les observations à la précision de la grille. Le filtrage matriciel inclut une marge pour les erreurs numériques, puis recalcule les scores retenus avec la même opération scalaire et le même arrondi que le simulateur. Les scores négatifs, les refus et la confirmation finale sont couverts.
+
+**Protocole.** Modèle réduit, vocabulaire jouable complet, températures à deux décimales, graines de grille 0 à 199, graine des ouvertures 17 et budget de 20 propositions. Les cinq stratégies partagent le premier mot de chaque grille. Les autres propositions dépendent de leurs observations. Python 3.12, NumPy 2.3.5, `OPENBLAS_NUM_THREADS=1`. Deux exécutions ont reproduit les 1 000 résultats individuels pour l’ouverture, le statut et le nombre d’essais. [Résultats bruts](benchmarks/sprint-3-exact.csv)
+
+| Stratégie | Résolues sur 200 | Résolues en 2 essais ou moins | Essais consommés en moyenne | Maximum consommé |
+|---|---:|---:|---:|---:|
+| Inversion exacte | 200 | 22 | 2,890 | 3 |
+| Cemantbot, stratégie Python reproduite | 200 | 1 | 3,000 | 4 |
+| Comptage des correspondances | 200 | 12 | 2,955 | 4 |
+| Voisin du mot le plus chaud | 0 | 0 | 20,000 | 20 |
+| Hasard sans répétition | 0 | 0 | 20,000 | 20 |
+
+La référence Cemantbot suit le script autonome fourni (SHA-256 `ac0e960651d218c0c877db0927dba8724ba268c017fded4ad694b1b59ed62695`). Elle compte les écarts de cosinus inférieurs ou égaux à 0,0001, puis départage les candidats ayant le maximum de correspondances par la plus faible moyenne des cosinus absolus avec les mots déjà proposés. Le comptage simple conserve le premier ex æquo rencontré. L’inversion exacte choisit le premier candidat compatible dans l’ordre du modèle après l’ouverture.
+
+Sur cet échantillon, l’inversion exacte et Cemantbot ont la même médiane de trois essais. Le gain moyen observé est de 0,11 essai par grille. La validation en conditions réelles dépend du sprint 4, qui mesurera les écarts entre températures simulées et observées sur des parties terminées.
+
+Le build TypeScript, les deux tests Node et les six tests Python passent. Un contrôle via la CLI a également validé la reprise de la grille 42, le rejet d’un historique incompatible et l’arrêt au budget. Les tests d’inversion comparent les candidats restants à un calcul exhaustif après chaque observation, avec des précisions de zéro, deux et six décimales.
+
 ## Sprint 2 — Modèles vectoriels et simulateur hors ligne
 
 US-002 et US-003 sont livrées. La préparation vérifie le binaire source, conserve les originaux et publie un cache après conversion complète. Le moteur charge la matrice normalisée en mémoire mappée. Le simulateur expose une fonction de proposition, avec un tirage reproductible et un vocabulaire de solutions configurable séparément.

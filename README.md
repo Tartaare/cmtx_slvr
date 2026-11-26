@@ -1,6 +1,6 @@
 # Cémantix en ligne de commande
 
-La CLI TypeScript lit le score d’un essai sur la grille du jour. Le moteur Python permet de préparer les modèles français et de proposer des mots sur une grille simulée hors ligne.
+La CLI TypeScript lit le score d’un essai sur la grille du jour. Le moteur Python résout des grilles simulées hors ligne à partir des températures de chaque proposition.
 
 ## Simuler une grille locale
 
@@ -15,6 +15,26 @@ python -m solveur simuler --graine 42 rivière maison poule
 Cette graine et cette version du modèle donnent respectivement 20,68 °C, −2,97 °C et 6,07 °C. Relancez avec la même graine pour essayer d’autres mots sur la même grille. La commande émet une observation JSON par proposition et s’arrête au mot exact. Le statut distingue un score, un refus du simulateur et une victoire.
 
 Le tirage utilise les formes jouables et non ambiguës du modèle actif. Pour restreindre les secrets tout en conservant les autres mots comme propositions, passez `--solutions mots.txt` (UTF-8, un mot par ligne). La simulation arrondit le cosinus multiplié par 100 à deux décimales par défaut. La correspondance avec les températures réelles sera mesurée lors de la calibration.
+
+## Résoudre une grille
+
+```sh
+python -m solveur resoudre --graine 42 --budget 20
+```
+
+Sur cette grille, avec les paramètres par défaut, « drone » obtient 0,49 °C et laisse 40 candidats. « aider » obtient −8,84 °C et laisse un seul candidat. Le troisième essai, « balane », confirme la victoire. Le tirage du secret et le choix du premier mot utilisent des graines distinctes.
+
+Le résultat JSON contient les observations dans l’ordre. Le champ `candidats_exacts` compte les mots encore compatibles après un essai en stratégie exacte. La commande renvoie 0 pour une victoire confirmée, 2 pour un budget épuisé ou une liste de candidats vide, et 1 pour une erreur de données ou de lecture.
+
+Pour continuer une grille commencée, ajoutez `--historique observations.jsonl` avec une observation UTF-8 par ligne au format de `simuler`. Conservez la même graine de grille, le modèle, la précision et le vocabulaire. Les observations importées sont vérifiées contre cette grille et consomment une partie du budget.
+
+## Reproduire le benchmark de référence
+
+```sh
+python -m solveur benchmark --graine 0 --graine-choix 17 --parties 200 --budget 20 --export reproduction.csv
+```
+
+Chaque stratégie reçoit la même grille, le même premier mot et le même budget. Le rapport JSON compte les succès à différents seuils d’essais. Les moyennes et percentiles d’essais consommés incluent les échecs. Le CSV conserve une ligne par grille et par stratégie, avec les graines, l’ouverture, l’empreinte du modèle et le temps de résolution. Utilisez un nouveau nom de fichier à chaque export. [Résultats du sprint 3](benchmarks/sprint-3-exact.csv)
 
 ## Préparer et comparer les modèles
 
@@ -53,4 +73,4 @@ Pour utiliser une autre installation de Chromium, définissez la variable d’en
 
 - `npm run build` vérifie les types en mode strict. Node exécute directement les fichiers TypeScript.
 - `npm test` vérifie la saisie et le parcours du formulaire dans un navigateur local, hors ligne.
-- `python -m unittest discover -s test -p "test_*.py" -v` vérifie le calcul cosinus, la préparation des vecteurs et la reproductibilité du simulateur sur un petit modèle créé pendant le test.
+- `python -m unittest discover -s test -p "test_*.py" -v` vérifie la préparation, le calcul cosinus, la conservation du vrai candidat, le budget, les historiques et la comparaison des stratégies sur des modèles de contrôle.
