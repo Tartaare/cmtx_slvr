@@ -59,12 +59,14 @@ function champ<T extends HTMLInputElement | HTMLSelectElement>(form: HTMLFormEle
 }
 function sourceChange(): void {
   const assiste=champ(creation,"source").value==="assiste";
-  for(const e of document.querySelectorAll<HTMLElement>("[data-simulation]"))e.hidden=assiste;
+  const source=champ(creation,"source").value;
+  for(const e of document.querySelectorAll<HTMLElement>("[data-simulation]"))e.hidden=source!=="simulation";
+  creation.querySelector("button[type=submit]")!.textContent=source==="jour"?"Résoudre la grille du jour":"Démarrer la partie";
   document.querySelector<HTMLElement>("[data-assiste]")!.hidden=!assiste;
   champ(creation,"grille").required=assiste;
 }
 function nouvelle(config?: Config): void {
-  automatique=false;creation.reset();
+  window.clearTimeout(prochainTour);automatique=false;creation.reset();
   if(config)for(const [k,v] of Object.entries(config))champ(creation,k).value=String(v);
   sourceChange();parametres.showModal();
 }
@@ -87,13 +89,18 @@ creation.onsubmit=e=>{
         try{return JSON.parse(ligne)}catch{throw new Error("JSON invalide à la ligne "+(i+1)+".")}
       });
     }
+    if(config.source==="jour")creation.querySelector(".feedback")!.textContent="Ouverture de la grille du jour…";
     choisir(await requete<Partie>(api,{config,observations}));parametres.close();
+    if(config.source==="jour"){
+      automatique=true;
+      prochainTour=window.setTimeout(()=>void boucle(),0);
+    }
   });
 };
 el("essai").onclick=()=>{
   if(!session)return;
   if(session.statut==="pause"){void traiter(()=>modifier("reprendre"));return}
-  if(session.config.source==="simulation"){void traiter(()=>modifier("essai"));return}
+  if(session.config.source!=="assiste"){void traiter(()=>modifier("essai"));return}
   score.reset();champ(score,"mot").value=session.prochain??"";afficherTemperature();saisie.showModal();
 };
 function afficherTemperature(): void {

@@ -71,6 +71,14 @@ test("la partie reprend après redémarrage du serveur et aboutit dans le naviga
     await page.getByRole("button", {name:"Mes parties"}).click();
     await page.locator(".archive").first().waitFor();
     assert.equal(await page.locator(".archive").count(),2);
+    await page.getByRole("button", {name:"Nouvelle partie"}).click();
+    await config.locator("[name=source]").selectOption("jour");
+    await config.locator("[name=budget]").fill("1");
+    await config.getByRole("button", {name:"Résoudre la grille du jour"}).click();
+    await page.getByText("Grille 1234", {exact:true}).waitFor();
+    await page.getByText("Solution confirmée", {exact:true}).first().waitFor();
+    assert.equal(await page.locator("#mot").innerText(),"hirsute");
+    assert.equal(await page.locator("#restants").innerText(),"0");
     assert.deepEqual(erreurs,[]);
   } finally {
     if (serveur) await fermer(serveur);

@@ -37,7 +37,7 @@
 <div class="actions"><button id="pause">Suspendre</button><button id="interrompre">Interrompre</button><button id="reset">Repartir avec ces réglages</button></div></details>
 </div></main>
 <dialog id="parametres" aria-labelledby="nouveau-titre"><form id="creation"><div class="sectitle"><h2 id="nouveau-titre">Nouvelle partie</h2><button type="button" data-close aria-label="Fermer">×</button></div>
-<label>Source des scores<select name="source"><option value="simulation">Simulation locale</option><option value="assiste">Grille réelle · saisie ou import</option></select></label>
+<label>Source des scores<select name="source"><option value="simulation">Simulation locale</option><option value="jour">Grille du jour · résolution automatique</option><option value="assiste">Grille réelle · saisie ou import</option></select></label>
 <div data-assiste hidden><label>Identifiant de la grille<input name="grille" maxlength="80" placeholder="Ex. 1729"></label><label>Importer un historique JSONL (facultatif)<input type="file" name="fichier" accept=".jsonl,.txt"></label></div>
 <div class="formgrid"><label>Modèle de départ<select name="modele"><option value="reduit">Cemantbot réduit</option><option value="original">Fauconnier original</option></select></label>
 <label>Stratégie<select name="strategie"><option value="secours">Adaptative avec secours</option><option value="plan">Plan exact</option><option value="robuste">Robuste sur un modèle</option></select></label>

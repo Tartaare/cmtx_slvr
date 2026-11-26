@@ -21,7 +21,13 @@ def lancer(base: Path) -> None:
     def charger(dossier: Path, nom: str) -> Modele:
         return Modele(dossier / nom, verifier=True)
 
-    with patch("solveur.atelier.charger", charger):
+    def consulter(*arguments: str) -> str | dict:
+        if arguments == ("--grille",):
+            return "1234"
+        assert arguments == ("--observation", "1234", "hirsute")
+        return {"mot": "hirsute", "statut": "victoire", "temperature": 100}
+
+    with patch("solveur.atelier.charger", charger), patch("solveur.serveur.consulter_jeu", consulter):
         servir(cache, base, 0)
 
 

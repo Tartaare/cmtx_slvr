@@ -1,5 +1,5 @@
 export interface Config {
-  source: "simulation" | "assiste"; modele: string; strategie: string; modele_source: string;
+  source: "simulation" | "assiste" | "jour"; modele: string; strategie: string; modele_source: string;
   scenario: string; graine: number; budget: number; grille: string;
 }
 export interface Observation { mot: string; statut: "score" | "victoire" | "refus"; temperature: number | null }
@@ -85,8 +85,8 @@ export function afficher(s: Partie): void {
   texte("raison",(dernier?.motif?motif(dernier.motif)+" ":"")+explication);
   texte("restants",String(s.config.budget-n));texte("grille",nom(s));texte("modele",v.modele==="original"?"Fauconnier original":"Cemantbot réduit");
   texte("strategie",phase(v.phase));texte("temps",fmt((s.initial_ms+s.essais.reduce((a,e)=>a+e.ms,0))/1000)+" s");
-  el("essai").hidden=!active && s.statut!=="pause"; texte("essai",s.statut==="pause"?"Reprendre":s.config.source==="simulation"?"Jouer un essai":"Saisir le score");
-  el("auto").hidden=!active || s.config.source!=="simulation";el("pause").hidden=!active;el("interrompre").hidden=!active&&s.statut!=="pause";
+  el("essai").hidden=!active && s.statut!=="pause"; texte("essai",s.statut==="pause"?"Reprendre":s.config.source==="assiste"?"Saisir le score":"Jouer un essai");
+  el("auto").hidden=!active || s.config.source==="assiste";el("pause").hidden=!active;el("interrompre").hidden=!active&&s.statut!=="pause";
   texte("total",fmt(v.nombre)+" au total");
   const liste=el("candidats");liste.replaceChildren();
   v.candidats.forEach((c,i)=>{const item=document.createElement("li"), barre=document.createElement("progress");
