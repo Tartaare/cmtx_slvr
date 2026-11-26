@@ -1,5 +1,13 @@
 # Avancement
 
+## Sprint 23 — Réseau sémantique et contraste des essais
+
+US-033 ajoute des particules rondes à l’éclairage sphérique et des arcs colorés. L’atlas associe chaque mot à ses quatre meilleurs voisins par similarité cosinus dans le modèle à 500 dimensions. La scène échantillonne les liens en vue globale et en affiche davantage autour du mot sélectionné.
+
+US-034 atténue les points et arcs hors essais dès qu’une grille réelle contient un essai localisable. Les arcs continus représentent le voisinage sémantique. Les arcs pointillés indiquent l’ordre des essais. L’accueil et les simulations gardent les couleurs de l’exploration.
+
+Le build TypeScript, les quatre tests Node, les 26 tests Python et les deux parcours Edge passent. Les contrôles couvrent l’ancien format d’atlas, le rejet d’un lien incohérent et l’activation du contraste sur les grilles réelle et assistée. La recette courte sur les modèles complets rejoue la simulation de graine 42 et les scores de la grille 202. Elle mesure environ 144 images par seconde sur la machine de test, sur bureau et en émulation mobile, avec 7 ms au 95ᵉ percentile.
+
 ## Sprint 22 — Carte plein écran
 
 US-032 consacre l’accueil à la carte 3D du dictionnaire. Le logo et le titre Cémantix s’affichent en haut à gauche. La recherche, le zoom, la vue globale et l’aide de navigation restent à portée dans la scène. Les sessions et le solveur restent accessibles directement sur `/atelier`.

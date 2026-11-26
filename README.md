@@ -1,6 +1,6 @@
 # Atelier Cémantix
 
-L’accueil affiche la galaxie 3D des 55 402 mots du dictionnaire réduit en plein écran. Recherchez un mot ou sélectionnez une particule pour explorer son voisinage. **Navigation** détaille les gestes et raccourcis clavier. Le rendu 3D nécessite WebGL. [Plan, captures et recette de l’atelier](documents_design/cemantix_galaxy/plan-implementation.md)
+L’accueil affiche la galaxie 3D des 55 402 mots du dictionnaire réduit en plein écran. Des arcs relient les particules rondes de mots proches dans le modèle. Recherchez un mot ou sélectionnez une particule pour explorer son voisinage. **Navigation** détaille les gestes et raccourcis clavier. Le rendu 3D nécessite WebGL. [Plan, captures et recette de l’atelier](documents_design/cemantix_galaxy/plan-implementation.md)
 
 L’application locale recommande un mot, interprète sa température et change de modèle lorsque les observations l’exigent. Le navigateur et la CLI Python utilisent le même moteur de résolution.
 
@@ -27,7 +27,7 @@ Sous Windows, si **Nouvelle partie** affiche `WinError 5` sur un fichier de `.mo
 
 Pour une grille réelle, choisissez **Nouvelle partie**, puis **Grille réelle · saisie ou import** et indiquez son identifiant. Reportez la température, un refus ou la victoire à chaque essai. Un score de 100 °C et une victoire sont deux réponses distinctes. À la création, vous pouvez importer un fichier JSONL au format de la commande `simuler`. Chaque ligne consomme un essai. Pour changer de grille, créez une nouvelle partie.
 
-Le journal affiche tous les essais, les plus récents en tête. Un contour signale chaque résultat sur la carte. Une étoile repère le meilleur essai et une coche la solution confirmée. L’export JSON conserve les observations et les diagnostics détaillés. Les probabilités du classement reposent sur le modèle et les observations disponibles.
+Le journal affiche tous les essais, les plus récents en tête. Un contour signale chaque résultat sur la carte. Une étoile repère le meilleur essai et une coche la solution confirmée. Sur une grille réelle, les essais localisables gardent leurs couleurs et les arcs pointillés indiquent leur ordre. Les autres mots et leurs arcs s’atténuent automatiquement. L’export JSON conserve les observations et les diagnostics détaillés. Les probabilités du classement reposent sur le modèle et les observations disponibles.
 
 Les parties sont conservées dans `.sessions/parties.sqlite3`. **Mes parties** permet de les retrouver après fermeture du navigateur ou redémarrage du serveur. **Repartir avec ces réglages** crée une nouvelle partie. L’export JSON conserve la configuration, les empreintes des modèles, les observations et les diagnostics. Utilisez `python -m solveur application --port 8766 --base mes-parties.sqlite3` pour choisir une autre adresse locale et une autre base. Arrêtez le serveur avec Ctrl+C dans son terminal.
 
@@ -181,14 +181,14 @@ Pour utiliser une autre installation de Chromium, définissez la variable d’en
 
 ## Reproduire la projection
 
-L’atlas de 1,8 Mo est livré avec l’interface. Sa préparation est facultative pour jouer. Pour le recalculer, utilisez un environnement Python dédié à la projection et exécutez les commandes depuis la racine du dépôt.
+L’atlas de 3,2 Mo est livré avec l’interface. Sa préparation est facultative pour jouer. Pour le recalculer, utilisez un environnement Python dédié à la projection et exécutez les commandes depuis la racine du dépôt.
 
 ```sh
 python -m pip install -r documents_design/cemantix_galaxy/requirements-projection.txt
 python -m solveur.galaxie --modele .modeles/reduit --sortie interface/atlas.json
 ```
 
-Le générateur vérifie les empreintes du modèle, compare UMAP et PCA sur le même échantillon, puis écrit l’atlas. Les couleurs proviennent de 16 groupes calculés dans l’espace des vecteurs d’origine. La projection sert à explorer le vocabulaire. Les températures viennent de la source de la partie.
+Le générateur vérifie les empreintes du modèle, compare UMAP et PCA sur le même échantillon, puis écrit l’atlas. Les couleurs proviennent de 16 groupes calculés dans l’espace des vecteurs d’origine. Les arcs utilisent les quatre voisins les plus proches par similarité cosinus de chaque mot dans ce même espace. L’option `--liens-seuls` ajoute ou recalcule ces voisins dans un atlas compatible en conservant les coordonnées et les groupes. Elle utilise NumPy et le modèle préparé. Les températures viennent de la source de la partie.
 
 ## Vérifier le projet
 
