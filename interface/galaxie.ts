@@ -43,12 +43,17 @@ export function effacerPartie():void {
   recherche.value="";el("resultats").replaceChildren();scene?.nouvellePartie();
   if(scene)statut("Dictionnaire complet");
 }
-export function actualiserGalaxie(s:Partie):void {
+export function actualiserGalaxie(s:Partie,vueInitiale=false):void {
   if(partie?.id!==s.id)effacerPartie();
+  if(vueInitiale && s.essais.length)mode(false);
   partie=s;enCours="";journal();synchroniser();
 }
 export function essaiEnCours(mot:string):void { enCours=mot;synchroniser(); }
-export function annulerFoyer():void {enCours="";synchroniser();}
+export function annulerFoyer():void {
+  enCours="";
+  if(!partie?.essais.length && suivi){scene?.nouvellePartie();selection="";statut("Dictionnaire complet");}
+  synchroniser();
+}
 function explorer(mot:string):void {
   mode(false);centrer(mot,.32);el("resultats").replaceChildren();recherche.value=mot;
 }
@@ -120,6 +125,7 @@ canvas.onlostpointercapture=e=>contacts.delete(e.pointerId);
 
 function indisponible(message:string):void {
   scene?.arreter();scene=undefined;
+  texte("niveau","Vue textuelle");
   el("scene").classList.add("indisponible");texte("repli",message);el("repli").hidden=false;
   el("outils-carte").hidden=true;el("chercher").hidden=true;el("suivi").hidden=true;canvas.tabIndex=-1;
 }

@@ -70,17 +70,26 @@ function onglet(archives: boolean): void {
   el(archives?"archives":"atelier").setAttribute("aria-current","page");
   texte("titre",archives?"Mes parties":"Galaxie sémantique");
 }
-function choisir(s: Partie): void {
-  session=s;localStorage.setItem(cleSession,s.id);onglet(false);afficher(s);actualiserGalaxie(s);
+function choisir(s: Partie, vueInitiale=false): void {
+  session=s;localStorage.setItem(cleSession,s.id);onglet(false);afficher(s);actualiserGalaxie(s,vueInitiale);
   texte("message",nom(s)+" · "+statuts[s.statut]+" · "+s.essais.length+" essais");
   if(s.statut!=="active")automatique=false;
 }
 async function modifier(action: string, observations?: Observation[]): Promise<void> {
   if(!session)return;
-  if(action==="essai")essaiEnCours(observations?.[0]?.mot ?? session.prochain ?? "");
+  if(action==="essai"){
+    const mot=observations?.[0]?.mot ?? session.prochain ?? "";
+    texte("legende","Essai en cours");texte("message","Essai en cours · "+mot);essaiEnCours(mot);
+  }
   try {
     choisir(await requete<Partie>(api+"/"+session.id,{revision:session.revision,action,observations}));
-  } catch(erreur) { annulerFoyer(); throw erreur; }
+  } catch(erreur) {
+    if(action==="essai"){
+      annulerFoyer();
+      texte("legende",session.statut==="active"?"Proposition du solveur":statuts[session.statut]);
+    }
+    throw erreur;
+  }
 }
 function champ<T extends HTMLInputElement | HTMLSelectElement>(form: HTMLFormElement, name: string): T {
   return form.elements.namedItem(name) as T;
@@ -223,7 +232,7 @@ formulaireSuppression.onsubmit=async e=>{
 void traiter(async()=>{
   const archives=await requete<Archive[]>(api);
   const id=localStorage.getItem(cleSession), archive=archives.find(a=>a.id===id)??archives[0];
-  if(archive)choisir(await requete<Partie>(api+"/"+archive.id));
+  if(archive)choisir(await requete<Partie>(api+"/"+archive.id),true);
   else if(id===null)choisir(await requete<Partie>(api,{initial:true}));
   else {listeVide();onglet(true)}
 });
