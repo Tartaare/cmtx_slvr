@@ -1,5 +1,33 @@
 # Avancement
 
+## Sprint 5 — Sélection des propositions
+
+US-008 et US-009 sont livrées. Le moteur classe les propositions selon les températures qu’elles produiraient sur les candidats restants. Une victoire possède sa propre classe, même si un autre mot atteint 100 °C. À partition équivalente, le moteur préfère un candidat qui peut gagner immédiatement. Une sonde déjà jouée est exclue.
+
+Le classement des ouvertures utilise une présélection déterministe d’au plus 128 mots jouables et 128 solutions, dédoublonnée. Sur le modèle réduit complet, ces listes coïncident. Les 128 propositions ont chacune été évaluées sur les 55 402 secrets possibles. « hirsute » arrive en tête pour l’entropie (12,068 bits, 5 916 réponses distinctes). « coquettement » arrive en tête pour les collisions (probabilité 0,0002713). Le calcul commun a pris environ 0,70 s sur cette machine avec le modèle déjà ouvert, contre environ 0,007 s pour relire le classement en cache.
+
+Après l’ouverture, les stratégies informationnelles évaluent jusqu’à 128 candidats et 128 sondes supplémentaires quand l’ensemble est grand. La recherche s’arrête dès qu’une proposition distingue tous les candidats. À huit candidats ou moins, le mode plan compare les arbres qui essaient successivement des solutions et, si elle peut améliorer le résultat, une sonde extérieure suivie de cet arbre. Il maximise d’abord les victoires dans le budget, puis minimise les essais consommés. Les tests vérifient notamment une grille à quatre candidats où seule une sonde extérieure garantit la résolution en deux coups.
+
+**Comparaison sur les graines 0 à 199.** Même simulateur exact, modèle réduit, précision de deux décimales, graine des choix 17, budget de 20 et un thread OpenBLAS. Chaque colonne donne la moyenne des essais consommés par grille, échecs inclus. Les neuf stratégies reçoivent le même premier mot dans chaque colonne. Le protocole aléatoire reproduit les ouvertures, statuts et nombres d’essais des cinq références du sprint 3.
+
+| Stratégie | Ouverture aléatoire | hirsute | coquettement |
+|---|---:|---:|---:|
+| Inversion exacte | 2,890 | 2,885 | 2,900 |
+| Entropie | 2,895 | 2,875 | 2,900 |
+| Collisions | 2,895 | 2,875 | 2,900 |
+| Plan | 2,895 | 2,875 | 2,900 |
+| Faible corrélation | 2,930 | 2,910 | 2,900 |
+| Cemantbot | 3,000 | 2,995 | 3,015 |
+| Comptage | 2,955 | 2,940 | 2,975 |
+| Voisin du mot le plus chaud | 20,000 | 19,985 | 20,000 |
+| Hasard | 20,000 | 20,000 | 20,000 |
+
+Les sept stratégies fondées sur les scores compatibles ont résolu toutes les grilles de chaque colonne. Le voisin a résolu une grille avec « hirsute », et le hasard a épuisé tous ses budgets. Avec « hirsute », l’inversion exacte prend 7,02 ms par grille en moyenne et le plan 7,19 ms, hors préparation commune. [Ouvertures aléatoires](benchmarks/sprint-5-aleatoire.csv) · [Ouverture par entropie](benchmarks/sprint-5-entropie.csv) · [Ouverture par collisions](benchmarks/sprint-5-collisions.csv)
+
+**Contrôle complémentaire, graines 200 à 1199.** L’inversion exacte avec ouverture aléatoire et le plan avec « hirsute » résolvent chacun 1 000 grilles sur 1 000. Le plan passe de 2,920 à 2,889 essais en moyenne pour la comparaison des deux configurations. Il économise un essai sur 83 grilles, en consomme un de plus sur 52 et fait jeu égal sur 865. Il termine au plus en trois coups sur cet échantillon, contre quatre pour la référence. Le gain cumulé de 31 essais concerne le modèle exact et la combinaison ouverture–stratégie. La commande par défaut conserve le protocole de référence. [Résultats appariés](benchmarks/sprint-5-controle.csv)
+
+Le build TypeScript, les deux tests Node et les douze tests Python passent. Le sprint 6 portera sur le classement des candidats quand les scores observés divergent du modèle.
+
 ## Sprint 4 — Calibration sur des parties terminées
 
 US-006 et US-007 sont livrées. Le corpus contient **38 températures observées sur 4 grilles**, de −14,66 à 61,65 °C. Les secrets sont confirmés par la ligne de victoire de chaque capture. Les 13 listes françaises de voisins de Cemantbot donnent des rangs utiles à son propre benchmark mais aucune température. La capture fournie dans son dossier `images` contient 16 essais chiffrés avant la victoire et fait partie du test. Son numéro de grille est illisible ou absent de la capture, d’où un identifiant textuel stable. [Corpus et sources par partie](benchmarks/calibration/parties.json)
