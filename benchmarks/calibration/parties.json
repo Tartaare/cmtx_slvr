@@ -1,0 +1,36 @@
+[
+  {
+    "grille": "202", "secret": "magique", "lot": "calibration",
+    "source": "https://ro.scribd.com/document/711273392/ce-mantix",
+    "observations": [
+      ["maladie", -0.92], ["corps", 19.48], ["enterrement", 8.28], ["part", 3.57],
+      ["habiller", 21.58], ["merveilleux", 61.65], ["idéal", 23.42], ["somptueux", 38.42]
+    ]
+  },
+  {
+    "grille": "749", "secret": "renvoi", "lot": "validation",
+    "source": "https://fr.scribd.com/document/806742919/ce-mantix",
+    "observations": [
+      ["ours", -5.25], ["animal", -0.69], ["jungle", -10.95], ["animalier", -11.13],
+      ["lion", -6.12], ["forêt", -14.66], ["renvoyer", 60.88], ["substituer", 24.86],
+      ["rétrogradation", 20.87]
+    ]
+  },
+  {
+    "grille": "922", "secret": "creux", "lot": "test",
+    "source": "https://fr.scribd.com/document/1073587824/ce-mantix",
+    "observations": [
+      ["léger", 34.09], ["vide", 48.39], ["manque", 17.00], ["descente", 23.70], ["air", 21.39]
+    ]
+  },
+  {
+    "grille": "capture-cemantbot-prestigieux", "secret": "prestigieux", "lot": "test",
+    "source": "https://github.com/Amodio/cemantbot/blob/main/images/1st_17attempts.png",
+    "observations": [
+      ["amnésique", 1.25], ["disposition", -5.18], ["finir", -10.64], ["pionnier", 34.90],
+      ["précurseur", 23.98], ["fondateur", 33.71], ["initiateur", 21.14], ["cofondateur", 22.84],
+      ["visionnaire", 23.44], ["fonder", 20.63], ["novateur", 26.08], ["développer", 13.86],
+      ["emblématique", 44.75], ["avant-gardiste", 33.61], ["avant-garde", 21.25], ["audacieux", 22.13]
+    ]
+  }
+]

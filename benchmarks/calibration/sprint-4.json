@@ -1,0 +1,927 @@
+{
+  "corpus_sha256_utf8_lf": "a90af8efdb75dec6b322af7bff8b502565dd727eb62a040136094950953e8f95",
+  "modele_selectionne_sur_validation": "reduit",
+  "parties": {
+    "202": {
+      "lot": "calibration",
+      "secret": "magique",
+      "source": "https://ro.scribd.com/document/711273392/ce-mantix"
+    },
+    "749": {
+      "lot": "validation",
+      "secret": "renvoi",
+      "source": "https://fr.scribd.com/document/806742919/ce-mantix"
+    },
+    "922": {
+      "lot": "test",
+      "secret": "creux",
+      "source": "https://fr.scribd.com/document/1073587824/ce-mantix"
+    },
+    "capture-cemantbot-prestigieux": {
+      "lot": "test",
+      "secret": "prestigieux",
+      "source": "https://github.com/Amodio/cemantbot/blob/main/images/1st_17attempts.png"
+    }
+  },
+  "modeles": {
+    "reduit": {
+      "modele_sha256": "a6c1be2d04c7072bfbf9b053b937648f95fc57a2a85183a6364a7f6f3ee92587",
+      "marge_p95_calibration_c": 0.004696689844131829,
+      "lots": {
+        "calibration": {
+          "grilles": 1,
+          "observations": 8,
+          "comparables": 8,
+          "mots_distincts": 9,
+          "mots_absents": [],
+          "fraction_mots_absents": 0.0,
+          "mots_ambigus": [],
+          "observations_non_comparables": 0,
+          "arrondis_exacts": 8,
+          "fraction_exacte_toutes_observations": 1.0,
+          "biais_moyen_c": 0.000713279526680724,
+          "mae_c": 0.0027301943488415165,
+          "mse_c2": 9.268778974736366e-06,
+          "rmse_c": 0.0030444669442673154,
+          "mediane_absolue_c": 0.002417495250700341,
+          "max_absolu_c": 0.004888416528702422,
+          "p95_absolu_c": 0.004696689844131829,
+          "p99_absolu_c": 0.004850071191788303,
+          "pearson": 0.9999999879646417,
+          "spearman": 1.0,
+          "arrondis_exacts_float64": 8,
+          "troncatures_exactes": 6,
+          "fractions_compatibles_affichees": {
+            "0.0": 1.0,
+            "0.01": 1.0,
+            "0.05": 1.0,
+            "0.1": 1.0,
+            "1.0": 1.0
+          },
+          "fraction_dans_marge_calibration": 0.875
+        },
+        "validation": {
+          "grilles": 1,
+          "observations": 9,
+          "comparables": 9,
+          "mots_distincts": 10,
+          "mots_absents": [],
+          "fraction_mots_absents": 0.0,
+          "mots_ambigus": [],
+          "observations_non_comparables": 0,
+          "arrondis_exacts": 9,
+          "fraction_exacte_toutes_observations": 1.0,
+          "biais_moyen_c": 0.00017738637824823064,
+          "mae_c": 0.001985921503769491,
+          "mse_c2": 4.840038171838965e-06,
+          "rmse_c": 0.0022000086754008414,
+          "mediane_absolue_c": 0.001669540405274006,
+          "max_absolu_c": 0.00377785146236409,
+          "p95_absolu_c": 0.0035639482736597116,
+          "p99_absolu_c": 0.0037350708246232144,
+          "pearson": 0.9999999967754694,
+          "spearman": 1.0,
+          "arrondis_exacts_float64": 9,
+          "troncatures_exactes": 2,
+          "fractions_compatibles_affichees": {
+            "0.0": 1.0,
+            "0.01": 1.0,
+            "0.05": 1.0,
+            "0.1": 1.0,
+            "1.0": 1.0
+          },
+          "fraction_dans_marge_calibration": 1.0
+        },
+        "test": {
+          "grilles": 2,
+          "observations": 21,
+          "comparables": 19,
+          "mots_distincts": 23,
+          "mots_absents": [
+            "avant-garde",
+            "avant-gardiste"
+          ],
+          "fraction_mots_absents": 0.08695652173913043,
+          "mots_ambigus": [],
+          "observations_non_comparables": 2,
+          "arrondis_exacts": 19,
+          "fraction_exacte_toutes_observations": 0.9047619047619048,
+          "biais_moyen_c": -0.00042086207552964535,
+          "mae_c": 0.0031494015925805216,
+          "mse_c2": 1.1062655126201963e-05,
+          "rmse_c": 0.003326056993829475,
+          "mediane_absolue_c": 0.003082230091095539,
+          "max_absolu_c": 0.004780211448668581,
+          "p95_absolu_c": 0.004740860223769161,
+          "p99_absolu_c": 0.004772341203688697,
+          "pearson": 0.9999999817706233,
+          "spearman": 1.0,
+          "arrondis_exacts_float64": 19,
+          "troncatures_exactes": 9,
+          "fractions_compatibles_affichees": {
+            "0.0": 1.0,
+            "0.01": 1.0,
+            "0.05": 1.0,
+            "0.1": 1.0,
+            "1.0": 1.0
+          },
+          "fraction_dans_marge_calibration": 0.8947368421052632
+        }
+      },
+      "details": [
+        {
+          "grille": "202",
+          "mot": "maladie",
+          "brut_c": -0.9213567711412907,
+          "affiche_c": -0.92,
+          "observe_c": -0.92,
+          "absents": [],
+          "ambigus": []
+        },
+        {
+          "grille": "202",
+          "mot": "corps",
+          "brut_c": 19.481033086776733,
+          "affiche_c": 19.48,
+          "observe_c": 19.48,
+          "absents": [],
+          "ambigus": []
+        },
+        {
+          "grille": "202",
+          "mot": "enterrement",
+          "brut_c": 8.284888416528702,
+          "affiche_c": 8.28,
+          "observe_c": 8.28,
+          "absents": [],
+          "ambigus": []
+        },
+        {
+          "grille": "202",
+          "mot": "part",
+          "brut_c": 3.565659373998642,
+          "affiche_c": 3.57,
+          "observe_c": 3.57,
+          "absents": [],
+          "ambigus": []
+        },
+        {
+          "grille": "202",
+          "mot": "habiller",
+          "brut_c": 21.583765745162964,
+          "affiche_c": 21.58,
+          "observe_c": 21.58,
+          "absents": [],
+          "ambigus": []
+        },
+        {
+          "grille": "202",
+          "mot": "merveilleux",
+          "brut_c": 61.647629737854004,
+          "affiche_c": 61.65,
+          "observe_c": 61.65,
+          "absents": [],
+          "ambigus": []
+        },
+        {
+          "grille": "202",
+          "mot": "idéal",
+          "brut_c": 23.422464728355408,
+          "affiche_c": 23.42,
+          "observe_c": 23.42,
+          "absents": [],
+          "ambigus": []
+        },
+        {
+          "grille": "202",
+          "mot": "somptueux",
+          "brut_c": 38.421621918678284,
+          "affiche_c": 38.42,
+          "observe_c": 38.42,
+          "absents": [],
+          "ambigus": []
+        },
+        {
+          "grille": "749",
+          "mot": "ours",
+          "brut_c": -5.249037593603134,
+          "affiche_c": -5.25,
+          "observe_c": -5.25,
+          "absents": [],
+          "ambigus": []
+        },
+        {
+          "grille": "749",
+          "mot": "animal",
+          "brut_c": -0.6880232598632574,
+          "affiche_c": -0.69,
+          "observe_c": -0.69,
+          "absents": [],
+          "ambigus": []
+        },
+        {
+          "grille": "749",
+          "mot": "jungle",
+          "brut_c": -10.94861850142479,
+          "affiche_c": -10.95,
+          "observe_c": -10.95,
+          "absents": [],
+          "ambigus": []
+        },
+        {
+          "grille": "749",
+          "mot": "animalier",
+          "brut_c": -11.128827929496765,
+          "affiche_c": -11.13,
+          "observe_c": -11.13,
+          "absents": [],
+          "ambigus": []
+        },
+        {
+          "grille": "749",
+          "mot": "lion",
+          "brut_c": -6.123777851462364,
+          "affiche_c": -6.12,
+          "observe_c": -6.12,
+          "absents": [],
+          "ambigus": []
+        },
+        {
+          "grille": "749",
+          "mot": "forêt",
+          "brut_c": -14.657427370548248,
+          "affiche_c": -14.66,
+          "observe_c": -14.66,
+          "absents": [],
+          "ambigus": []
+        },
+        {
+          "grille": "749",
+          "mot": "renvoyer",
+          "brut_c": 60.8767569065094,
+          "affiche_c": 60.88,
+          "observe_c": 60.88,
+          "absents": [],
+          "ambigus": []
+        },
+        {
+          "grille": "749",
+          "mot": "substituer",
+          "brut_c": 24.861669540405273,
+          "affiche_c": 24.86,
+          "observe_c": 24.86,
+          "absents": [],
+          "ambigus": []
+        },
+        {
+          "grille": "749",
+          "mot": "rétrogradation",
+          "brut_c": 20.868882536888123,
+          "affiche_c": 20.87,
+          "observe_c": 20.87,
+          "absents": [],
+          "ambigus": []
+        },
+        {
+          "grille": "922",
+          "mot": "léger",
+          "brut_c": 34.09372568130493,
+          "affiche_c": 34.09,
+          "observe_c": 34.09,
+          "absents": [],
+          "ambigus": []
+        },
+        {
+          "grille": "922",
+          "mot": "vide",
+          "brut_c": 48.39305281639099,
+          "affiche_c": 48.39,
+          "observe_c": 48.39,
+          "absents": [],
+          "ambigus": []
+        },
+        {
+          "grille": "922",
+          "mot": "manque",
+          "brut_c": 16.997334361076355,
+          "affiche_c": 17.0,
+          "observe_c": 17.0,
+          "absents": [],
+          "ambigus": []
+        },
+        {
+          "grille": "922",
+          "mot": "descente",
+          "brut_c": 23.704466223716736,
+          "affiche_c": 23.7,
+          "observe_c": 23.7,
+          "absents": [],
+          "ambigus": []
+        },
+        {
+          "grille": "922",
+          "mot": "air",
+          "brut_c": 21.386264264583588,
+          "affiche_c": 21.39,
+          "observe_c": 21.39,
+          "absents": [],
+          "ambigus": []
+        },
+        {
+          "grille": "capture-cemantbot-prestigieux",
+          "mot": "amnésique",
+          "brut_c": 1.2461261823773384,
+          "affiche_c": 1.25,
+          "observe_c": 1.25,
+          "absents": [],
+          "ambigus": []
+        },
+        {
+          "grille": "capture-cemantbot-prestigieux",
+          "mot": "disposition",
+          "brut_c": -5.182169750332832,
+          "affiche_c": -5.18,
+          "observe_c": -5.18,
+          "absents": [],
+          "ambigus": []
+        },
+        {
+          "grille": "capture-cemantbot-prestigieux",
+          "mot": "finir",
+          "brut_c": -10.644526034593582,
+          "affiche_c": -10.64,
+          "observe_c": -10.64,
+          "absents": [],
+          "ambigus": []
+        },
+        {
+          "grille": "capture-cemantbot-prestigieux",
+          "mot": "pionnier",
+          "brut_c": 34.89688336849213,
+          "affiche_c": 34.9,
+          "observe_c": 34.9,
+          "absents": [],
+          "ambigus": []
+        },
+        {
+          "grille": "capture-cemantbot-prestigieux",
+          "mot": "précurseur",
+          "brut_c": 23.984016478061676,
+          "affiche_c": 23.98,
+          "observe_c": 23.98,
+          "absents": [],
+          "ambigus": []
+        },
+        {
+          "grille": "capture-cemantbot-prestigieux",
+          "mot": "fondateur",
+          "brut_c": 33.71478021144867,
+          "affiche_c": 33.71,
+          "observe_c": 33.71,
+          "absents": [],
+          "ambigus": []
+        },
+        {
+          "grille": "capture-cemantbot-prestigieux",
+          "mot": "initiateur",
+          "brut_c": 21.138077974319458,
+          "affiche_c": 21.14,
+          "observe_c": 21.14,
+          "absents": [],
+          "ambigus": []
+        },
+        {
+          "grille": "capture-cemantbot-prestigieux",
+          "mot": "cofondateur",
+          "brut_c": 22.838546335697174,
+          "affiche_c": 22.84,
+          "observe_c": 22.84,
+          "absents": [],
+          "ambigus": []
+        },
+        {
+          "grille": "capture-cemantbot-prestigieux",
+          "mot": "visionnaire",
+          "brut_c": 23.437680304050446,
+          "affiche_c": 23.44,
+          "observe_c": 23.44,
+          "absents": [],
+          "ambigus": []
+        },
+        {
+          "grille": "capture-cemantbot-prestigieux",
+          "mot": "fonder",
+          "brut_c": 20.62787413597107,
+          "affiche_c": 20.63,
+          "observe_c": 20.63,
+          "absents": [],
+          "ambigus": []
+        },
+        {
+          "grille": "capture-cemantbot-prestigieux",
+          "mot": "novateur",
+          "brut_c": 26.07872784137726,
+          "affiche_c": 26.08,
+          "observe_c": 26.08,
+          "absents": [],
+          "ambigus": []
+        },
+        {
+          "grille": "capture-cemantbot-prestigieux",
+          "mot": "développer",
+          "brut_c": 13.863082230091095,
+          "affiche_c": 13.86,
+          "observe_c": 13.86,
+          "absents": [],
+          "ambigus": []
+        },
+        {
+          "grille": "capture-cemantbot-prestigieux",
+          "mot": "emblématique",
+          "brut_c": 44.75279748439789,
+          "affiche_c": 44.75,
+          "observe_c": 44.75,
+          "absents": [],
+          "ambigus": []
+        },
+        {
+          "grille": "capture-cemantbot-prestigieux",
+          "mot": "avant-gardiste",
+          "brut_c": null,
+          "affiche_c": null,
+          "observe_c": 33.61,
+          "absents": [
+            "avant-gardiste"
+          ],
+          "ambigus": []
+        },
+        {
+          "grille": "capture-cemantbot-prestigieux",
+          "mot": "avant-garde",
+          "brut_c": null,
+          "affiche_c": null,
+          "observe_c": 21.25,
+          "absents": [
+            "avant-garde"
+          ],
+          "ambigus": []
+        },
+        {
+          "grille": "capture-cemantbot-prestigieux",
+          "mot": "audacieux",
+          "brut_c": 22.125263512134552,
+          "affiche_c": 22.13,
+          "observe_c": 22.13,
+          "absents": [],
+          "ambigus": []
+        }
+      ]
+    },
+    "original": {
+      "modele_sha256": "8ec240bf8270138f5bb29232cf93e3f44060a42cacec57b702dbe2dbf67d7976",
+      "marge_p95_calibration_c": 0.004695348739624383,
+      "lots": {
+        "calibration": {
+          "grilles": 1,
+          "observations": 8,
+          "comparables": 8,
+          "mots_distincts": 9,
+          "mots_absents": [],
+          "fraction_mots_absents": 0.0,
+          "mots_ambigus": [],
+          "observations_non_comparables": 0,
+          "arrondis_exacts": 8,
+          "fraction_exacte_toutes_observations": 1.0,
+          "biais_moyen_c": 0.0007155030593276185,
+          "mae_c": 0.00272964719682893,
+          "mse_c2": 9.26469769001473e-06,
+          "rmse_c": 0.003043796591432274,
+          "mediane_absolue_c": 0.0024167501926406487,
+          "max_absolu_c": 0.004889161586762114,
+          "p95_absolu_c": 0.004695348739624383,
+          "p99_absolu_c": 0.004850399017334568,
+          "pearson": 0.9999999879742539,
+          "spearman": 1.0,
+          "arrondis_exacts_float64": 8,
+          "troncatures_exactes": 6,
+          "fractions_compatibles_affichees": {
+            "0.0": 1.0,
+            "0.01": 1.0,
+            "0.05": 1.0,
+            "0.1": 1.0,
+            "1.0": 1.0
+          },
+          "fraction_dans_marge_calibration": 0.875
+        },
+        "validation": {
+          "grilles": 1,
+          "observations": 9,
+          "comparables": 9,
+          "mots_distincts": 10,
+          "mots_absents": [],
+          "fraction_mots_absents": 0.0,
+          "mots_ambigus": [],
+          "observations_non_comparables": 0,
+          "arrondis_exacts": 9,
+          "fraction_exacte_toutes_observations": 1.0,
+          "biais_moyen_c": 0.00017672410441739296,
+          "mae_c": 0.001983355192674995,
+          "mse_c2": 4.828836993650277e-06,
+          "rmse_c": 0.0021974614885477005,
+          "mediane_absolue_c": 0.0016665601730352364,
+          "max_absolu_c": 0.0037767338752745516,
+          "p95_absolu_c": 0.003560893535614973,
+          "p99_absolu_c": 0.0037335658073426358,
+          "pearson": 0.9999999967811487,
+          "spearman": 1.0,
+          "arrondis_exacts_float64": 9,
+          "troncatures_exactes": 2,
+          "fractions_compatibles_affichees": {
+            "0.0": 1.0,
+            "0.01": 1.0,
+            "0.05": 1.0,
+            "0.1": 1.0,
+            "1.0": 1.0
+          },
+          "fraction_dans_marge_calibration": 1.0
+        },
+        "test": {
+          "grilles": 2,
+          "observations": 21,
+          "comparables": 21,
+          "mots_distincts": 23,
+          "mots_absents": [],
+          "fraction_mots_absents": 0.0,
+          "mots_ambigus": [],
+          "observations_non_comparables": 0,
+          "arrondis_exacts": 21,
+          "fraction_exacte_toutes_observations": 1.0,
+          "biais_moyen_c": -0.0006888421731335912,
+          "mae_c": 0.0031569531205150945,
+          "mse_c2": 1.125587289883163e-05,
+          "rmse_c": 0.00335497733208909,
+          "mediane_absolue_c": 0.0030792498588567696,
+          "max_absolu_c": 0.004858672618865967,
+          "p95_absolu_c": 0.004777231216429811,
+          "p99_absolu_c": 0.0048423843383787355,
+          "pearson": 0.999999979542775,
+          "spearman": 1.0,
+          "arrondis_exacts_float64": 21,
+          "troncatures_exactes": 9,
+          "fractions_compatibles_affichees": {
+            "0.0": 1.0,
+            "0.01": 1.0,
+            "0.05": 1.0,
+            "0.1": 1.0,
+            "1.0": 1.0
+          },
+          "fraction_dans_marge_calibration": 0.8571428571428571
+        }
+      },
+      "details": [
+        {
+          "grille": "202",
+          "mot": "maladie",
+          "brut_c": -0.9213568642735481,
+          "affiche_c": -0.92,
+          "observe_c": -0.92,
+          "absents": [],
+          "ambigus": []
+        },
+        {
+          "grille": "202",
+          "mot": "corps",
+          "brut_c": 19.481033086776733,
+          "affiche_c": 19.48,
+          "observe_c": 19.48,
+          "absents": [],
+          "ambigus": []
+        },
+        {
+          "grille": "202",
+          "mot": "enterrement",
+          "brut_c": 8.284889161586761,
+          "affiche_c": 8.28,
+          "observe_c": 8.28,
+          "absents": [],
+          "ambigus": []
+        },
+        {
+          "grille": "202",
+          "mot": "part",
+          "brut_c": 3.56566458940506,
+          "affiche_c": 3.57,
+          "observe_c": 3.57,
+          "absents": [],
+          "ambigus": []
+        },
+        {
+          "grille": "202",
+          "mot": "habiller",
+          "brut_c": 21.583767235279083,
+          "affiche_c": 21.58,
+          "observe_c": 21.58,
+          "absents": [],
+          "ambigus": []
+        },
+        {
+          "grille": "202",
+          "mot": "merveilleux",
+          "brut_c": 61.64763569831848,
+          "affiche_c": 61.65,
+          "observe_c": 61.65,
+          "absents": [],
+          "ambigus": []
+        },
+        {
+          "grille": "202",
+          "mot": "idéal",
+          "brut_c": 23.422469198703766,
+          "affiche_c": 23.42,
+          "observe_c": 23.42,
+          "absents": [],
+          "ambigus": []
+        },
+        {
+          "grille": "202",
+          "mot": "somptueux",
+          "brut_c": 38.421621918678284,
+          "affiche_c": 38.42,
+          "observe_c": 38.42,
+          "absents": [],
+          "ambigus": []
+        },
+        {
+          "grille": "749",
+          "mot": "ours",
+          "brut_c": -5.249039828777313,
+          "affiche_c": -5.25,
+          "observe_c": -5.25,
+          "absents": [],
+          "ambigus": []
+        },
+        {
+          "grille": "749",
+          "mot": "animal",
+          "brut_c": -0.688026612624526,
+          "affiche_c": -0.69,
+          "observe_c": -0.69,
+          "absents": [],
+          "ambigus": []
+        },
+        {
+          "grille": "749",
+          "mot": "jungle",
+          "brut_c": -10.948619991540909,
+          "affiche_c": -10.95,
+          "observe_c": -10.95,
+          "absents": [],
+          "ambigus": []
+        },
+        {
+          "grille": "749",
+          "mot": "animalier",
+          "brut_c": -11.128829419612885,
+          "affiche_c": -11.13,
+          "observe_c": -11.13,
+          "absents": [],
+          "ambigus": []
+        },
+        {
+          "grille": "749",
+          "mot": "lion",
+          "brut_c": -6.123776733875275,
+          "affiche_c": -6.12,
+          "observe_c": -6.12,
+          "absents": [],
+          "ambigus": []
+        },
+        {
+          "grille": "749",
+          "mot": "forêt",
+          "brut_c": -14.657430350780487,
+          "affiche_c": -14.66,
+          "observe_c": -14.66,
+          "absents": [],
+          "ambigus": []
+        },
+        {
+          "grille": "749",
+          "mot": "renvoyer",
+          "brut_c": 60.87676286697388,
+          "affiche_c": 60.88,
+          "observe_c": 60.88,
+          "absents": [],
+          "ambigus": []
+        },
+        {
+          "grille": "749",
+          "mot": "substituer",
+          "brut_c": 24.861666560173035,
+          "affiche_c": 24.86,
+          "observe_c": 24.86,
+          "absents": [],
+          "ambigus": []
+        },
+        {
+          "grille": "749",
+          "mot": "rétrogradation",
+          "brut_c": 20.868884027004242,
+          "affiche_c": 20.87,
+          "observe_c": 20.87,
+          "absents": [],
+          "ambigus": []
+        },
+        {
+          "grille": "922",
+          "mot": "léger",
+          "brut_c": 34.09372866153717,
+          "affiche_c": 34.09,
+          "observe_c": 34.09,
+          "absents": [],
+          "ambigus": []
+        },
+        {
+          "grille": "922",
+          "mot": "vide",
+          "brut_c": 48.393046855926514,
+          "affiche_c": 48.39,
+          "observe_c": 48.39,
+          "absents": [],
+          "ambigus": []
+        },
+        {
+          "grille": "922",
+          "mot": "manque",
+          "brut_c": 16.997331380844116,
+          "affiche_c": 17.0,
+          "observe_c": 17.0,
+          "absents": [],
+          "ambigus": []
+        },
+        {
+          "grille": "922",
+          "mot": "descente",
+          "brut_c": 23.704470694065094,
+          "affiche_c": 23.7,
+          "observe_c": 23.7,
+          "absents": [],
+          "ambigus": []
+        },
+        {
+          "grille": "922",
+          "mot": "air",
+          "brut_c": 21.38626277446747,
+          "affiche_c": 21.39,
+          "observe_c": 21.39,
+          "absents": [],
+          "ambigus": []
+        },
+        {
+          "grille": "capture-cemantbot-prestigieux",
+          "mot": "amnésique",
+          "brut_c": 1.2461273930966854,
+          "affiche_c": 1.25,
+          "observe_c": 1.25,
+          "absents": [],
+          "ambigus": []
+        },
+        {
+          "grille": "capture-cemantbot-prestigieux",
+          "mot": "disposition",
+          "brut_c": -5.18217571079731,
+          "affiche_c": -5.18,
+          "observe_c": -5.18,
+          "absents": [],
+          "ambigus": []
+        },
+        {
+          "grille": "capture-cemantbot-prestigieux",
+          "mot": "finir",
+          "brut_c": -10.644526779651642,
+          "affiche_c": -10.64,
+          "observe_c": -10.64,
+          "absents": [],
+          "ambigus": []
+        },
+        {
+          "grille": "capture-cemantbot-prestigieux",
+          "mot": "pionnier",
+          "brut_c": 34.89688336849213,
+          "affiche_c": 34.9,
+          "observe_c": 34.9,
+          "absents": [],
+          "ambigus": []
+        },
+        {
+          "grille": "capture-cemantbot-prestigieux",
+          "mot": "précurseur",
+          "brut_c": 23.984017968177795,
+          "affiche_c": 23.98,
+          "observe_c": 23.98,
+          "absents": [],
+          "ambigus": []
+        },
+        {
+          "grille": "capture-cemantbot-prestigieux",
+          "mot": "fondateur",
+          "brut_c": 33.71477723121643,
+          "affiche_c": 33.71,
+          "observe_c": 33.71,
+          "absents": [],
+          "ambigus": []
+        },
+        {
+          "grille": "capture-cemantbot-prestigieux",
+          "mot": "initiateur",
+          "brut_c": 21.13807201385498,
+          "affiche_c": 21.14,
+          "observe_c": 21.14,
+          "absents": [],
+          "ambigus": []
+        },
+        {
+          "grille": "capture-cemantbot-prestigieux",
+          "mot": "cofondateur",
+          "brut_c": 22.838549315929413,
+          "affiche_c": 22.84,
+          "observe_c": 22.84,
+          "absents": [],
+          "ambigus": []
+        },
+        {
+          "grille": "capture-cemantbot-prestigieux",
+          "mot": "visionnaire",
+          "brut_c": 23.437681794166565,
+          "affiche_c": 23.44,
+          "observe_c": 23.44,
+          "absents": [],
+          "ambigus": []
+        },
+        {
+          "grille": "capture-cemantbot-prestigieux",
+          "mot": "fonder",
+          "brut_c": 20.62787562608719,
+          "affiche_c": 20.63,
+          "observe_c": 20.63,
+          "absents": [],
+          "ambigus": []
+        },
+        {
+          "grille": "capture-cemantbot-prestigieux",
+          "mot": "novateur",
+          "brut_c": 26.07872486114502,
+          "affiche_c": 26.08,
+          "observe_c": 26.08,
+          "absents": [],
+          "ambigus": []
+        },
+        {
+          "grille": "capture-cemantbot-prestigieux",
+          "mot": "développer",
+          "brut_c": 13.863079249858856,
+          "affiche_c": 13.86,
+          "observe_c": 13.86,
+          "absents": [],
+          "ambigus": []
+        },
+        {
+          "grille": "capture-cemantbot-prestigieux",
+          "mot": "emblématique",
+          "brut_c": 44.75279450416565,
+          "affiche_c": 44.75,
+          "observe_c": 44.75,
+          "absents": [],
+          "ambigus": []
+        },
+        {
+          "grille": "capture-cemantbot-prestigieux",
+          "mot": "avant-gardiste",
+          "brut_c": 33.60840976238251,
+          "affiche_c": 33.61,
+          "observe_c": 33.61,
+          "absents": [],
+          "ambigus": []
+        },
+        {
+          "grille": "capture-cemantbot-prestigieux",
+          "mot": "avant-garde",
+          "brut_c": 21.245141327381134,
+          "affiche_c": 21.25,
+          "observe_c": 21.25,
+          "absents": [],
+          "ambigus": []
+        },
+        {
+          "grille": "capture-cemantbot-prestigieux",
+          "mot": "audacieux",
+          "brut_c": 22.125262022018433,
+          "affiche_c": 22.13,
+          "observe_c": 22.13,
+          "absents": [],
+          "ambigus": []
+        }
+      ]
+    }
+  }
+}
