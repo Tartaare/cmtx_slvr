@@ -3,7 +3,8 @@
 import json
 import re
 import unicodedata
-from collections.abc import Sequence
+from collections.abc import Iterable, Sequence
+from functools import cached_property
 from pathlib import Path
 
 import numpy as np
@@ -27,6 +28,7 @@ class Modele:
             raise ValueError("Format de modèle préparé inconnu.")
         if source is not None and rapport["source_sha256"] != source:
             raise ValueError("Le cache correspond à une autre version du modèle.")
+        self.source_sha256: str = rapport["source_sha256"]
         if verifier:
             for nom, champ in (("vecteurs.f32", "vecteurs_sha256"), ("mots.txt", "mots_sha256")):
                 if empreinte(dossier / nom) != rapport[champ]:
@@ -50,6 +52,25 @@ class Modele:
         if i < 0:
             raise ValueError(f"Plusieurs formes du modèle correspondent à « {mot} ».")
         return i
+
+    @cached_property
+    def jouables(self) -> tuple[str, ...]:
+        return tuple(m for m, i in self.indices.items() if i >= 0 and mot_jouable(m))
+
+    def solutions_admises(self, solutions: Iterable[str] | None = None) -> tuple[str, ...]:
+        mots = self.jouables
+        if solutions is not None:
+            mots = tuple(dict.fromkeys(cle(mot) for mot in solutions))
+            for mot in mots:
+                self.indice(mot)
+                if not mot_jouable(mot):
+                    raise ValueError(f"Solution injouable : {mot}.")
+        if not mots:
+            raise ValueError("Le vocabulaire des solutions est vide.")
+        return mots
+
+    def indices_solutions(self, solutions: Iterable[str] | None = None) -> NDArray[np.intp]:
+        return np.fromiter((self.indices[m] for m in self.solutions_admises(solutions)), dtype=np.intp)
 
     def cosinus(self, premier: str, second: str) -> float:
         a, b = self.indice(premier), self.indice(second)

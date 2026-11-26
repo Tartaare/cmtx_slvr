@@ -20,17 +20,7 @@ def nouvelle_grille(
 ) -> Callable[[str], Observation]:
     if not 0 <= decimales <= 6:
         raise ValueError("La précision doit être comprise entre 0 et 6 décimales.")
-    if solutions is None:
-        eligibles = [mot for mot, i in modele.indices.items() if i >= 0 and mot_jouable(mot)]
-    else:
-        eligibles = list(dict.fromkeys(cle(mot) for mot in solutions))
-        for mot in eligibles:
-            modele.indice(mot)
-            if not mot_jouable(mot):
-                raise ValueError(f"Solution injouable : {mot}.")
-    if not eligibles:
-        raise ValueError("Le vocabulaire des solutions est vide.")
-    secret = random.Random(graine).choice(eligibles)
+    secret = random.Random(graine).choice(modele.solutions_admises(solutions))
 
     def proposer(saisie: str) -> Observation:
         mot = cle(saisie)
