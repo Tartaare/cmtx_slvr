@@ -118,6 +118,12 @@ test("l’accueil affiche la carte sur toute la fenêtre sans ouvrir de partie",
       const option = await afficherChamps.locator("..").boundingBox();
       const zoom = await page.locator("#outils-carte").boundingBox();
       assert.ok(option && zoom && option.y + option.height < zoom.y);
+      const navigation = page.getByRole("navigation", {name: "Navigation principale"});
+      const dock = await navigation.boundingBox();
+      assert.ok(dock && Math.abs(dock.x * 2 + dock.width - dimensions.width) < 1);
+      assert.ok(zoom.y + zoom.height < dock.y || dock.x + dock.width < zoom.x);
+      assert.equal(await navigation.locator('[aria-current="page"]').innerText(), "Carte des mots");
+      assert.equal(await navigation.locator("button:disabled").count(), 2);
       const libelles = await lireLibelles(page, "Home");
       const noms = libelles.map(({texte}) => texte);
       assert.ok(noms.length >= (dimensions.width === 320 ? 3 : 8), noms.join(", "));
