@@ -1,6 +1,9 @@
-import {afficher, el, graphiques, nom, statuts, texte} from "./rendu.js";
+import {afficher, el, nom, statuts, texte} from "./rendu.js";
 import type {Archive, Config, Observation, Partie} from "./rendu.js";
 
+import {actualiserGalaxie, annulerFoyer, effacerPartie, essaiEnCours, ouvrirGalaxie} from "./galaxie.js";
+
+void ouvrirGalaxie();
 const api = "/api/parties", cleSession = "cemantix-session";
 let session: Partie | null = null, occupe = false, automatique = false;
 let prochainTour: number | undefined;
@@ -38,7 +41,7 @@ function verrou(actif: boolean): void {
   occupe = actif; el("espace").setAttribute("aria-busy",String(actif));
   el("bibliotheque").setAttribute("aria-busy",String(actif));
   document.body.classList.toggle("busy", actif);
-  document.querySelectorAll<HTMLButtonElement>("button").forEach(b => b.disabled = actif && !(automatique && b.id==="auto"));
+  document.querySelectorAll<HTMLButtonElement>("header button, #espace button, #bibliotheque button, dialog button").forEach(b => b.disabled = actif && !(automatique && b.id==="auto"));
   texte("auto",automatique?"Arrêter l’automatique":"Mode automatique");
 }
 async function traiter(travail: () => Promise<void>): Promise<void> {
@@ -54,24 +57,30 @@ async function traiter(travail: () => Promise<void>): Promise<void> {
     else {texte("erreur",message);el("erreur").hidden=false}
     if(!session){texte("legende","Moteur indisponible");texte("mot","Session indisponible");
       texte("raison","Vérifiez le diagnostic ci-dessus ou démarrez une nouvelle partie avec un modèle préparé.");
-      el("essai").hidden=true}
+      el("essai").hidden=true;el("auto").hidden=true}
   } finally { verrou(false); }
 }
 function onglet(archives: boolean): void {
+  el("carte").hidden=archives;
+  document.querySelector<HTMLElement>(".donnees")!.hidden=archives;
+  texte("rubrique",archives?"Sessions locales":"Atelier de résolution");
   el("bibliotheque").hidden=!archives;el("espace").hidden=archives || !session;
   el("atelier-vide").hidden=archives || !!session;
   for(const id of ["atelier","archives"])el(id).removeAttribute("aria-current");
   el(archives?"archives":"atelier").setAttribute("aria-current","page");
-  texte("titre",archives?"Mes parties":"Atelier de résolution");
+  texte("titre",archives?"Mes parties":"Galaxie sémantique");
 }
 function choisir(s: Partie): void {
-  session=s;localStorage.setItem(cleSession,s.id);onglet(false);afficher(s);
+  session=s;localStorage.setItem(cleSession,s.id);onglet(false);afficher(s);actualiserGalaxie(s);
   texte("message",nom(s)+" · "+statuts[s.statut]+" · "+s.essais.length+" essais");
   if(s.statut!=="active")automatique=false;
 }
 async function modifier(action: string, observations?: Observation[]): Promise<void> {
   if(!session)return;
-  choisir(await requete<Partie>(api+"/"+session.id,{revision:session.revision,action,observations}));
+  if(action==="essai")essaiEnCours(observations?.[0]?.mot ?? session.prochain ?? "");
+  try {
+    choisir(await requete<Partie>(api+"/"+session.id,{revision:session.revision,action,observations}));
+  } catch(erreur) { annulerFoyer(); throw erreur; }
 }
 function champ<T extends HTMLInputElement | HTMLSelectElement>(form: HTMLFormElement, name: string): T {
   return form.elements.namedItem(name) as T;
@@ -90,7 +99,8 @@ function nouvelle(config?: Config): void {
   sourceChange();parametres.showModal();
 }
 el("nouvelle").onclick=()=>nouvelle();
-el("reset").onclick=()=>nouvelle(session?.config);
+el("ouvrir-options").onclick=()=>el<HTMLDialogElement>("options").showModal();
+el("reset").onclick=()=>{el<HTMLDialogElement>("options").close();nouvelle(session?.config)};
 champ(creation,"source").onchange=sourceChange;
 for(const bouton of document.querySelectorAll<HTMLElement>("[data-close]"))bouton.onclick=()=>bouton.closest("dialog")!.close();
 creation.onsubmit=e=>{
@@ -157,9 +167,7 @@ el("export").onclick=()=>{
   const lien=document.createElement("a");lien.href=URL.createObjectURL(blob);lien.download="cemantix-"+session.id+".json";
   lien.click();setTimeout(()=>URL.revokeObjectURL(lien.href),1000);
 };
-el("mesure").onchange=()=>{if(session)graphiques(session)};
-new ResizeObserver(()=>{if(session&&!el("espace").hidden)graphiques(session)}).observe(el("courbe"));
-el("atelier").onclick=()=>{onglet(false);if(session)afficher(session)};
+el("atelier").onclick=()=>{onglet(false)};
 function listeVide(): void {
   const vide=document.createElement("p");vide.className="empty";vide.textContent="Aucune partie enregistrée.";
   el("liste").append(vide);
@@ -201,6 +209,7 @@ formulaireSuppression.onsubmit=async e=>{
     finally{bouton.textContent="Supprimer la partie"}
     if(session?.id===archive.id){
       session=null;
+      effacerPartie();
       localStorage.setItem(cleSession,"");
     }
     ligne.remove();

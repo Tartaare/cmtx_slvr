@@ -19,6 +19,9 @@ FICHIERS = {
     "/": (RACINE / "interface/index.html", "text/html"),
     "/style.css": (RACINE / "interface/style.css", "text/css"),
     "/logo-cemantix-transparent.png": (RACINE / "logo-cemantix-transparent.png", "image/png"),
+    "/atlas.json": (RACINE / "interface/atlas.json", "application/json"),
+    **{f"/{nom}.js": (RACINE / f"dist/interface/{nom}.js", "text/javascript")
+       for nom in ("galaxie", "projection", "scene")},
     "/app.js": (RACINE / "dist/interface/app.js", "text/javascript"),
     "/rendu.js": (RACINE / "dist/interface/rendu.js", "text/javascript"),
 }
@@ -143,7 +146,7 @@ def servir(cache: Path, base: Path, port: int) -> None:
     if not hasattr(np, "vecdot"):
         raise ValueError(f"NumPy {np.__version__} ne fournit pas vecdot. Installez les dépendances "
                          "avec « python -m pip install -r requirements.txt » dans l’environnement de l’atelier.")
-    if not all(f.is_file() for f, _ in FICHIERS.values()):
+    if not all(f.is_file() for route, (f, _) in FICHIERS.items() if route != "/atlas.json"):
         raise ValueError("Compilez l’interface avec « npm run build » avant de lancer l’application.")
     if not 0 <= port <= 65535:
         raise ValueError("Port hors limites.")

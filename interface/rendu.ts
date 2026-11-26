@@ -26,49 +26,6 @@ function motif(s: string): string {
 function cellule(tag: string, contenu: string): HTMLElement {
   const e = document.createElement(tag); e.textContent = contenu; return e;
 }
-function surface(id: string): [CanvasRenderingContext2D, number, number] | null {
-  const c = el<HTMLCanvasElement>(id);
-  const w = c.clientWidth, h = c.clientHeight;
-  if (!w || !h) return null;
-  const ratio = window.devicePixelRatio || 1;
-  c.width = Math.round(w * ratio); c.height = Math.round(h * ratio);
-  const g = c.getContext("2d"); if (!g) return null;
-  g.scale(ratio, ratio); return [g, w, h];
-}
-export function graphiques(s: Partie): void {
-  const dial = surface("jauge");
-  if (dial) {
-    const [g,w,h] = dial, r = Math.min(w,h)*.42, k = 1 - s.essais.length/s.config.budget;
-    g.translate(w/2,h/2);
-    for (let i=0;i<60;i++) {
-      const a = i*Math.PI/30 - Math.PI/2;
-      g.strokeStyle = i/60 < k ? "#ffbf86" : "#4c7365"; g.lineWidth = i%5 ? 1.4 : 3;
-      g.beginPath(); g.moveTo(Math.cos(a)*r,Math.sin(a)*r);
-      const fin=r*(i%5 ? 1.05 : 1.12); g.lineTo(Math.cos(a)*fin,Math.sin(a)*fin); g.stroke();
-    }
-    g.strokeStyle="#729686";g.lineWidth=1;g.beginPath();g.arc(0,0,r*.91,0,2*Math.PI);g.stroke();
-  }
-  const mesure = el<HTMLSelectElement>("mesure").value;
-  const ys: Array<number|null> = s.essais.map(e => mesure==="ecart" ?
-    (e.prediction!==null && e.observation.temperature!==null ? Math.abs(e.prediction-e.observation.temperature) : null)
-    : mesure==="entropie"?e.entropie:mesure==="ms"?e.ms:e.nombre);
-  ys.unshift(mesure==="nombre"?s.nombre_initial:mesure==="entropie"?Math.log2(s.nombre_initial):mesure==="ms"?s.initial_ms:null);
-  const dernier=ys.at(-1), unite=({nombre:"candidats · échelle logarithmique",entropie:"bits",ecart:"°C · hypothèse précédente",ms:"ms"}[mesure] ?? "");
-  texte("valeur",dernier==null?"—":fmt(dernier)); texte("unite",unite); texte("tour","Essai "+s.essais.length);
-  const c=el("courbe"); c.setAttribute("aria-label",unite+" par essai. "+ys.map((y,i)=>i+" : "+(y===null?"indisponible":fmt(y))).join(", "));
-  const surf=surface("courbe"); if(!surf) return;
-  const [g,w,h]=surf;
-  const points=ys.map(y=> y===null?null:mesure==="nombre"?Math.log10(1+y):y);
-  const max=Math.max(1,...points.filter((v):v is number=>v!==null));
-  for(let i=0;i<4;i++){const y=10+i*(h-20)/3;g.strokeStyle="#d5ded4";g.setLineDash([3,4]);g.beginPath();g.moveTo(3,y);g.lineTo(w-3,y);g.stroke()}
-  g.setLineDash([]);g.lineWidth=2.5;g.strokeStyle="#257458";g.beginPath();
-  let relier=false;
-  points.forEach((v,i)=>{if(v===null){relier=false;return}const x=7+i*(w-14)/Math.max(1,points.length-1),y=h-10-v/max*(h-20);
-    if(relier)g.lineTo(x,y);else g.moveTo(x,y);relier=true});
-  g.stroke();
-  points.forEach((v,i)=>{if(v===null)return;const x=7+i*(w-14)/Math.max(1,points.length-1),y=h-10-v/max*(h-20);
-    g.fillStyle=i===points.length-1?"#ad5427":"#257458";g.beginPath();g.arc(x,y,4,0,Math.PI*2);g.fill()});
-}
 export function afficher(s: Partie): void {
   const n=s.essais.length, v=s.vue, dernier=s.essais.at(-1), active=s.statut==="active";
   texte("legende",active?"Proposition du solveur":statuts[s.statut]);
@@ -99,21 +56,22 @@ export function afficher(s: Partie): void {
   const premier=v.candidats[0];texte("egalite",s.statut==="resolu"?"Victoire confirmée par la source.":!premier?"Aucun candidat disponible.":v.phase==="melange"?
     "Classement probabiliste · écart RMS du premier "+(premier.rms===null?"indisponible":fmt(premier.rms)+" °C"):
     "Candidats exacts équiprobables, dans l’ordre du lexique.");
-  const journal=el("journal");journal.replaceChildren();
-  if(!n){const vide=cellule("p","Le premier mot joué apparaîtra ici.");vide.className="empty";journal.append(vide)}
-  else{
-    const table=document.createElement("table"), thead=table.createTHead().insertRow();
-    for(const label of ["Essai","Mot joué","Observé","Prédit¹","Écart¹","Décision","Calcul"])thead.append(cellule("th",label));
-    const body=table.createTBody();
-    [...s.essais].reverse().forEach((e,i)=>{const o=e.observation,row=body.insertRow(),score=o.temperature;
-      for(const valeur of [String(n-i),o.mot,o.statut==="victoire"?"Victoire":score===null?"Refus":fmt(score)+" °C",
-        e.prediction===null?"—":fmt(e.prediction)+" °C",e.prediction===null||score===null?"—":fmt(score-e.prediction)+" °C",
-        (e.recommande!==o.mot?"Saisie libre · ":"")+phase(e.phase)+(e.motif?" · "+motif(e.motif):"")+
-        (e.inexploitable?" · score hors modèle":""),fmt(e.ms,0)+" ms"])row.insertCell().textContent=valeur});
-    journal.append(table,cellule("small","¹ Prédiction du candidat en tête avant l’essai. L’écart est la température observée moins cette prédiction."))}
+  const recents=el("recents");recents.replaceChildren();
+  let meilleur: Observation | undefined;
+  for (const [i,e] of s.essais.entries()) {
+    const o=e.observation, item=document.createElement("tr");
+    if(o.temperature!==null && (o.statut==="victoire" || o.temperature>(meilleur?.temperature??-Infinity)))meilleur=o;
+    const resultat=o.statut==="victoire"?"Victoire · 100 °C":o.temperature===null?"Refus":fmt(o.temperature)+" °C";
+    item.append(cellule("td",String(i+1)),cellule("td",o.mot),cellule("td",resultat));
+    recents.prepend(item);
+  }
+  texte("meilleur",meilleur?meilleur.mot+" · "+fmt(meilleur.temperature!)+" °C":"Aucun score");
+  el("historique").hidden=n===0;
+  el("aucun-essai").hidden=n>0;
+  texte("joues",String(n));
+  const jauge=el<HTMLProgressElement>("jauge");jauge.max=s.config.budget;jauge.value=Math.max(0,s.config.budget-n);
   texte("calibration","Calibration sur deux grilles de test · "+(v.modele==="original"?"21":"19")+" températures reproduites au centième sur 21.");
   texte("couverture",s.etendu?"Secours activé · modèle réduit, puis original, puis mélange probabiliste si les scores divergent.":
     s.config.strategie==="plan"?"Plan exact · la recherche s’arrête si les observations éliminent tous les candidats.":
     "Repli probabiliste sur un modèle. Pour étendre le vocabulaire, préparez l’original et démarrez en mode adaptatif sur le réduit.");
-  graphiques(s);
 }

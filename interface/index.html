@@ -2,41 +2,45 @@
 <html lang="fr">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="theme-color" content="#123d38"><title>Atelier · Cémantix</title>
-<link rel="icon" href="data:,"><link rel="stylesheet" href="/style.css"><script type="module" src="/app.js"></script>
+<meta name="theme-color" content="#090b0d"><title>Galaxie sémantique · Cémantix</title>
+<link rel="icon" href="/logo-cemantix-transparent.png"><link rel="stylesheet" href="/style.css">
+<script type="module" src="/app.js"></script>
 </head>
 <body>
-<header><div class="bar"><a class="brand" href="/" aria-label="Cémantix, accueil"><img class="mark" src="/logo-cemantix-transparent.png" width="40" height="33" alt="">Cémantix</a>
+<a class="skip" href="#titre">Aller à l’atelier</a>
+<header class="bar"><a class="brand" href="/" aria-label="Cémantix, accueil"><img src="/logo-cemantix-transparent.png" alt="">Cémantix</a>
 <nav aria-label="Navigation principale"><button id="atelier" aria-current="page">Atelier</button><button id="archives">Mes parties</button></nav>
-<button class="new" id="nouvelle"><b aria-hidden="true">＋</b> Nouvelle partie</button></div></header>
+<button id="nouvelle"><span aria-hidden="true">＋</span> Nouvelle partie</button></header>
 <main>
-<div class="heading"><div><p class="over">Solveur sémantique</p><h1 id="titre" tabindex="-1">Atelier de résolution</h1></div>
-<span class="local"><i aria-hidden="true"></i>Moteur local</span></div>
+<div class="heading"><div><p class="kicker" id="rubrique">Atelier de résolution</p><h1 id="titre" tabindex="-1">Galaxie sémantique</h1></div>
+<p class="donnees"><span class="signal" aria-hidden="true"></span><b id="compte-mots">…</b> mots <span class="separateur">/</span> <b id="dimensions">…</b> dimensions</p></div>
 <div role="alert" id="erreur" hidden></div><p id="message" role="status" class="sr"></p>
 <section id="bibliotheque" hidden aria-label="Parties enregistrées"><div id="liste"></div></section>
+<section id="carte" aria-label="Carte du dictionnaire">
+<div id="scene">
+<canvas id="galaxie" tabindex="0" aria-label="Explorer la galaxie en trois dimensions" aria-describedby="gestes"></canvas>
+<canvas id="annotations" aria-hidden="true"></canvas>
+<div class="angle haut" aria-hidden="true"></div><div class="angle bas" aria-hidden="true"></div>
+<div class="vue"><span class="viseur" aria-hidden="true">⌖</span><span id="niveau">Vue globale</span></div>
+<form id="chercher" role="search" hidden><div class="champ-recherche"><span aria-hidden="true" class="loupe"></span><input id="recherche" type="search" maxlength="128" autocomplete="off" aria-label="Rechercher un mot dans la galaxie" placeholder="Rechercher un mot"></div><div id="resultats"></div></form>
+<p id="repli" hidden></p>
+<div class="bas-carte"><button id="suivi" aria-pressed="true" hidden><span class="signal"></span> <span id="libelle-suivi">Suivi du solveur</span></button>
+<div id="outils-carte" hidden><button id="moins" aria-label="Dézoomer" title="Dézoomer">−</button><button id="plus" aria-label="Zoomer" title="Zoomer">+</button><button id="globale" aria-label="Revenir à la vue globale" title="Vue globale">⛶</button></div></div></div>
+<div class="sous-carte"><span id="etat-carte" role="status">Chargement du dictionnaire…</span>
+<details class="aide"><summary>Navigation <span aria-hidden="true">?</span></summary><p id="gestes">Glissez ou utilisez les flèches pour tourner. Maj + flèches déplace la vue. Molette, pincement ou touches + et − pour zoomer. Début rétablit la vue globale. Recherchez un mot pour le sélectionner au clavier. Les couleurs indiquent les familles de mots. La distance projetée est approximative.</p></details></div>
+</section>
 <p id="atelier-vide" class="empty" hidden>Ouvrez une partie dans « Mes parties » ou démarrez une nouvelle partie.</p>
 <div id="espace" aria-busy="true">
-<section class="hero" aria-labelledby="mot">
-<div class="hero-text"><div class="hero-label"><span class="lightdot"></span><span id="legende">Initialisation du moteur</span></div>
-<h2 id="mot">Chargement…</h2><p id="raison">Ouverture de la session locale.</p>
-<div class="actions"><button class="primary" id="essai" disabled>Jouer un essai</button><button class="ghost" id="auto" hidden>Mode automatique</button></div></div>
-<div class="dial"><canvas id="jauge" width="210" height="210" aria-hidden="true"></canvas>
-<div><strong id="restants">—</strong><span>essais restants</span></div></div></section>
-<div class="metrics">
-<div><span>Partie courante</span><strong id="grille">—</strong></div><div><span>Modèle actif</span><strong id="modele">—</strong></div>
-<div><span>Stratégie active</span><strong id="strategie">—</strong></div><div><span>Temps de calcul</span><strong id="temps">—</strong></div></div>
-<div class="columns"><section class="panel">
-<div class="sectitle"><h2>Trajectoire de recherche</h2><select id="mesure" aria-label="Mesure du graphique">
-<option value="nombre">Candidats</option><option value="entropie">Entropie</option><option value="ecart">Écart de score</option><option value="ms">Temps de calcul</option></select></div>
-<div class="plot-summary"><strong id="valeur">—</strong><span id="unite"></span></div><canvas id="courbe" height="112" role="img" aria-label="Évolution par essai"></canvas>
-<div class="caption"><span id="depart">Départ</span><span id="tour">Essai 0</span></div></section>
-<section class="panel"><div class="sectitle"><h2>Candidats en tête</h2><span class="meta" id="total"></span></div>
-<div class="cand-label"><span>Mot / rang</span><span>Probabilité estimée</span></div><ol id="candidats"></ol><p class="note" id="egalite"></p></section></div>
-<section class="panel history"><div class="sectitle"><h2>Journal des essais</h2><button id="export" class="sub">Exporter en JSON</button></div>
-<div id="journal"></div></section>
-<details class="details"><summary>Diagnostic et commandes de la partie</summary><p id="calibration"></p><p id="couverture"></p>
-<div class="actions"><button id="pause">Suspendre</button><button id="interrompre">Interrompre</button><button id="reset">Repartir avec ces réglages</button></div></details>
-</div></main>
+<section class="console" aria-labelledby="mot"><div class="proposition"><p id="legende" class="kicker">Initialisation du moteur</p><h2 id="mot">Chargement…</h2><p id="raison">Ouverture de la session locale.</p></div>
+<div class="commandes"><div class="actions"><button class="primary" id="essai" disabled>Jouer un essai</button><button id="auto" hidden>Mode automatique</button></div>
+<p class="budget"><b id="restants">—</b> essais restants <progress id="jauge" value="0" max="1" aria-label="Essais restants"></progress></p></div></section>
+<div class="lecture"><section><div class="sectitle"><h2>Journal des essais</h2><span id="joues" class="compteur">0</span></div>
+<p id="aucun-essai" class="empty">Aucun essai joué.</p><div class="journal"><table id="historique" hidden><thead><tr><th>Essai</th><th>Mot</th><th>Résultat</th></tr></thead><tbody id="recents"></tbody></table></div></section>
+<section class="synthese"><div class="sectitle"><h2>Partie en cours</h2><button id="ouvrir-options">Détails</button></div><dl><dt>Session</dt><dd id="grille">—</dd><dt>Meilleur essai</dt><dd id="meilleur">—</dd></dl></section></div></div></main>
+<dialog id="options" aria-labelledby="options-titre"><div class="sectitle"><h2 id="options-titre">Détails de la partie</h2><button type="button" data-close aria-label="Fermer">×</button></div>
+<dl><dt>Modèle actif</dt><dd id="modele">—</dd><dt>Stratégie active</dt><dd id="strategie">—</dd><dt>Calcul</dt><dd id="temps">—</dd></dl>
+<h3>Candidats · probabilité estimée</h3><ol id="candidats"></ol><p><span id="total"></span> <span id="egalite"></span></p><p id="calibration"></p><p id="couverture"></p>
+<div class="actions"><button id="export">Exporter en JSON</button><button id="pause">Suspendre</button><button id="interrompre">Interrompre</button><button id="reset">Repartir avec ces réglages</button></div></dialog>
 <dialog id="parametres" aria-labelledby="nouveau-titre"><form id="creation"><div class="sectitle"><h2 id="nouveau-titre">Nouvelle partie</h2><button type="button" data-close aria-label="Fermer">×</button></div>
 <label>Source des scores<select name="source"><option value="simulation">Simulation locale</option><option value="jour">Grille du jour · résolution automatique</option><option value="assiste">Grille réelle · saisie ou import</option></select></label>
 <div data-assiste hidden><label>Identifiant de la grille<input name="grille" maxlength="80" placeholder="Ex. 1729"></label><label>Importer un historique JSONL (facultatif)<input type="file" name="fichier" accept=".jsonl,.txt"></label></div>
