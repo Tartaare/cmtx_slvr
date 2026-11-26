@@ -6,19 +6,23 @@ let session: Partie | null = null, occupe = false, automatique = false;
 let prochainTour: number | undefined;
 const creation = el<HTMLFormElement>("creation"), score = el<HTMLFormElement>("score");
 const parametres = el<HTMLDialogElement>("parametres"), saisie = el<HTMLDialogElement>("saisie");
+const suppression = el<HTMLDialogElement>("suppression");
+const formulaireSuppression = suppression.querySelector("form")!;
+let cibleSuppression: {archive: Archive; ligne: HTMLElement} | null = null;
 
-async function requete<T>(url: string, corps?: object): Promise<T> {
-  const options = corps ? {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(corps)} : {};
+async function requete<T>(url: string, corps?: object, method: "POST" | "DELETE" = "POST"): Promise<T> {
+  const options = corps ? {method, headers:{"Content-Type":"application/json"}, body:JSON.stringify(corps)} : {};
   const r = await fetch(url, options);
   const d = await r.json();
   if (!r.ok) {
-    if (r.status === 409 && session) choisir(await requete<Partie>(api+"/"+session.id));
+    if (r.status === 409 && method === "POST" && session) choisir(await requete<Partie>(api+"/"+session.id));
     throw new Error(d.erreur || "Le serveur local est indisponible.");
   }
   return d as T;
 }
 function verrou(actif: boolean): void {
   occupe = actif; el("espace").setAttribute("aria-busy",String(actif));
+  el("bibliotheque").setAttribute("aria-busy",String(actif));
   document.body.classList.toggle("busy", actif);
   document.querySelectorAll<HTMLButtonElement>("button").forEach(b => b.disabled = actif && !(automatique && b.id==="auto"));
   texte("auto",automatique?"Arrêter l’automatique":"Mode automatique");
@@ -40,7 +44,8 @@ async function traiter(travail: () => Promise<void>): Promise<void> {
   } finally { verrou(false); }
 }
 function onglet(archives: boolean): void {
-  el("bibliotheque").hidden=!archives;el("espace").hidden=archives;
+  el("bibliotheque").hidden=!archives;el("espace").hidden=archives || !session;
+  el("atelier-vide").hidden=archives || !!session;
   for(const id of ["atelier","archives"])el(id).removeAttribute("aria-current");
   el(archives?"archives":"atelier").setAttribute("aria-current","page");
   texte("titre",archives?"Mes parties":"Atelier de résolution");
@@ -141,8 +146,12 @@ el("export").onclick=()=>{
 el("mesure").onchange=()=>{if(session)graphiques(session)};
 new ResizeObserver(()=>{if(session&&!el("espace").hidden)graphiques(session)}).observe(el("courbe"));
 el("atelier").onclick=()=>{onglet(false);if(session)afficher(session)};
+function listeVide(): void {
+  const vide=document.createElement("p");vide.className="empty";vide.textContent="Aucune partie enregistrée.";
+  el("liste").append(vide);
+}
 el("archives").onclick=()=>{
-  automatique=false;
+  window.clearTimeout(prochainTour);automatique=false;
   void traiter(async()=>{
     const archives=await requete<Archive[]>(api);onglet(true);
     const liste=el("liste");liste.replaceChildren();
@@ -150,14 +159,48 @@ el("archives").onclick=()=>{
       const ligne=document.createElement("div");ligne.className="archive";
       const label=document.createElement("div");label.textContent=nom(a);
       const info=document.createElement("small");info.textContent=new Date(a.creation).toLocaleString("fr-FR")+" · "+statuts[a.statut];
+      const actions=document.createElement("div");actions.className="actions";
       const ouvrir=document.createElement("button");ouvrir.textContent="Ouvrir";ouvrir.onclick=()=>void traiter(async()=>choisir(await requete<Partie>(api+"/"+a.id)));
-      label.append(info);ligne.append(label,ouvrir);liste.append(ligne);
+      const supprimer=document.createElement("button");supprimer.className="delete";supprimer.textContent="Supprimer";
+      supprimer.setAttribute("aria-label",`Supprimer ${nom(a)}, ${info.textContent}`);
+      supprimer.onclick=()=>{
+        cibleSuppression={archive:a,ligne};
+        texte("suppression-cible",`${nom(a)} · ${info.textContent}`);
+        formulaireSuppression.querySelector(".feedback")!.textContent="";
+        suppression.showModal();
+      };
+      actions.append(ouvrir,supprimer);label.append(info);ligne.append(label,actions);liste.append(ligne);
     }
-    if(!archives.length)liste.textContent="Aucune partie enregistrée.";
+    if(!archives.length)listeVide();
   });
+};
+suppression.oncancel=e=>{if(occupe)e.preventDefault()};
+formulaireSuppression.onsubmit=async e=>{
+  e.preventDefault();
+  if(!cibleSuppression || occupe)return;
+  const {archive,ligne}=cibleSuppression;
+  const focus=(ligne.nextElementSibling??ligne.previousElementSibling)?.querySelector("button")??el("titre");
+  await traiter(async()=>{
+    const bouton=formulaireSuppression.querySelector("button[type=submit]")!;
+    bouton.textContent="Suppression…";
+    try{await requete(api+"/"+archive.id,{revision:archive.revision},"DELETE")}
+    finally{bouton.textContent="Supprimer la partie"}
+    if(session?.id===archive.id){
+      session=null;
+      localStorage.setItem(cleSession,"");
+    }
+    ligne.remove();
+    if(!el("liste").childElementCount)listeVide();
+    cibleSuppression=null;
+    suppression.close();
+  });
+  if(!suppression.open){focus.focus();texte("message",`${nom(archive)} : partie supprimée.`)}
+  else formulaireSuppression.querySelector<HTMLButtonElement>("button[type=submit]")!.focus();
 };
 void traiter(async()=>{
   const archives=await requete<Archive[]>(api);
   const id=localStorage.getItem(cleSession), archive=archives.find(a=>a.id===id)??archives[0];
-  choisir(archive?await requete<Partie>(api+"/"+archive.id):await requete<Partie>(api,{initial:true}));
+  if(archive)choisir(await requete<Partie>(api+"/"+archive.id));
+  else if(id===null)choisir(await requete<Partie>(api,{initial:true}));
+  else {listeVide();onglet(true)}
 });

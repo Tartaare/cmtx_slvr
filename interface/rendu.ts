@@ -6,8 +6,8 @@ export interface Observation { mot: string; statut: "score" | "victoire" | "refu
 interface Essai { observation: Observation; prediction: number | null; motif: string | null; phase: string; inexploitable: boolean;
   apres: string; nombre: number; entropie: number | null; ms: number; recommande: string }
 interface Candidat { mot: string; p: number; rms: number | null; rang_avant?: number | null }
-export interface Archive { id: string; config: Config; statut: string; creation: string }
-export interface Partie extends Archive { revision: number; prochain: string | null; etendu: boolean; initial_ms: number;
+export interface Archive { id: string; config: Config; statut: string; creation: string; revision: number }
+export interface Partie extends Archive { prochain: string | null; etendu: boolean; initial_ms: number;
   nombre_initial: number; essais: Essai[]; vue: {phase: string; modele: string; nombre: number; entropie: number | null; candidats: Candidat[]} }
 export function el<T extends HTMLElement = HTMLElement>(id: string): T { return document.getElementById(id) as T }
 export const texte = (id: string, valeur: string) => { el(id).textContent = valeur };

@@ -80,8 +80,12 @@ progress { width:100%; height:6px; accent-color:var(--green)}
 table { border-collapse:collapse; width:100%; font-size:.9rem; margin-top:.7rem}
 th,td { text-align:left; padding:.48rem .5rem; border-top:1px solid var(--line)}
 th { font-size:.8rem; color:var(--mute)}
-.archive { margin-bottom:.65rem}
+.archive { margin-bottom:.65rem; flex-wrap:wrap; overflow-wrap:anywhere}
 .archive small { display:block}
+.archive .actions { margin-top:0}
+.delete { color:#8a301e; border-color:#d6b1a7}
+.danger { color:var(--white); background:#8a301e; border-color:#8a301e}
+#suppression-cible { margin:.8rem 0 .3rem; font-weight:600; overflow-wrap:anywhere}
 #erreur,.feedback:not(:empty) { margin:.7rem 0; padding:.8rem; background:#ffeadb; color:#7a3112; border-left:3px solid #ae4b20}
 dialog { width:min(35rem,94vw); max-height:90vh; overflow:auto; border:1px solid var(--line); border-radius:12px; background:var(--paper); color:var(--ink); padding:1.5rem}
 dialog::backdrop { background:#092b258a}
@@ -120,6 +124,7 @@ nav { order:3; width:100%; min-height:36px}
 .history .sectitle { min-width:0}
 .history table { min-width:650px}
 .actions button { font-size:.9rem}
+.archive .actions button { min-height:44px}
 .heading h1 { font-size:2.2rem}
 .metrics strong { font-size:1rem}
 }
