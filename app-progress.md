@@ -1,5 +1,24 @@
 # Avancement
 
+## Sprint 7 — Mots absents du modèle réduit
+
+US-012 et US-013 sont livrées. Le mode `secours` utilise la sélection discriminante du sprint 5 dans le modèle principal. En cas d’incompatibilité, il réinterprète les observations par mot dans le modèle alternatif. L’original de Fauconnier ajoute 371 303 formes jouables non ambiguës aux 55 402 mots du réduit selon le filtre du simulateur. Les candidats exacts restent prioritaires tant que les scores en laissent au moins un. La victoire exige une confirmation explicite de la source.
+
+**Protocole.** Pour chaque graine de 1700 à 1705, le banc tire un mot commun et un mot propre à l’original. Il simule ce dernier avec des scores exacts puis avec un bruit gaussien d’écart-type 1 °C. Les quatre politiques reçoivent la même ouverture par grille, deux décimales et huit essais, confirmation comprise. Le banc connaît les secrets pour contrôler les résultats. Le solveur reçoit uniquement les observations. Deux exécutions ont reproduit toutes les suites de propositions et tous les statuts. [Résultats individuels et empreintes](benchmarks/sprint-7-secours.json)
+
+| Politique | Mots communs, scores exacts | Mots hors réduit, scores exacts | Mêmes mots, scores bruités |
+|---|---:|---:|---:|
+| Plan, réduit seul | 6/6 | 0/6 | 0/6 |
+| Robuste, réduit seul | 6/6 | 0/6 | 0/6 |
+| Secours, repli probabiliste | 6/6 | 6/6 | 5/6 |
+| Secours, repli par reconstruction | 6/6 | 6/6 | 0/6 |
+
+Les six mots communs ont été confirmés dans le modèle principal. Les six mots propres à l’original ont été confirmés en trois essais chacun avec les scores exacts. Avec du bruit, les six grilles ont épuisé l’inversion exacte des deux modèles. Le mélange probabiliste a alors consommé 7,33 essais en moyenne, échec inclus. Il devient le repli par défaut du mode `secours`. La reconstruction reste accessible pour comparaison. L’échantillon porte sur des simulations et ne mesure pas le taux de réussite sur la grille quotidienne.
+
+**Reconstruction.** Sur les six secrets hors réduit bruités, le cosinus moyen entre direction estimée et vrai vecteur passe de 0,168 avec quatre sondes à 0,254 avec douze sondes indépendantes du secret. La pseudo-inverse et Tikhonov (pénalité 0,01) donnent les mêmes moyennes à trois décimales. Cette mesure utilise des sondes dédiées, indépendamment du budget de résolution. Avec douze directions indépendantes en dimension 500, il reste 488 dimensions indéterminées. Une contrainte de norme unitaire laisse plusieurs solutions. Une régression robuste fondée sur les seuls résidus d’ajustement manque aussi d’information quand un système sous-déterminé peut interpoler des scores bruités. Le mélange évalue ces écarts sur des candidats du lexique.
+
+Le build TypeScript, les deux tests Node et les vingt-deux tests Python passent. Les contrôles couvrent deux espaces de dimensions et d’indexation différentes, un mot absent des deux lexiques, un score inexploitable, les restrictions de vocabulaire, les vecteurs identiques et le dernier essai. Le prochain jalon est le sprint 8 consacré à l’application.
+
 ## Sprint 6 — Robustesse aux écarts de température
 
 US-010 et US-011 sont livrées. Le mode `robuste` passe de l’inversion exacte au mélange probabiliste lorsque l’intersection des observations est vide. Il restaure les candidats admissibles encore inédits et rejoue tous les scores, y compris les négatifs. Les refus consomment un essai et excluent le mot joué. La trace indique le score le moins compatible avec le candidat alors en tête.

@@ -52,6 +52,25 @@ Le champ `estimation` donne le candidat en tête, sa probabilité estimée, l’
 
 Les scénarios `exact`, `bruit` et `aberrant` modifient la source de simulation. Pour une même graine de grille et un même mot, la température est reproductible, quel que soit l’ordre des essais. `--strategie student` et `--strategie melange` activent le classement probabiliste dès la première observation. Le mode exact reste sélectionné par défaut.
 
+### Chercher au-delà du vocabulaire réduit
+
+```sh
+python -m solveur preparer original
+python -m solveur resoudre --strategie secours --modele-source original --graine 27 --budget 8
+```
+
+Sur cette grille locale, « drone » laisse 40 candidats dans le réduit. Le score obtenu pour « entretenir » les élimine tous. En rejouant les deux températures dans le modèle original, le solveur isole « chignin-bergeron » et confirme ce mot au troisième essai.
+
+`--modele-source` désigne le modèle du simulateur. `--modele` désigne celui dans lequel le solveur commence sa recherche (réduit par défaut). Le mode `secours` demande les deux modèles préparés. Il passe au second si le premier épuise ses candidats ou si le second reconnaît une sonde acceptée que le premier ne peut pas interpréter. Les refus et les observations importées comptent dans le même budget. Avec `--solutions`, seules les solutions de la liste sont admissibles dans chaque modèle.
+
+Dans la trace JSON, `phase` indique la méthode active après l’observation, `motif_bascule` explique un changement et `scores_inexploitables` compte les scores dont la sonde manque ou est ambiguë dans le modèle actif. Lorsque les deux recherches exactes échouent, le repli par défaut reclasse les candidats du second modèle avec le mélange probabiliste. L’option expérimentale `--repli reconstruction` les classe selon une direction estimée par SVD avec régularisation de Tikhonov. Sa trace donne le rang, la dimension, le conditionnement des directions observées et la racine de l’erreur quadratique moyenne en °C.
+
+Pour reproduire la comparaison sur les mots communs, les mots propres à l’original et les températures bruitées, utilisez un nouveau fichier de sortie.
+
+```sh
+python -m solveur.evaluation_secours --graine 1700 --parties 6 --budget 8 --export reproduction-secours.json
+```
+
 ## Reproduire le benchmark de référence
 
 ```sh
