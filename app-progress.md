@@ -1,5 +1,11 @@
 # Avancement
 
+## Sprint 22 — Carte plein écran
+
+US-032 consacre l’accueil à la carte 3D du dictionnaire. Le logo et le titre Cémantix s’affichent en haut à gauche. La recherche, le zoom, la vue globale et l’aide de navigation restent à portée dans la scène. Les sessions et le solveur restent accessibles directement sur `/atelier`.
+
+Le chargement de l’accueil ne déclenche aucune requête de session. Lors d’une nouvelle tentative après un échec de l’atlas, le canevas reprend ses dimensions avant l’initialisation de la caméra. Le build TypeScript, les quatre tests Node, les 26 tests Python et les deux parcours Edge passent. Le parcours d’accueil vérifie la scène bord à bord à 1 440 et 320 pixels, la reprise de chargement et les commandes de caméra.
+
 ## Sprint 21 — Galaxie sémantique
 
 US-028 à US-031 livrent la carte interactive du dictionnaire réduit. Les 55 402 mots proviennent du modèle préparé en 500 dimensions. Deux générations reproduisent la même projection UMAP, le même ordre de mots et les mêmes 16 familles. La scène WebGL se charge depuis un atlas local de 1,8 Mo.

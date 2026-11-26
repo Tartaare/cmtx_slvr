@@ -1,6 +1,6 @@
 # Atelier Cémantix
 
-La galaxie représente les 55 402 mots du dictionnaire réduit. Recherchez un mot ou sélectionnez une particule pour explorer son voisinage. **Reprendre le suivi** recentre la caméra sur l’essai du solveur. En l’absence de WebGL, le journal, les scores et les commandes de jeu restent accessibles. [Plan, captures et recette](documents_design/cemantix_galaxy/plan-implementation.md)
+L’accueil affiche la galaxie 3D des 55 402 mots du dictionnaire réduit en plein écran. Recherchez un mot ou sélectionnez une particule pour explorer son voisinage. **Navigation** détaille les gestes et raccourcis clavier. Le rendu 3D nécessite WebGL. [Plan, captures et recette de l’atelier](documents_design/cemantix_galaxy/plan-implementation.md)
 
 L’application locale recommande un mot, interprète sa température et change de modèle lorsque les observations l’exigent. Le navigateur et la CLI Python utilisent le même moteur de résolution.
 
@@ -17,7 +17,9 @@ npm run build
 python -m solveur application
 ```
 
-Ouvrez [l’atelier local](http://127.0.0.1:8765/). La première visite prépare une simulation de graine 42. **Jouer un essai** demande un seul score. **Mode automatique** enchaîne les essais simulés tant que l’atelier reste ouvert. Le mode adaptatif commence avec « hirsute », l’ouverture sélectionnée par entropie sur le modèle réduit. Il essaie ensuite de départager les candidats exacts, étend la recherche au modèle original si nécessaire, puis reclasse les mots par probabilité si les températures divergent encore. Si seul le modèle réduit est préparé, la partie utilise son repli probabiliste local. Le bouton **Détails** donne accès aux commandes de session, au classement des candidats et au diagnostic.
+Ouvrez la carte plein écran depuis [l’accueil local](http://127.0.0.1:8765/).
+
+Pour résoudre une grille, ouvrez directement [l’atelier local](http://127.0.0.1:8765/atelier). La première visite de l’atelier prépare une simulation de graine 42. **Jouer un essai** demande un seul score. **Mode automatique** enchaîne les essais simulés tant que l’atelier reste ouvert. Le mode adaptatif commence avec « hirsute », l’ouverture sélectionnée par entropie sur le modèle réduit. Il essaie ensuite de départager les candidats exacts, étend la recherche au modèle original si nécessaire, puis reclasse les mots par probabilité si les températures divergent encore. Si seul le modèle réduit est préparé, la partie utilise son repli probabiliste local. Le bouton **Détails** donne accès aux commandes de session, au classement des candidats et au diagnostic. **Reprendre le suivi** recentre la caméra sur l’essai du solveur. En l’absence de WebGL, le journal, les scores et les commandes de jeu restent accessibles dans l’atelier.
 
 Sous Windows, pour isoler NumPy du reste du poste, créez l’environnement avec `python -m venv .venv`, installez les dépendances avec `.\.venv\Scripts\python.exe -m pip install -r requirements.txt` et lancez le moteur avec `.\.venv\Scripts\python.exe -m solveur application`. Après une coupure, rechargez l’onglet pour retrouver le dernier essai enregistré.
 
@@ -192,6 +194,6 @@ Le générateur vérifie les empreintes du modèle, compare UMAP et PCA sur le m
 
 - Après le build, `npm run test:galaxie` rejoue une simulation sur le modèle complet, vérifie un import de scores réels, met à jour les trois captures et mesure quinze minutes de navigation. `npm run test:galaxie -- --courte` réduit la passe de bureau à une minute. Les deux commandes utilisent une base de parties temporaire.
 - `npm run build` vérifie les types en mode strict et compile l’interface dans `dist/interface/`.
-- Après le build, `npm run test:atelier` contrôle le parcours web dans Edge ou Chrome, le redémarrage du serveur, la reprise du budget, l’import et la confirmation. Ce test utilise un lexique isolé et une base temporaire. Définissez `CEMANTIX_PYTHON` si Python 3.12 avec NumPy est installé hors du PATH.
+- Après le build, `npm run test:atelier` contrôle la carte plein écran et le parcours de résolution dans Edge ou Chrome. Le test utilise un lexique de résolution isolé et une base temporaire. Définissez `CEMANTIX_PYTHON` si Python 3.12 avec NumPy est installé hors du PATH.
 - `npm test` vérifie la saisie et le parcours du formulaire dans un navigateur local, hors ligne.
 - `python -m unittest discover -s test -p "test_*.py" -v` vérifie la préparation, le calcul cosinus, la conservation du vrai candidat, le budget, les historiques et la comparaison des stratégies sur des modèles de contrôle.
