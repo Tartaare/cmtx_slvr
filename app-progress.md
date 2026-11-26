@@ -1,5 +1,9 @@
 # Avancement
 
+## Sprint 13 — Accès aux modèles sous Windows
+
+US-021 rétablit l’accès en lecture aux fichiers préparés des modèles réduit et original pour le compte Windows de l’atelier. Les fichiers avaient été préparés sous un autre compte. La création avec le modèle réduit et son secours original, le premier essai et la création avec le modèle original ont été vérifiés sous le compte de l’atelier sur une base temporaire. Le build, les 26 tests Python, les trois tests Node et le parcours Edge passent.
+
 ## Sprint 12 — Réponse du serveur lors d’une suppression
 
 US-020 remplace l’erreur de lecture JSON par une demande de redémarrage lorsque le serveur en cours d’exécution répond HTTP 501 à la suppression. Le dialogue reste ouvert pour permettre une nouvelle tentative. Le test Edge reproduit la réponse HTML de l’ancien serveur et vérifie que la partie existe encore avant la nouvelle tentative. Le build, les 26 tests Python et les trois tests Node passent.
