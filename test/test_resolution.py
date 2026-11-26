@@ -9,7 +9,7 @@ import numpy as np
 from solveur.benchmark import exporter, mesurer, resumer
 from solveur.modele import Modele
 from solveur.preparation import preparer
-from solveur.resolution import Recherche, Strategie, resoudre
+from solveur.resolution import REFERENCES, Recherche, Strategie, resoudre
 from solveur.simulation import Observation, nouvelle_grille
 from solveur.sources import Source, empreinte
 
@@ -74,7 +74,7 @@ class ResolutionTest(unittest.TestCase):
                          [(m.ouverture, m.essais, m.statut) for m in copie])
         for graine in range(8):
             groupe = [m for m in mesures if m.grille == graine]
-            self.assertEqual({m.strategie for m in groupe}, set(Strategie))
+            self.assertEqual({m.strategie for m in groupe}, set(REFERENCES))
             self.assertEqual(len({m.ouverture for m in groupe}), 1)
             for m in groupe:
                 self.assertLessEqual(m.essais, 4)

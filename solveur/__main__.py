@@ -10,7 +10,8 @@ from .benchmark import exporter, mesurer, resumer
 from .calibration import calibrer
 from .modele import Modele, cle
 from .preparation import preparer
-from .resolution import Strategie, resoudre
+from .resolution import REFERENCES, Strategie, resoudre
+from .selection import ouverture_optimisee
 from .simulation import Observation, nouvelle_grille
 from .sources import SOURCES, acquerir
 
@@ -46,6 +47,7 @@ def main() -> int:
     resolution.add_argument("--historique", type=Path, help="Observations JSONL de cette grille, au format simuler.")
     benchmark = commandes.add_parser("benchmark", help="Comparer les cinq stratégies sur des grilles appariées.")
     benchmark.add_argument("--parties", type=int, default=100)
+    benchmark.add_argument("--selection", action="store_true", help="Inclure les quatre stratégies du sprint 5.")
     benchmark.add_argument("--export", type=Path, help="Nouveau fichier CSV des résultats par partie.")
     for commande in (simulation, resolution, benchmark):
         commande.add_argument("--modele", choices=SOURCES, default="reduit")
@@ -53,6 +55,7 @@ def main() -> int:
         commande.add_argument("--solutions", type=Path, help="Fichier UTF-8, une solution admissible par ligne.")
         commande.add_argument("--decimales", type=int, default=2)
     for commande in (resolution, benchmark):
+        commande.add_argument("--ouverture", choices=("aleatoire", "entropie", "collisions"), default="aleatoire")
         commande.add_argument("--budget", type=int, default=20)
         commande.add_argument("--graine-choix", type=int, default=17, help="Graine du choix des propositions.")
     args = parser.parse_args()
@@ -91,9 +94,15 @@ def main() -> int:
         else:
             solutions = args.solutions.read_text(encoding="utf-8-sig").splitlines() if args.solutions else None
             modele = Modele(dossier, source=SOURCES[args.modele].empreinte)
+            historique = lire_historique(args.historique) if args.action == "resoudre" and args.historique else []
+            ouverture = None
+            if args.action != "simuler" and not historique and args.ouverture != "aleatoire":
+                ouverture = ouverture_optimisee(modele, modele.indices_solutions(solutions),
+                                                args.decimales, args.ouverture, args.cache / "ouvertures")
             if args.action == "benchmark":
                 mesures = mesurer(modele, solutions, args.parties, args.budget,
-                                 args.graine, args.graine_choix, args.decimales)
+                                 args.graine, args.graine_choix, args.decimales, ouverture=ouverture,
+                                 strategies=tuple(Strategie) if args.selection else REFERENCES)
                 if args.export:
                     exporter(mesures, args.export)
                 print(json.dumps(resumer(mesures), ensure_ascii=False, indent=2))
@@ -101,13 +110,12 @@ def main() -> int:
             proposer = nouvelle_grille(modele, args.graine, solutions, args.decimales)
             if args.action == "resoudre":
                 indices = modele.indices_solutions(solutions)
-                historique = lire_historique(args.historique) if args.historique else []
                 for observation in historique:
                     if proposer(observation.mot) != Observation(cle(observation.mot), observation.statut,
                                                                 observation.temperature):
                         raise ValueError(f"Historique incompatible avec la grille pour « {observation.mot} ».")
                 resultat = resoudre(modele, proposer, indices, Strategie(args.strategie),
-                                    args.budget, args.decimales, args.graine_choix, historique)
+                                    args.budget, args.decimales, args.graine_choix, historique, ouverture=ouverture)
                 print(json.dumps(asdict(resultat), ensure_ascii=False, indent=2))
                 return 0 if resultat.statut == "resolu" else 2
             for mot in args.mots:

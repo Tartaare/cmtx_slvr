@@ -12,7 +12,7 @@ from typing import TypedDict
 import numpy as np
 
 from .modele import Modele
-from .resolution import Strategie, resoudre
+from .resolution import REFERENCES, Strategie, resoudre
 from .simulation import nouvelle_grille
 
 
@@ -32,7 +32,8 @@ class Mesure:
 
 
 def mesurer(modele: Modele, solutions: Sequence[str] | None, parties: int, budget: int,
-            graine: int, graine_choix: int, decimales: int) -> list[Mesure]:
+            graine: int, graine_choix: int, decimales: int, *,
+            strategies: Sequence[Strategie] = REFERENCES, ouverture: int | None = None) -> list[Mesure]:
     if parties < 1:
         raise ValueError("Il faut au moins une grille.")
     ouvertures = random.Random(graine_choix)
@@ -41,9 +42,9 @@ def mesurer(modele: Modele, solutions: Sequence[str] | None, parties: int, budge
     for grille in range(graine, graine + parties):
         source = nouvelle_grille(modele, grille, solutions, decimales)
         choix = ouvertures.getrandbits(63)
-        for strategie in Strategie:
+        for strategie in strategies:
             debut = perf_counter()
-            resultat = resoudre(modele, source, indices, strategie, budget, decimales, choix)
+            resultat = resoudre(modele, source, indices, strategie, budget, decimales, choix, ouverture=ouverture)
             duree = round((perf_counter() - debut) * 1000, 3)
             mesures.append(Mesure(grille, choix, strategie, resultat.essais[0].observation.mot,
                                   resultat.statut, len(resultat.essais),
@@ -67,7 +68,7 @@ class Resume(TypedDict):
 
 def resumer(mesures: Sequence[Mesure]) -> dict[str, Resume]:
     bilan: dict[str, Resume] = {}
-    for strategie in Strategie:
+    for strategie in dict.fromkeys(m.strategie for m in mesures):
         groupe = [m for m in mesures if m.strategie == strategie]
         essais = [m.essais for m in groupe]
         succes = [m.essais for m in groupe if m.statut == "resolu"]
