@@ -3,10 +3,13 @@ import json
 import re
 import sqlite3
 import subprocess
+import traceback
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from threading import Lock
 from urllib.parse import urlsplit
+
+import numpy as np
 
 from .atelier import Atelier, Objet
 from .sessions import Conflit, Sessions
@@ -122,6 +125,9 @@ def creer_serveur(cache: Path, base: Path, port: int) -> ThreadingHTTPServer:
                 self.json(400, {"erreur": str(erreur)})
             except (OSError, sqlite3.Error) as erreur:
                 self.json(500, {"erreur": f"Lecture ou sauvegarde impossible. {erreur}"})
+            except Exception:
+                traceback.print_exc()
+                self.json(500, {"erreur": "Le moteur local a rencontré une erreur. Consultez le terminal de l’atelier."})
 
         do_GET = traiter
         do_POST = traiter
@@ -131,6 +137,9 @@ def creer_serveur(cache: Path, base: Path, port: int) -> ThreadingHTTPServer:
 
 
 def servir(cache: Path, base: Path, port: int) -> None:
+    if not hasattr(np, "vecdot"):
+        raise ValueError(f"NumPy {np.__version__} ne fournit pas vecdot. Installez les dépendances "
+                         "avec « python -m pip install -r requirements.txt » dans l’environnement de l’atelier.")
     if not all(f.is_file() for f, _ in FICHIERS.values()):
         raise ValueError("Compilez l’interface avec « npm run build » avant de lancer l’application.")
     if not 0 <= port <= 65535:

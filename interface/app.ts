@@ -12,7 +12,16 @@ let cibleSuppression: {archive: Archive; ligne: HTMLElement} | null = null;
 
 async function requete<T>(url: string, corps?: object, method: "POST" | "DELETE" = "POST"): Promise<T> {
   const options = corps ? {method, headers:{"Content-Type":"application/json"}, body:JSON.stringify(corps)} : {};
-  const r = await fetch(url, options);
+  const connexion = () => fetch(url, options);
+  let r: Response;
+  try {
+    r = await connexion().catch(erreur => {
+      if (corps) throw erreur;
+      return connexion();
+    });
+  } catch {
+    throw new Error("Connexion au moteur local interrompue. Vérifiez que « python -m solveur application » tourne, puis rechargez l’atelier pour retrouver l’état enregistré.");
+  }
   if(method==="DELETE" && r.status===501){
     throw new Error("Le serveur de l’atelier ne prend pas encore en charge la suppression. Redémarrez-le, puis réessayez.");
   }

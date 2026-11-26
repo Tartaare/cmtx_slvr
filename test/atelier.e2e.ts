@@ -38,7 +38,18 @@ test("la partie reprend après redémarrage du serveur et aboutit dans le naviga
     const page = await navigateur.newPage();
     const erreurs: Error[] = [];
     page.on("pageerror", e => erreurs.push(e));
+    const apiLocale = new URL("api/parties", url).href;
+    let lectures = 0;
+    await page.route(apiLocale, route => {
+      lectures++;
+      return route.abort("connectionreset");
+    });
     await page.goto(url);
+    await page.getByRole("alert").filter({hasText:"Connexion au moteur local interrompue"}).waitFor();
+    assert.equal(lectures, 2);
+    await page.unroute(apiLocale);
+    await page.route(apiLocale, route => route.abort("connectionreset"), {times:1});
+    await page.reload();
     await page.getByRole("heading", {name:"hirsute",exact:true}).or(page.locator("#erreur:visible")).waitFor();
     assert.ok(await page.locator("#erreur").isHidden(), await page.locator("#erreur").textContent() ?? "");
     await page.getByRole("button", {name:"Jouer un essai"}).click();
