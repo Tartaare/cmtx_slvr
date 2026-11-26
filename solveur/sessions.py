@@ -28,10 +28,21 @@ class Sessions:
 
     def liste(self) -> list[Objet]:
         with closing(sqlite3.connect(self.fichier)) as db:
-            return [{"id": i, "creation": date, "statut": statut, "config": json.loads(config)}
-                    for i, date, statut, config in db.execute("""
-                        SELECT id, creation, json_extract(etat,'$.statut'), json_extract(etat,'$.config')
+            return [{"id": i, "creation": date, "revision": revision, "statut": statut, "config": json.loads(config)}
+                    for i, date, revision, statut, config in db.execute("""
+                        SELECT id, creation, revision, json_extract(etat,'$.statut'), json_extract(etat,'$.config')
                         FROM parties ORDER BY creation DESC""")]
+
+    def supprimer(self, identifiant: str, revision: int) -> None:
+        if type(revision) is not int or revision < 0 or revision > 2**63 - 1:
+            raise ValueError("Révision invalide.")
+        with closing(sqlite3.connect(self.fichier)) as db, db:
+            resultat = db.execute("DELETE FROM parties WHERE id=? AND revision=?", (identifiant, revision))
+            if resultat.rowcount == 0 and db.execute(
+                "SELECT 1 FROM parties WHERE id=?", (identifiant,)
+            ).fetchone():
+                raise Conflit("Cette partie a changé. Actualisez Mes parties avant de la supprimer.")
+        self.active.pop((identifiant, revision), None)
 
     def lire(self, identifiant: str) -> Objet:
         with closing(sqlite3.connect(self.fichier)) as db:

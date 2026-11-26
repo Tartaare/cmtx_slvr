@@ -51,7 +51,8 @@ def creer_serveur(cache: Path, base: Path, port: int) -> ThreadingHTTPServer:
         def json(self, statut: int, contenu: object) -> None:
             self.repondre(statut, json.dumps(contenu, allow_nan=False).encode(), "application/json")
 
-        def traiter(self, ecriture: bool) -> None:
+        def traiter(self) -> None:
+            ecriture = self.command != "GET"
             port_local = self.server.server_address[1]
             host = self.headers.get("Host")
             if host not in (f"127.0.0.1:{port_local}", f"localhost:{port_local}"):
@@ -64,7 +65,7 @@ def creer_serveur(cache: Path, base: Path, port: int) -> ThreadingHTTPServer:
                     self.repondre(200, fichier.read_bytes(), mime)
                     return
                 identifiant = re.fullmatch(r"/api/parties/([a-f0-9]{32})", chemin)
-                if chemin != "/api/parties" and not identifiant:
+                if not identifiant and (chemin != "/api/parties" or self.command == "DELETE"):
                     self.json(404, {"erreur": "Ressource inconnue."})
                     return
                 if not ecriture:
@@ -83,6 +84,11 @@ def creer_serveur(cache: Path, base: Path, port: int) -> ThreadingHTTPServer:
                 donnees: Objet = json.loads(self.rfile.read(taille))
                 if not isinstance(donnees, dict):
                     raise ValueError("Un objet JSON est attendu.")
+                if self.command == "DELETE" and identifiant:
+                    with mutations:
+                        sessions.supprimer(identifiant[1], donnees.get("revision"))
+                    self.json(200, {})
+                    return
                 with mutations:
                     if identifiant:
                         if donnees.get("action") == "essai":
@@ -117,11 +123,9 @@ def creer_serveur(cache: Path, base: Path, port: int) -> ThreadingHTTPServer:
             except (OSError, sqlite3.Error) as erreur:
                 self.json(500, {"erreur": f"Lecture ou sauvegarde impossible. {erreur}"})
 
-        def do_GET(self) -> None:
-            self.traiter(False)
-
-        def do_POST(self) -> None:
-            self.traiter(True)
+        do_GET = traiter
+        do_POST = traiter
+        do_DELETE = traiter
 
     return ThreadingHTTPServer(("127.0.0.1", port), Requete)
 
