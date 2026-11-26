@@ -18,9 +18,11 @@ from .atelier import Atelier, Objet
 from .sessions import Conflit, Sessions
 
 RACINE = Path(__file__).resolve().parents[1]
+NAVIGATION = RACINE / "interface/navigation.html"
 FICHIERS = {
     "/": (RACINE / "interface/carte.html", "text/html"),
     "/atelier": (RACINE / "interface/index.html", "text/html"),
+    "/jour": (RACINE / "interface/index.html", "text/html"),
     "/style.css": (RACINE / "interface/style.css", "text/css"),
     "/logo-cemantix-transparent.png": (RACINE / "logo-cemantix-transparent.png", "image/png"),
     "/atlas.json": (RACINE / "interface/atlas.json", "application/json"),
@@ -50,6 +52,13 @@ def consulter_jeu(*arguments: str) -> str | Objet:
     if resultat.returncode:
         raise ValueError(resultat.stderr.strip() or "Impossible de consulter Cémantix.")
     return json.loads(resultat.stdout)
+
+
+def numero_grille_du_jour() -> str:
+    grille = consulter_jeu("--grille")
+    if not isinstance(grille, str) or not re.fullmatch(r"[0-9]+", grille):
+        raise ValueError("Numéro de grille illisible.")
+    return grille
 
 
 def creer_serveur(cache: Path, base: Path, port: int) -> ThreadingHTTPServer:
@@ -100,7 +109,17 @@ def creer_serveur(cache: Path, base: Path, port: int) -> ThreadingHTTPServer:
                         else:
                             self.repondre(200, contenu, mime, etag=etag, compresse=avec_gzip)
                         return
-                    self.repondre(200, fichier.read_bytes(), mime)
+                    contenu = fichier.read_bytes()
+                    if mime == "text/html":
+                        href = f'href="{chemin}"'.encode()
+                        navigation = NAVIGATION.read_bytes().replace(href, href + b' aria-current="page"', 1)
+                        sous_titre = "Grille du jour…" if chemin == "/jour" else "Partie Locale"
+                        contenu = contenu.replace(b"<!-- navigation -->", navigation, 1)
+                        contenu = contenu.replace(b"<!-- sous-titre -->", sous_titre.encode(), 1)
+                    self.repondre(200, contenu, mime)
+                    return
+                if not ecriture and chemin == "/api/grille-du-jour":
+                    self.json(200, {"grille": numero_grille_du_jour()})
                     return
                 identifiant = re.fullmatch(r"/api/parties/([a-f0-9]{32})", chemin)
                 if not identifiant and (chemin != "/api/parties" or self.command == "DELETE"):
@@ -145,10 +164,7 @@ def creer_serveur(cache: Path, base: Path, port: int) -> ThreadingHTTPServer:
                     else:
                         config = donnees.get("config", {})
                         if isinstance(config, dict) and config.get("source") == "jour":
-                            grille = consulter_jeu("--grille")
-                            if not isinstance(grille, str) or not grille.isdecimal():
-                                raise ValueError("Numéro de grille illisible.")
-                            config["grille"] = grille
+                            config["grille"] = numero_grille_du_jour()
                             donnees.pop("observations", None)
                         resultat = sessions.creer(config, donnees.get("observations"))
                 self.json(200 if identifiant else 201, resultat)
@@ -175,7 +191,7 @@ def servir(cache: Path, base: Path, port: int) -> None:
     if not hasattr(np, "vecdot"):
         raise ValueError(f"NumPy {np.__version__} ne fournit pas vecdot. Installez les dépendances "
                          "avec « python -m pip install -r requirements.txt » dans l’environnement de l’atelier.")
-    if not all(f.is_file() for route, (f, _) in FICHIERS.items() if route != "/atlas.json"):
+    if not NAVIGATION.is_file() or not all(f.is_file() for route, (f, _) in FICHIERS.items() if route != "/atlas.json"):
         raise ValueError("Compilez l’interface avec « npm run build » avant de lancer l’application.")
     if not 0 <= port <= 65535:
         raise ValueError("Port hors limites.")

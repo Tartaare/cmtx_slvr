@@ -112,13 +112,19 @@ dialog input,dialog select{border:1px solid var(--line);border-radius:5px;backgr
 }
 @media(forced-colors:active){button{border:1px solid ButtonText}.signal{background:CanvasText}}
 
-.carte-plein-ecran{
+.carte-plein-ecran,.atelier-page{
  --bord:clamp(12px,2.2vw,32px);
  --haut:max(var(--bord),env(safe-area-inset-top));
  --droite:max(var(--bord),env(safe-area-inset-right));
  --bas:max(var(--bord),env(safe-area-inset-bottom));
  --gauche:max(var(--bord),env(safe-area-inset-left));
 }
+.atelier-page{padding-bottom:calc(var(--bas) + 72px)}
+.marque-atelier{display:grid;align-content:center}
+.marque-atelier .brand{width:fit-content}
+#sous-titre,#retenter-jour{margin-inline-start:46px;font:600 .75rem/1.4 var(--mono);color:var(--muted)}
+#retenter-jour{min-height:30px;margin-block:3px 0;padding:0 5px;width:fit-content}
+.atelier-page .bar{min-height:76px;height:auto;padding-block:8px}
 .carte-plein-ecran #scene{width:100%;height:100dvh;max-width:none;max-height:none;padding:0}
 .carte-plein-ecran .identite{
  position:absolute;z-index:1;top:var(--haut);left:var(--gauche);pointer-events:none;
@@ -144,7 +150,7 @@ dialog input,dialog select{border:1px solid var(--line);border-radius:5px;backgr
 
 .dock{
  --retrait:5px;--intervalle:2px;--selection:2;
- position:fixed;bottom:var(--bas);left:50%;transform:translateX(-50%);
+ display:block;position:fixed;z-index:4;bottom:var(--bas);left:50%;transform:translateX(-50%);
  width:min(25rem,calc(100% - 2 * max(var(--gauche),var(--droite))));
  padding:var(--retrait);
  border:1px solid rgb(255 255 255/.23);border-radius:36px;background:var(--surface);
@@ -184,25 +190,22 @@ dialog input,dialog select{border:1px solid var(--line);border-radius:5px;backgr
             inset 0 0 0 1px rgb(255 255 255/.23),0 7px 22px rgb(0 0 0/.34);
  -webkit-backdrop-filter:contrast(1.06) saturate(1.18);backdrop-filter:contrast(1.06) saturate(1.18);
 }
-.dock:has(>.dock-options>label:nth-child(1)>input:checked){--selection:0}
-.dock:has(>.dock-options>label:nth-child(2)>input:checked){--selection:1}
-.dock-options>label{
+.dock:has(>.dock-options>a:nth-child(1)[aria-current]){--selection:0}
+.dock:has(>.dock-options>a:nth-child(2)[aria-current]){--selection:1}
+.dock-options>a{
  position:relative;cursor:pointer;color:var(--muted);touch-action:pan-y;user-select:none;
  display:grid;min-height:52px;border-radius:28px;
- font:550 .75rem/1.2 var(--sans);text-align:center;transition:color 150ms ease;
+ font:550 .75rem/1.2 var(--sans);text-align:center;text-decoration:none;transition:color 150ms ease;
 }
 .dock-face{
  display:grid;place-content:center;justify-items:center;gap:4px;padding:4px;pointer-events:none;
 }
-.dock input{
- position:absolute;inset:0;width:100%;height:100%;margin:0;opacity:0;cursor:pointer;
-}
-.dock-options>label:has(input:focus-visible){outline:2px solid var(--accent);outline-offset:2px;z-index:3}
-.dock:not([data-survol]) .dock-options>label:has(input:checked),
-.dock[data-survol="0"] .dock-options>label:nth-child(1),
-.dock[data-survol="1"] .dock-options>label:nth-child(2),
-.dock[data-survol="2"] .dock-options>label:nth-child(3){color:var(--accent)}
-@media(hover:hover){.dock:not([data-survol])>.dock-options>label:hover:not(:has(input:checked)){color:var(--ink)}}
+.dock-options>a:focus-visible{outline:2px solid var(--accent);outline-offset:2px;z-index:3}
+.dock:not([data-survol]) .dock-options>a[aria-current],
+.dock[data-survol="0"] .dock-options>a:nth-child(1),
+.dock[data-survol="1"] .dock-options>a:nth-child(2),
+.dock[data-survol="2"] .dock-options>a:nth-child(3){color:var(--accent)}
+@media(hover:hover){.dock:not([data-survol])>.dock-options>a:hover:not([aria-current]){color:var(--ink)}}
 .dock svg{
  width:21px;height:21px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linejoin:round;stroke-linecap:round;pointer-events:none;
 }
@@ -213,7 +216,7 @@ dialog input,dialog select{border:1px solid var(--line);border-radius:5px;backgr
  .carte-plein-ecran .aide p{max-height:calc(100dvh - var(--haut) - var(--bas-outils) - 60px)}
 }
 @media(prefers-reduced-motion:reduce){
- .dock:not([data-lentille]) .dock-lentille,.dock-options>label{transition:none}
+ .dock:not([data-lentille]) .dock-lentille,.dock-options>a{transition:none}
 }
 @media(prefers-reduced-transparency:reduce){
  .dock{background:var(--surface);-webkit-backdrop-filter:none;backdrop-filter:none}
@@ -226,7 +229,7 @@ dialog input,dialog select{border:1px solid var(--line);border-radius:5px;backgr
  .dock[data-soulevee] .dock-lentille{
   z-index:auto;-webkit-backdrop-filter:none;backdrop-filter:none
  }
- .dock-options>label:has(input:focus-visible){outline-color:CanvasText}
+ .dock-options>a:focus-visible{outline-color:CanvasText}
  .dock[data-soulevee]>.dock-reflet{display:none}
  .dock[data-soulevee]>.dock-options .dock-face{clip-path:none}
 }

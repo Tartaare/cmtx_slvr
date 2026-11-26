@@ -14,22 +14,27 @@ function contour(centre: number, hauteur: number, demiLargeur: number, rx: numbe
 
 export function animerLentille(dock: HTMLElement): void {
   const rangee = dock.querySelector<HTMLElement>(".dock-options")!;
-  const options = [...rangee.querySelectorAll<HTMLInputElement>('input[type="radio"]')];
+  const options = [...rangee.querySelectorAll<HTMLAnchorElement>("a[href]")];
   const faces = [...rangee.querySelectorAll<HTMLElement>(".dock-face")];
   const reflet = document.createElement("div");
   reflet.className = "dock-reflet";
   reflet.setAttribute("aria-hidden", "true");
   const copie = rangee.cloneNode(true) as HTMLElement;
-  copie.querySelectorAll("input").forEach(option => option.remove());
+  copie.querySelectorAll("a").forEach(option => {
+    option.removeAttribute("aria-current");
+    option.removeAttribute("href");
+  });
   reflet.append(copie);
   dock.append(reflet);
-  const selection = () => options.findIndex(option => option.checked);
+  const courante = options.findIndex(option => option.hasAttribute("aria-current"));
   const mouvementReduit = matchMedia("(prefers-reduced-motion: reduce)");
-  const position: Ressort = {position: selection(), vitesse: 0};
+  const position: Ressort = {position: courante, vitesse: 0};
   const hauteur: Ressort = {position: 0, vitesse: 0};
   let geste: Geste | undefined;
   let animation = 0;
   let precedent = 0;
+  let destination = courante;
+  let navigation: number | undefined;
 
   const limiter = (rang: number) => Math.max(0, Math.min(options.length - 1, rang));
   function rangDepuis(x: number, projection = 0): number {
@@ -39,7 +44,7 @@ export function animerLentille(dock: HTMLElement): void {
   }
 
   function poser(): void {
-    position.position = selection();
+    position.position = destination;
     position.vitesse = hauteur.position = hauteur.vitesse = precedent = 0;
     dock.removeAttribute("data-soulevee");
     dock.removeAttribute("data-survol");
@@ -73,12 +78,12 @@ export function animerLentille(dock: HTMLElement): void {
     dock.style.setProperty("--largeur-lentille", String(sx));
     dock.style.setProperty("--hauteur-lentille", String(sy));
     dock.toggleAttribute("data-soulevee", soulevee);
-    if (geste || soulevee) dock.dataset.survol = String(geste ? limiter(Math.round(positionX)) : selection());
+    if (geste || soulevee) dock.dataset.survol = String(geste ? limiter(Math.round(positionX)) : destination);
   }
 
   function actualiser(instant: number): void {
     animation = 0;
-    const rang = geste ? rangDepuis(geste.x) : selection();
+    const rang = geste ? rangDepuis(geste.x) : destination;
     const borne = limiter(rang), depassement = rang - borne;
     const cible = borne + .36 * depassement / (1 + Math.abs(depassement));
     if (mouvementReduit.matches) {
@@ -111,11 +116,38 @@ export function animerLentille(dock: HTMLElement): void {
     if (!animation) animation = requestAnimationFrame(actualiser);
   }
 
+  function ouvrir(rang: number): void {
+    window.clearTimeout(navigation);
+    destination = rang;
+    animer();
+    if (rang === courante) return;
+    const aller = () => location.assign(options[rang].href);
+    if (mouvementReduit.matches) aller();
+    else navigation = window.setTimeout(aller, 280);
+  }
+
   dock.dataset.lentille = "";
-  dock.addEventListener("change", animer);
+  dock.addEventListener("dragstart", evenement => evenement.preventDefault());
+  dock.addEventListener("click", evenement => {
+    const lien = (evenement.target as Element).closest<HTMLAnchorElement>("a[href]");
+    if (!lien || evenement.ctrlKey || evenement.metaKey || evenement.shiftKey || evenement.altKey) return;
+    evenement.preventDefault();
+    ouvrir(options.indexOf(lien));
+  });
+  dock.addEventListener("keydown", evenement => {
+    const rang = options.indexOf(document.activeElement as HTMLAnchorElement);
+    if (rang < 0 || (evenement.key !== "ArrowLeft" && evenement.key !== "ArrowRight")) return;
+    evenement.preventDefault();
+    const pas = evenement.key === "ArrowLeft" ? -1 : 1;
+    options[(rang + pas + options.length) % options.length].focus();
+  });
   mouvementReduit.addEventListener("change", animer);
   dock.addEventListener("pointerdown", evenement => {
-    if (geste || !evenement.isPrimary || evenement.button !== 0 || !(evenement.target instanceof HTMLInputElement)) return;
+    if (geste || !evenement.isPrimary || evenement.button !== 0
+        || evenement.ctrlKey || evenement.metaKey || evenement.shiftKey || evenement.altKey
+        || !(evenement.target as Element).closest("a[href]")) return;
+    window.clearTimeout(navigation);
+    destination = courante;
     geste = {id: evenement.pointerId, origine: evenement.clientX, x: evenement.clientX,
       vitesse: 0, instant: evenement.timeStamp, glisse: false};
     animer();
@@ -142,9 +174,9 @@ export function animerLentille(dock: HTMLElement): void {
     if (dernier.glisse && evenement.type === "pointerup") {
       const recent = evenement.timeStamp - dernier.instant < 90;
       const projection = recent ? Math.max(-90, Math.min(90, dernier.vitesse * 120)) : 0;
-      const option = options[limiter(Math.round(rangDepuis(evenement.clientX, projection)))];
-      option.focus({preventScroll: true});
-      option.click();
+      const rang = limiter(Math.round(rangDepuis(evenement.clientX, projection)));
+      options[rang].focus({preventScroll: true});
+      ouvrir(rang);
     }
     animer();
   }
@@ -152,5 +184,12 @@ export function animerLentille(dock: HTMLElement): void {
   window.addEventListener("pointercancel", terminer);
   dock.addEventListener("lostpointercapture", evenement => {
     if (evenement.target === dock) terminer(evenement);
+  });
+  window.addEventListener("pageshow", evenement => {
+    if (!evenement.persisted) return;
+    window.clearTimeout(navigation);
+    geste = undefined;
+    destination = courante;
+    poser();
   });
 }
