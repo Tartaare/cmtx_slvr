@@ -119,12 +119,12 @@ dialog input,dialog select{border:1px solid var(--line);border-radius:5px;backgr
  --bas:max(var(--bord),env(safe-area-inset-bottom));
  --gauche:max(var(--bord),env(safe-area-inset-left));
 }
-.atelier-page{padding-bottom:calc(var(--bas) + 72px)}
+.marque-atelier .brand a{display:inline-flex;align-items:center;gap:10px;text-decoration:none;color:inherit}
 .marque-atelier{display:grid;align-content:center}
 .marque-atelier .brand{width:fit-content}
 #sous-titre,#retenter-jour{margin-inline-start:46px;font:600 .75rem/1.4 var(--mono);color:var(--muted)}
 #retenter-jour{min-height:30px;margin-block:3px 0;padding:0 5px;width:fit-content}
-.atelier-page .bar{min-height:76px;height:auto;padding-block:8px}
+.atelier-page #sous-titre,.atelier-page #retenter-jour{margin-inline-start:calc(clamp(26px,7vw,36px) + 10px)}
 .carte-plein-ecran #scene{width:100%;height:100dvh;max-width:none;max-height:none;padding:0}
 .carte-plein-ecran .identite{
  position:absolute;z-index:1;top:var(--haut);left:var(--gauche);pointer-events:none;
@@ -147,6 +147,34 @@ dialog input,dialog select{border:1px solid var(--line);border-radius:5px;backgr
 .carte-plein-ecran .aide summary::-webkit-details-marker{display:none}
 .carte-plein-ecran .aide p{left:0;right:auto;bottom:calc(100% + 8px);width:min(340px,calc(100vw - var(--gauche) - var(--droite)));max-height:calc(100dvh - var(--bas) - 60px);overflow:auto}
 .carte-plein-ecran #repli button{margin-top:12px}
+
+.panneau-jeu{
+ position:fixed;z-index:1;left:var(--gauche);bottom:calc(var(--bas) + 58px);
+ width:min(22rem,calc(100% - var(--gauche) - var(--droite)));
+ max-height:calc(100dvh - var(--haut) - var(--bas) - 200px);
+ overflow:auto;overscroll-behavior:contain;scrollbar-width:thin;
+ padding:0 16px 14px;border:1px solid var(--line);border-radius:16px;
+ background:rgb(16 19 23/.96);box-shadow:0 8px 32px rgb(0 0 0/.3)
+}
+.atelier-page .identite{display:grid;justify-items:start;gap:8px;pointer-events:auto}
+#volet{position:sticky;top:0;z-index:1;display:flex;align-items:center;justify-content:space-between;
+ width:100%;padding:0;min-height:44px;color:var(--muted);background:var(--surface);border:0;text-align:left}
+#volet span{font-size:1.2rem;color:var(--accent)}
+#volet[aria-expanded=true] span{transform:rotate(180deg)}
+#volet:focus-visible{outline-offset:-2px}
+#espace{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;column-gap:10px}
+#legende{grid-column:1/-1;margin-bottom:4px}
+.panneau-jeu #mot{font-size:clamp(1.35rem,3vw,2rem)}
+#contenu-jeu{margin-top:12px;border-top:1px solid var(--line);padding-top:8px}
+.sessions{display:inline-flex;width:auto;gap:12px}
+.sessions button{min-height:44px}
+.panneau-jeu #nouvelle{float:right;padding-inline:8px;font-size:.78rem}
+#bibliotheque,#partie-details{clear:both;padding-top:12px}
+#partie-details .actions{margin:10px 0}
+#partie-details .budget{justify-content:start;margin-bottom:14px}
+#atelier-vide{padding:2px 0}
+.atelier-page #aide-carte[open],.atelier-page #chercher:focus-within{z-index:3}
+.atelier-page #scene{isolation:auto}
 
 .dock{
  --retrait:5px;--intervalle:2px;--selection:2;
@@ -210,15 +238,23 @@ dialog input,dialog select{border:1px solid var(--line);border-radius:5px;backgr
  width:21px;height:21px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linejoin:round;stroke-linecap:round;pointer-events:none;
 }
 @media(max-width:50rem){
+ .panneau-jeu{bottom:calc(var(--bas-outils) + 104px);max-height:calc(100dvh - var(--haut) - var(--bas-outils) - 222px)}
  .carte-plein-ecran{--bas-outils:calc(var(--bas) + 4rem + 12px)}
  .carte-plein-ecran #outils-carte,.carte-plein-ecran .aide{bottom:var(--bas-outils)}
  .carte-plein-ecran #option-champs{bottom:calc(var(--bas-outils) + 52px)}
  .carte-plein-ecran .aide p{max-height:calc(100dvh - var(--haut) - var(--bas-outils) - 60px)}
 }
+@media(max-height:500px) and (orientation:landscape){
+ .atelier-page .panneau-jeu{width:min(20rem,47vw);bottom:calc(var(--bas) + 72px);
+  max-height:calc(100dvh - var(--haut) - var(--bas) - 180px)}
+ .atelier-page .aide{left:auto;right:calc(var(--droite) + 146px)}
+ .atelier-page .aide p{left:auto;right:0}
+}
 @media(prefers-reduced-motion:reduce){
  .dock:not([data-lentille]) .dock-lentille,.dock-options>a{transition:none}
 }
 @media(prefers-reduced-transparency:reduce){
+ .panneau-jeu{background:var(--surface)}
  .dock{background:var(--surface);-webkit-backdrop-filter:none;backdrop-filter:none}
  .dock .dock-lentille,.dock[data-soulevee] .dock-lentille{
   background:var(--field);-webkit-backdrop-filter:none;backdrop-filter:none

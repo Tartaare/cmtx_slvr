@@ -47,7 +47,7 @@ function verrou(actif: boolean): void {
   occupe = actif; el("espace").setAttribute("aria-busy",String(actif));
   el("bibliotheque").setAttribute("aria-busy",String(actif));
   document.body.classList.toggle("busy", actif);
-  document.querySelectorAll<HTMLButtonElement>("header button, #espace button, #bibliotheque button, dialog button").forEach(b => b.disabled = actif && !(automatique && b.id==="auto"));
+  document.querySelectorAll<HTMLButtonElement>("header button, #espace button, #contenu-jeu button:not(#suivi), dialog button").forEach(b => b.disabled = actif && !(automatique && b.id==="auto"));
   texte("auto",automatique?"Arrêter l’automatique":"Mode automatique");
 }
 async function traiter(travail: () => Promise<void>): Promise<void> {
@@ -66,15 +66,19 @@ async function traiter(travail: () => Promise<void>): Promise<void> {
       el("essai").hidden=true;el("auto").hidden=true}
   } finally { verrou(false); }
 }
+function deplier(ouvert: boolean): void {
+  el("volet").setAttribute("aria-expanded", String(ouvert));
+  el("contenu-jeu").hidden = !ouvert;
+}
+el("volet").onclick = () => deplier(el("contenu-jeu").hidden);
+
 function onglet(archives: boolean): void {
-  el("carte").hidden=archives;
-  document.querySelector<HTMLElement>(".donnees")!.hidden=archives;
-  texte("rubrique",archives?"Sessions locales":"Atelier de résolution");
+  if (archives || !session) deplier(true);
+  el("partie-details").hidden=archives || !session;
   el("bibliotheque").hidden=!archives;el("espace").hidden=archives || !session;
   el("atelier-vide").hidden=archives || !!session;
   for(const id of ["atelier","archives"])el(id).removeAttribute("aria-current");
   el(archives?"archives":"atelier").setAttribute("aria-current","page");
-  texte("titre",archives?"Mes parties":"Galaxie sémantique");
 }
 function choisir(s: Partie, vueInitiale=false): void {
   if (quotidien) afficherNumero(s.config.grille);

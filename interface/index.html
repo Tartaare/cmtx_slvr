@@ -6,40 +6,58 @@
 <link rel="icon" href="/logo-cemantix-transparent.png"><link rel="stylesheet" href="/style.css">
 <script type="module" src="/app.js"></script>
 </head>
-<body class="atelier-page">
-<a class="skip" href="#titre">Aller à l’atelier</a>
-<header class="bar"><div class="marque-atelier"><a class="brand" href="/" aria-label="Cémantix, accueil"><img src="/logo-cemantix-transparent.png" alt="">Cémantix</a>
+<body class="carte-plein-ecran atelier-page">
+<a class="skip" href="#volet">Aller aux commandes de jeu</a>
+<header class="identite"><div class="marque-atelier"><h1 class="brand"><a href="/" aria-label="Cémantix, accueil"><img src="/logo-cemantix-transparent.png" alt="">Cémantix</a></h1>
 <p id="sous-titre" role="status" data-expiration=""><!-- sous-titre --></p><button type="button" id="retenter-jour" hidden>Réessayer</button></div>
-<nav aria-label="Navigation de l’atelier"><button id="atelier" aria-current="page">Atelier</button><button id="archives">Mes parties</button></nav>
-<button id="nouvelle"><span aria-hidden="true">＋</span> Nouvelle partie</button></header>
-<main>
-<div class="heading"><div><p class="kicker" id="rubrique">Atelier de résolution</p><h1 id="titre" tabindex="-1">Galaxie sémantique</h1></div>
-<p class="donnees"><span class="signal" aria-hidden="true"></span><b id="compte-mots">…</b> mots <span class="separateur">/</span> <b id="dimensions">…</b> dimensions</p></div>
+<button id="suivi" aria-pressed="true" hidden><span class="signal"></span> <span id="libelle-suivi">Suivi du solveur</span></button>
+</header>
+  <main id="scene" aria-label="Carte du dictionnaire">
+    <canvas id="galaxie" tabindex="0" aria-label="Explorer la galaxie en trois dimensions" aria-describedby="gestes"></canvas>
+    <canvas id="annotations" aria-hidden="true"></canvas>
+    <form id="chercher" role="search" hidden>
+      <div class="champ-recherche">
+        <span aria-hidden="true" class="loupe"></span>
+        <input id="recherche" type="search" maxlength="128" autocomplete="off" aria-label="Rechercher un mot dans la galaxie" placeholder="Rechercher un mot">
+      </div>
+      <div id="resultats"></div>
+    </form>
+    <div id="repli">
+      <p id="diagnostic-carte" role="status">Chargement du dictionnaire…</p>
+      <button id="retenter-carte" hidden>Recharger la carte</button>
+    </div>
+    <details class="aide" id="aide-carte" hidden>
+      <summary>Navigation <span aria-hidden="true">?</span></summary>
+      <p id="gestes">Glissez ou utilisez les flèches pour tourner. Maj + flèches déplace la vue. Molette, pincement ou touches + et − pour zoomer. Début rétablit la vue globale. Recherchez un mot pour le sélectionner au clavier. La vue globale nomme les champs lexicaux. Au zoom, les mots reprennent le premier plan. Les arcs relient des mots proches dans le modèle. Les arcs pointillés suivent les essais dans l’ordre joué.</p>
+    </details>
+    <label id="option-champs" hidden><input id="afficher-champs" type="checkbox" checked> Champs lexicaux</label>
+    <div id="outils-carte" role="group" aria-label="Commandes de la carte" hidden>
+      <button id="moins" aria-label="Dézoomer" title="Dézoomer">−</button>
+      <button id="plus" aria-label="Zoomer" title="Zoomer">+</button>
+      <button id="globale" aria-label="Revenir à la vue globale" title="Vue globale">⛶</button>
+    </div>
+    <span id="niveau" class="sr">Vue globale</span>
+    <span id="etat-carte" class="sr" role="status"></span>
+  </main>
+
+<section class="panneau-jeu" aria-label="Commandes de jeu">
+<button id="volet" aria-controls="contenu-jeu" aria-expanded="false">Partie <span aria-hidden="true">⌃</span></button>
 <div role="alert" id="erreur" hidden></div><p id="message" role="status" class="sr"></p>
-<section id="bibliotheque" hidden aria-label="Parties enregistrées"><div id="liste"></div></section>
-<section id="carte" aria-label="Carte du dictionnaire">
-<div id="scene">
-<canvas id="galaxie" tabindex="0" aria-label="Explorer la galaxie en trois dimensions" aria-describedby="gestes"></canvas>
-<canvas id="annotations" aria-hidden="true"></canvas>
-<div class="angle haut" aria-hidden="true"></div><div class="angle bas" aria-hidden="true"></div>
-<div class="vue"><span class="viseur" aria-hidden="true">⌖</span><span id="niveau">Vue globale</span></div>
-<form id="chercher" role="search" hidden><div class="champ-recherche"><span aria-hidden="true" class="loupe"></span><input id="recherche" type="search" maxlength="128" autocomplete="off" aria-label="Rechercher un mot dans la galaxie" placeholder="Rechercher un mot"></div><div id="resultats"></div></form>
-<div id="repli" hidden><p id="diagnostic-carte"></p><button id="retenter-carte" hidden>Recharger la carte</button></div>
-<label id="option-champs" hidden><input id="afficher-champs" type="checkbox" checked> Champs lexicaux</label>
-<div class="bas-carte"><button id="suivi" aria-pressed="true" hidden><span class="signal"></span> <span id="libelle-suivi">Suivi du solveur</span></button>
-<div id="outils-carte" hidden><button id="moins" aria-label="Dézoomer" title="Dézoomer">−</button><button id="plus" aria-label="Zoomer" title="Zoomer">+</button><button id="globale" aria-label="Revenir à la vue globale" title="Vue globale">⛶</button></div></div></div>
-<div class="sous-carte"><span id="etat-carte" role="status">Chargement du dictionnaire…</span>
-<details class="aide"><summary>Navigation <span aria-hidden="true">?</span></summary><p id="gestes">Glissez ou utilisez les flèches pour tourner. Maj + flèches déplace la vue. Molette, pincement ou touches + et − pour zoomer. Début rétablit la vue globale. Recherchez un mot pour le sélectionner au clavier. Les champs lexicaux repèrent les familles en vue globale. Les arcs continus relient des voisins du modèle. Les arcs pointillés suivent l’ordre des essais. Sur une grille réelle, les essais visibles ressortent sur le reste de la carte.</p></details></div>
-</section>
 <p id="atelier-vide" class="empty" hidden>Ouvrez une partie dans « Mes parties » ou démarrez une nouvelle partie.</p>
-<div id="espace" aria-busy="true">
-<section class="console" aria-labelledby="mot"><div class="proposition"><p id="legende" class="kicker">Initialisation du moteur</p><h2 id="mot">Chargement…</h2><p id="raison">Ouverture de la session locale.</p></div>
-<div class="commandes"><div class="actions"><button class="primary" id="essai" disabled>Jouer un essai</button><button id="auto" hidden>Mode automatique</button></div>
-<p class="budget"><b id="restants">—</b> essais restants <progress id="jauge" value="0" max="1" aria-label="Essais restants"></progress></p></div></section>
-<div class="lecture"><section><div class="sectitle"><h2>Journal des essais</h2><span id="joues" class="compteur">0</span></div>
-<p id="aucun-essai" class="empty">Aucun essai joué.</p><div class="journal"><table id="historique" hidden><thead><tr><th>Essai</th><th>Mot</th><th>Résultat</th></tr></thead><tbody id="recents"></tbody></table></div></section>
-<section class="synthese"><div class="sectitle"><h2>Résumé de la partie</h2><button id="ouvrir-options">Détails</button></div><dl><dt>Session</dt><dd id="grille">—</dd><dt>Meilleur essai</dt><dd id="meilleur">—</dd></dl></section></div></div></main>
+
+<section id="espace" aria-busy="true" aria-labelledby="mot"><p id="legende" class="kicker">Initialisation du moteur</p><h2 id="mot">Chargement…</h2>
+<button class="primary" id="essai" disabled>Jouer un essai</button></section>
+<div id="contenu-jeu" hidden>
+<nav class="sessions" aria-label="Navigation de l’atelier"><button id="atelier" aria-current="page">Atelier</button><button id="archives">Mes parties</button></nav>
+<button id="nouvelle"><span aria-hidden="true">＋</span> Nouvelle partie</button><section id="bibliotheque" hidden aria-label="Parties enregistrées"><h2 id="titre" tabindex="-1">Mes parties</h2><div id="liste"></div></section>
+<div id="partie-details"><p id="raison">Ouverture de la session locale.</p>
+<div class="actions"><button id="auto" hidden>Mode automatique</button><button id="ouvrir-options">Détails</button></div>
+<p class="budget"><b id="restants">—</b> essais restants <progress id="jauge" value="0" max="1" aria-label="Essais restants"></progress></p>
+<div class="sectitle"><h2>Journal des essais</h2><span id="joues" class="compteur">0</span></div>
+<p id="aucun-essai" class="empty">Aucun essai joué.</p><div class="journal"><table id="historique" hidden><thead><tr><th>Essai</th><th>Mot</th><th>Résultat</th></tr></thead><tbody id="recents"></tbody></table></div><dl><dt>Session</dt><dd id="grille">—</dd><dt>Meilleur essai</dt><dd id="meilleur">—</dd></dl></div>
+</div></section>
 <dialog id="options" aria-labelledby="options-titre"><div class="sectitle"><h2 id="options-titre">Détails de la partie</h2><button type="button" data-close aria-label="Fermer">×</button></div>
+<p class="donnees"><b id="compte-mots">…</b> mots <span aria-hidden="true">/</span> <b id="dimensions">…</b> dimensions</p>
 <dl><dt>Modèle actif</dt><dd id="modele">—</dd><dt>Stratégie active</dt><dd id="strategie">—</dd><dt>Calcul</dt><dd id="temps">—</dd></dl>
 <h3>Candidats · probabilité estimée</h3><ol id="candidats"></ol><p><span id="total"></span> <span id="egalite"></span></p><p id="calibration"></p><p id="couverture"></p>
 <div class="actions"><button id="export">Exporter en JSON</button><button id="pause">Suspendre</button><button id="interrompre">Interrompre</button><button id="reset">Repartir avec ces réglages</button></div></dialog>
