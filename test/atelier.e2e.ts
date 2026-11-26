@@ -269,6 +269,13 @@ test("la barre ouvre les vues et affiche le contexte du jeu sous Cémantix", {ti
     await page.getByText("Numéro indisponible", {exact: true}).waitFor();
     await page.getByRole("button", {name: "Réessayer"}).click();
     await page.getByText("n°1234", {exact: true}).waitFor();
+    const lecturesGrille: string[] = [];
+    page.on("request", requete => {
+      if (new URL(requete.url()).pathname === "/api/grille-du-jour") lecturesGrille.push(requete.url());
+    });
+    await page.reload();
+    await page.locator("#atelier-vide").waitFor();
+    assert.deepEqual(lecturesGrille, []);
     assert.equal(await grille.getAttribute("aria-current"), "page");
     const logo = (await page.getByRole("link", {name: "Cémantix, accueil"}).boundingBox())!;
     const numero = (await page.getByText("n°1234", {exact: true}).boundingBox())!;

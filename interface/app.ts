@@ -8,7 +8,9 @@ void ouvrirGalaxie();
 animerLentille(document.querySelector<HTMLElement>(".dock")!);
 const quotidien = location.pathname === "/jour";
 const api = "/api/parties", cleSession = quotidien ? "cemantix-session-jour" : "cemantix-session";
-let numeroJour = "";
+const sousTitre = el("sous-titre");
+let numeroJour = sousTitre.textContent?.match(/^n°([0-9]+)$/)?.[1] ?? "";
+let expirationJour = Number(sousTitre.dataset.expiration);
 let session: Partie | null = null, occupe = false, automatique = false;
 let prochainTour: number | undefined;
 const creation = el<HTMLFormElement>("creation"), score = el<HTMLFormElement>("score");
@@ -245,14 +247,17 @@ function afficherNumero(grille: string): void {
 
 function initialiser(): void {
   void traiter(async()=>{
-    if(quotidien){
+    if(quotidien && (!numeroJour || expirationJour <= Date.now() / 1000)){
       el("retenter-jour").hidden=true;
       texte("sous-titre","Grille du jour…");
       try {
-        const {grille}=await requete<{grille:string}>("/api/grille-du-jour");
-        if(typeof grille!=="string" || !/^[0-9]+$/.test(grille))throw new Error("Numéro de grille illisible.");
+        const {grille,expiration}=await requete<{grille:string; expiration:number}>("/api/grille-du-jour");
+        if(typeof grille!=="string" || !/^[0-9]+$/.test(grille) || !Number.isSafeInteger(expiration))
+          throw new Error("Numéro de grille illisible.");
+        expirationJour=expiration;
         afficherNumero(grille);
       } catch(erreur) {
+        numeroJour="";
         texte("sous-titre","Numéro indisponible");
         el("retenter-jour").hidden=false;
         onglet(false);
@@ -272,5 +277,8 @@ if(quotidien){
   champ(creation,"source").closest("label")!.hidden=true;
   texte("atelier-vide","Démarrez une nouvelle partie pour résoudre la grille du jour.");
   el("retenter-jour").onclick=initialiser;
+  window.addEventListener("pageshow", evenement=>{
+    if(evenement.persisted && expirationJour <= Date.now() / 1000)location.reload();
+  });
 }
 initialiser();
