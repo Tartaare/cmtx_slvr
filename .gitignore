@@ -1,5 +1,6 @@
 node_modules/
 dist/
 .modeles/
+.sessions/
 .venv/
 __pycache__/

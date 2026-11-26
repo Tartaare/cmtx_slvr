@@ -40,6 +40,9 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="Préparer les modèles ou jouer une grille hors ligne.")
     parser.add_argument("--cache", type=Path, default=Path(".modeles"))
     commandes = parser.add_subparsers(dest="action", required=True)
+    application = commandes.add_parser("application", help="Ouvrir l’atelier de résolution web local.")
+    application.add_argument("--port", type=int, default=8765)
+    application.add_argument("--base", type=Path, default=Path(".sessions/parties.sqlite3"))
     preparation = commandes.add_parser("preparer", help="Acquérir, vérifier et normaliser un modèle.")
     preparation.add_argument("modele", choices=SOURCES)
     commandes.add_parser("comparer", help="Contrôler les empreintes et comparer les vocabulaires.")
@@ -82,6 +85,10 @@ def main() -> int:
         commande.add_argument("--graine-choix", type=int, default=17, help="Graine du choix des propositions.")
     args = parser.parse_args()
     try:
+        if args.action == "application":
+            from .serveur import servir
+            servir(args.cache, args.base, args.port)
+            return 0
         if args.action in ("calibrer", "evaluer-inference"):
             if args.action == "calibrer":
                 modeles = {nom: Modele(args.cache / nom, verifier=True, source=s.empreinte)

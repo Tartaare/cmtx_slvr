@@ -7,7 +7,7 @@
     "node": ">=22.16"
   },
   "scripts": {
-    "build": "tsc",
+    "build": "tsc && tsc -p interface",
     "start": "node --disable-warning=ExperimentalWarning --experimental-strip-types cli.ts",
     "test": "node --disable-warning=ExperimentalWarning --experimental-strip-types --test test/*.test.ts"
   },

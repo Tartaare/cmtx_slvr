@@ -1,0 +1,110 @@
+"""Serveur HTTP de l'atelier sur l'interface de boucle locale."""
+import json
+import re
+import sqlite3
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from pathlib import Path
+from threading import Lock
+from urllib.parse import urlsplit
+
+from .atelier import Atelier, Objet
+from .sessions import Conflit, Sessions
+
+RACINE = Path(__file__).resolve().parents[1]
+FICHIERS = {
+    "/": (RACINE / "interface/index.html", "text/html"),
+    "/style.css": (RACINE / "interface/style.css", "text/css"),
+    "/app.js": (RACINE / "dist/interface/app.js", "text/javascript"),
+    "/rendu.js": (RACINE / "dist/interface/rendu.js", "text/javascript"),
+}
+
+
+def creer_serveur(cache: Path, base: Path, port: int) -> ThreadingHTTPServer:
+    sessions = Sessions(base, Atelier(cache))
+    mutations = Lock()
+
+    class Requete(BaseHTTPRequestHandler):
+        def repondre(self, statut: int, contenu: bytes, type_mime: str) -> None:
+            self.send_response(statut)
+            self.send_header("Content-Type", type_mime + "; charset=utf-8")
+            self.send_header("Content-Length", str(len(contenu)))
+            self.send_header("Cache-Control", "no-store")
+            self.send_header("X-Content-Type-Options", "nosniff")
+            self.send_header("Content-Security-Policy", "default-src 'self'; object-src 'none'; "
+                             "base-uri 'none'; frame-ancestors 'none'; form-action 'self'")
+            self.end_headers()
+            self.wfile.write(contenu)
+
+        def json(self, statut: int, contenu: object) -> None:
+            self.repondre(statut, json.dumps(contenu, allow_nan=False).encode(), "application/json")
+
+        def traiter(self, ecriture: bool) -> None:
+            port_local = self.server.server_address[1]
+            host = self.headers.get("Host")
+            if host not in (f"127.0.0.1:{port_local}", f"localhost:{port_local}"):
+                self.json(403, {"erreur": "Adresse locale requise."})
+                return
+            chemin = urlsplit(self.path).path
+            try:
+                if not ecriture and chemin in FICHIERS:
+                    fichier, mime = FICHIERS[chemin]
+                    self.repondre(200, fichier.read_bytes(), mime)
+                    return
+                identifiant = re.fullmatch(r"/api/parties/([a-f0-9]{32})", chemin)
+                if chemin != "/api/parties" and not identifiant:
+                    self.json(404, {"erreur": "Ressource inconnue."})
+                    return
+                if not ecriture:
+                    self.json(200, sessions.lire(identifiant[1]) if identifiant else sessions.liste())
+                    return
+                if self.headers.get("Origin") not in (None, "http://" + host):
+                    self.json(403, {"erreur": "Origine de la requête refusée."})
+                    return
+                if self.headers.get_content_type() != "application/json":
+                    self.json(415, {"erreur": "Le corps doit être au format JSON."})
+                    return
+                taille = int(self.headers.get("Content-Length", "0"))
+                if not 0 < taille <= 262144:
+                    self.json(413, {"erreur": "Le corps doit contenir de 1 à 262144 octets."})
+                    return
+                donnees: Objet = json.loads(self.rfile.read(taille))
+                if not isinstance(donnees, dict):
+                    raise ValueError("Un objet JSON est attendu.")
+                with mutations:
+                    if identifiant:
+                        resultat = sessions.modifier(identifiant[1], donnees.get("revision"), donnees.get("action"),
+                                                     donnees.get("observations"))
+                    elif donnees.get("initial") is True and (existantes := sessions.liste()):
+                        resultat = sessions.lire(existantes[0]["id"])
+                    else:
+                        resultat = sessions.creer(donnees.get("config", {}), donnees.get("observations"))
+                self.json(200 if identifiant else 201, resultat)
+            except Conflit as erreur:
+                self.json(409, {"erreur": str(erreur)})
+            except KeyError:
+                self.json(404, {"erreur": "Partie introuvable."})
+            except (ValueError, TypeError, RecursionError) as erreur:
+                self.json(400, {"erreur": str(erreur)})
+            except (OSError, sqlite3.Error):
+                self.json(500, {"erreur": "Lecture ou sauvegarde impossible. Vérifiez les fichiers locaux."})
+
+        def do_GET(self) -> None:
+            self.traiter(False)
+
+        def do_POST(self) -> None:
+            self.traiter(True)
+
+    return ThreadingHTTPServer(("127.0.0.1", port), Requete)
+
+
+def servir(cache: Path, base: Path, port: int) -> None:
+    if not all(f.is_file() for f, _ in FICHIERS.values()):
+        raise ValueError("Compilez l’interface avec « npm run build » avant de lancer l’application.")
+    if not 0 <= port <= 65535:
+        raise ValueError("Port hors limites.")
+    with creer_serveur(cache, base, port) as serveur:
+        print(f"Atelier Cémantix · http://127.0.0.1:{serveur.server_port}/", flush=True)
+        try:
+            serveur.serve_forever()
+        except KeyboardInterrupt:
+            pass
