@@ -22,6 +22,8 @@ export interface Score {
   progression: number | null;
 }
 
+export class MotRefuse extends Error {}
+
 export async function essayerMot(page: Page, mot: string): Promise<Score> {
   const grille = await page.locator("#script").getAttribute("data-puzzle-number");
   if (!grille || !/^\d+$/.test(grille)) throw new Error("Numéro de grille illisible.");
@@ -46,7 +48,11 @@ export async function essayerMot(page: Page, mot: string): Promise<Score> {
   }, mot);
   const brut = await reponse.jsonValue();
   if (!brut) throw new Error("La grille n’a fourni aucun résultat.");
-  if ("erreur" in brut) throw new Error(`Cémantix · ${mot} · ${brut.erreur}`);
+  if ("erreur" in brut) {
+    const message = `Cémantix · ${mot} · ${brut.erreur}`;
+    if (brut.erreur?.includes("Je ne connais pas le mot " + mot)) throw new MotRefuse(message);
+    throw new Error(message);
+  }
 
   const valeur = brut.temperature.replace("−", "-").replace(",", ".");
   const temperature = Number(valeur);
