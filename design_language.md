@@ -1,7 +1,15 @@
-# Interface de l’atelier Cémantix
+# Langage visuel · Galaxie sémantique
 
-L’écran de résolution suit l’ordre des décisions du joueur. Le mot recommandé et le budget restant occupent le premier plan. La trajectoire et le classement expliquent ce choix. Le journal conserve le détail de chaque essai.
+L’atelier s’ouvre sur le dictionnaire. La carte, la proposition du solveur et le journal forment trois niveaux de lecture dans cet ordre. Les diagnostics et paramètres de session s’ouvrent à la demande.
 
-Les couleurs de référence sont définies dans `interface/style.css`. Le vert profond `--dark` porte la proposition courante, l’abricot `--heat` désigne l’action principale et le fond `--paper` sépare les zones de lecture. Les titres et les mots proposés utilisent Georgia. Les contrôles et les données utilisent une police sans empattement disponible localement. Les valeurs numériques sont alignées dans les colonnes.
+| Élément | Règle |
+| --- | --- |
+| Surface et texte | Fond graphite `#0a0c0f`, scène presque noire, texte principal `#f2f1ed`, secondaire `#a5acb2`. Les filets séparent les fonctions. |
+| Action principale | Ambre `#f5b86d` pour jouer un essai, signaler le suivi et repérer le focus clavier. |
+| Typographie | Sans empattement pour la navigation et le mot proposé. Chasse fixe pour les libellés de carte, relevés et mesures. Piles de polices locales définies dans `interface/style.css`. |
+| Dictionnaire | Une particule carrée par mot. La couleur identifie son groupe de vecteurs. Les traits relient deux essais successifs localisables. |
+| Résultats | Contour pour un essai, étoile pour le meilleur, coche pour une victoire confirmée. Le score reste lisible en toutes lettres ou en degrés dans le journal. |
+| Mouvement | Une caméra continue entre trois échelles. Une manipulation suspend le suivi. La préférence système de réduction du mouvement applique la pose directement. |
+| Petit écran | La recherche et les commandes de carte restent dans la scène. La commande de jeu et le journal se lisent sous la carte, dans une colonne. |
 
-Le libellé accompagne chaque état et chaque changement de stratégie. Les graphiques ont une description accessible et leurs valeurs restent consultables dans le tableau de bord. Les contrôles utilisent les éléments natifs du navigateur, un focus visible et un retour de chargement. Sur petit écran, la trajectoire puis les candidats passent sur une seule colonne. Le journal défile horizontalement dans sa propre section.
+[Spécification de la galaxie](documents_design/cemantix_galaxy/galaxie-semantique-spec-ui-ux.md)

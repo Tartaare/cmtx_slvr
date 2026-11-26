@@ -1,5 +1,7 @@
 # Atelier Cémantix
 
+La galaxie représente les 55 402 mots du dictionnaire réduit. Recherchez un mot ou sélectionnez une particule pour explorer son voisinage. **Reprendre le suivi** recentre la caméra sur l’essai du solveur. En l’absence de WebGL, le journal, les scores et les commandes de jeu restent accessibles. [Plan, captures et recette](documents_design/cemantix_galaxy/plan-implementation.md)
+
 L’application locale recommande un mot, interprète sa température et change de modèle lorsque les observations l’exigent. Le navigateur et la CLI Python utilisent le même moteur de résolution.
 
 ## Ouvrir l’application
@@ -15,7 +17,7 @@ npm run build
 python -m solveur application
 ```
 
-Ouvrez [l’atelier local](http://127.0.0.1:8765/). La première visite prépare une simulation de graine 42. **Jouer un essai** demande un seul score. **Mode automatique** enchaîne les essais simulés tant que l’atelier reste ouvert. Le mode adaptatif commence avec « hirsute », l’ouverture sélectionnée par entropie sur le modèle réduit. Il essaie ensuite de départager les candidats exacts, étend la recherche au modèle original si nécessaire, puis reclasse les mots par probabilité si les températures divergent encore. Si seul le modèle réduit est préparé, la partie utilise son repli probabiliste local. La rubrique **Diagnostic** indique la couverture effective.
+Ouvrez [l’atelier local](http://127.0.0.1:8765/). La première visite prépare une simulation de graine 42. **Jouer un essai** demande un seul score. **Mode automatique** enchaîne les essais simulés tant que l’atelier reste ouvert. Le mode adaptatif commence avec « hirsute », l’ouverture sélectionnée par entropie sur le modèle réduit. Il essaie ensuite de départager les candidats exacts, étend la recherche au modèle original si nécessaire, puis reclasse les mots par probabilité si les températures divergent encore. Si seul le modèle réduit est préparé, la partie utilise son repli probabiliste local. Le bouton **Détails** donne accès aux commandes de session, au classement des candidats et au diagnostic.
 
 Sous Windows, pour isoler NumPy du reste du poste, créez l’environnement avec `python -m venv .venv`, installez les dépendances avec `.\.venv\Scripts\python.exe -m pip install -r requirements.txt` et lancez le moteur avec `.\.venv\Scripts\python.exe -m solveur application`. Après une coupure, rechargez l’onglet pour retrouver le dernier essai enregistré.
 
@@ -23,7 +25,7 @@ Sous Windows, si **Nouvelle partie** affiche `WinError 5` sur un fichier de `.mo
 
 Pour une grille réelle, choisissez **Nouvelle partie**, puis **Grille réelle · saisie ou import** et indiquez son identifiant. Reportez la température, un refus ou la victoire à chaque essai. Un score de 100 °C et une victoire sont deux réponses distinctes. À la création, vous pouvez importer un fichier JSONL au format de la commande `simuler`. Chaque ligne consomme un essai. Pour changer de grille, créez une nouvelle partie.
 
-Le journal enregistre la recommandation, le mot effectivement joué, le modèle de recherche, la phase et le temps de calcul. Lorsqu’une hypothèse précédente existe, le journal donne aussi son score prédit et l’écart avec le score reçu. Le graphique permet de suivre les candidats, l’entropie, les écarts et les temps. Les probabilités du classement reposent sur le modèle et les observations disponibles.
+Le journal affiche tous les essais, les plus récents en tête. Un contour signale chaque résultat sur la carte. Une étoile repère le meilleur essai et une coche la solution confirmée. L’export JSON conserve les observations et les diagnostics détaillés. Les probabilités du classement reposent sur le modèle et les observations disponibles.
 
 Les parties sont conservées dans `.sessions/parties.sqlite3`. **Mes parties** permet de les retrouver après fermeture du navigateur ou redémarrage du serveur. **Repartir avec ces réglages** crée une nouvelle partie. L’export JSON conserve la configuration, les empreintes des modèles, les observations et les diagnostics. Utilisez `python -m solveur application --port 8766 --base mes-parties.sqlite3` pour choisir une autre adresse locale et une autre base. Arrêtez le serveur avec Ctrl+C dans son terminal.
 
@@ -175,8 +177,20 @@ Un mot refusé ou un site inaccessible produit un message sur la sortie d’erre
 
 Pour utiliser une autre installation de Chromium, définissez la variable d’environnement `CEMANTIX_BROWSER` avec le chemin complet de son exécutable.
 
+## Reproduire la projection
+
+L’atlas de 1,8 Mo est livré avec l’interface. Sa préparation est facultative pour jouer. Pour le recalculer, utilisez un environnement Python dédié à la projection et exécutez les commandes depuis la racine du dépôt.
+
+```sh
+python -m pip install -r documents_design/cemantix_galaxy/requirements-projection.txt
+python -m solveur.galaxie --modele .modeles/reduit --sortie interface/atlas.json
+```
+
+Le générateur vérifie les empreintes du modèle, compare UMAP et PCA sur le même échantillon, puis écrit l’atlas. Les couleurs proviennent de 16 groupes calculés dans l’espace des vecteurs d’origine. La projection sert à explorer le vocabulaire. Les températures viennent de la source de la partie.
+
 ## Vérifier le projet
 
+- Après le build, `npm run test:galaxie` rejoue une simulation sur le modèle complet, vérifie un import de scores réels, met à jour les trois captures et mesure quinze minutes de navigation. `npm run test:galaxie -- --courte` réduit la passe de bureau à une minute. Les deux commandes utilisent une base de parties temporaire.
 - `npm run build` vérifie les types en mode strict et compile l’interface dans `dist/interface/`.
 - Après le build, `npm run test:atelier` contrôle le parcours web dans Edge ou Chrome, le redémarrage du serveur, la reprise du budget, l’import et la confirmation. Ce test utilise un lexique isolé et une base temporaire. Définissez `CEMANTIX_PYTHON` si Python 3.12 avec NumPy est installé hors du PATH.
 - `npm test` vérifie la saisie et le parcours du formulaire dans un navigateur local, hors ligne.
